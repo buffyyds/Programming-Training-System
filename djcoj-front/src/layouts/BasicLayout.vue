@@ -17,10 +17,7 @@
 }
 
 #basicLayout .header {
-  background-color: red;
-  color: white;
-  text-align: center;
-  font-size: 20px;
+  box-shadow: #eee 1px 1px 5px;
 }
 
 #basicLayout .content {
