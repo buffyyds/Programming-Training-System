@@ -21,7 +21,7 @@
           @menu-item-click="doMenuClick"
         >
           <!--for循环遍历路由，动态的获取路由文件中的路由信息-->
-          <a-menu-item v-for="item in routes" :key="item.path">
+          <a-menu-item v-for="item in visibleRoutes" :key="item.path">
             {{ item.name }}
           </a-menu-item>
         </a-menu>
@@ -29,7 +29,7 @@
     </a-col>
     <a-col flex="100px">
       <!--记录用户登录信息-->
-      <div>{{ store.state.user?.loginUser?.name ?? "未登录" }}</div>
+      <div>{{ store.state.user?.loginUser?.userName ?? "未登录" }}</div>
     </a-col>
   </a-row>
 </template>
@@ -37,10 +37,31 @@
 <script setup lang="ts">
 import { routes } from "@/router/routes";
 import { useRoute, useRouter } from "vue-router";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useStore } from "vuex";
+import checkAccess from "@/access/checkAccess";
+import ACCESS_ENUM from "@/access/accessEnum";
 
 const router = useRouter();
+const store = useStore();
+const loginUser = store.state.user.loginUser;
+
+// 展示在菜单的路由数组
+//computed是一个计算属性，用于计算一个新的值，当依赖的值发生变化时，会重新计算
+const visibleRoutes = computed(() => {
+  return routes.filter((item, index) => {
+    if (item.meta?.hideInMenu) {
+      return false;
+    }
+    // 根据权限过滤菜单
+    if (
+      !checkAccess(store.state.user.loginUser, item?.meta?.access as string)
+    ) {
+      return false;
+    }
+    return true;
+  });
+});
 
 // 动态变量，用于记录当前选中的菜单项，在刷新的时候能够保持选中状态（默认主页）
 const selectedKeys = ref(["/"]);
@@ -55,9 +76,11 @@ const doMenuClick = (key: string) => {
   });
 };
 
-const store = useStore();
 setTimeout(() => {
-  store.dispatch("user/getLoginUser", {});
+  store.dispatch("user/getLoginUser", {
+    userName: "djc管理员",
+    userRole: ACCESS_ENUM.ADMIN,
+  });
 }, 3000);
 </script>
 

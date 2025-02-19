@@ -1,4 +1,5 @@
 import { StoreOptions } from "vuex";
+import ACCESS_ENUM from "@/access/accessEnum";
 
 export default {
   namespaced: true,
@@ -6,14 +7,15 @@ export default {
   state: {
     loginUser: {
       //id?
-      name: "未登录",
+      userName: "未登录",
+      userRole: ACCESS_ENUM.NOT_LOGIN,
     },
   },
   //actions 执行异步操作，并且触发mutations更新state
   actions: {
     getLoginUser({ commit, state }, user) {
       //user需要在登录的时候从后端获取
-      commit("updateUser", { name: "djc" });
+      commit("updateUser", user);
     },
   },
   //mutations 定义对变量更新的方法（尽量同步）
