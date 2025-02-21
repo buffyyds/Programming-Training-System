@@ -22,7 +22,7 @@ export type OpenAPIConfig = {
 export const OpenAPI: OpenAPIConfig = {
     BASE: 'http://localhost:8121',
     VERSION: '1.0',
-    WITH_CREDENTIALS: false,
+    WITH_CREDENTIALS: true,   // 这里默认的是false，但是我们需要设置为true，如果是false的话，不会携带cookie，导致登录状态无法保持
     CREDENTIALS: 'include',
     TOKEN: undefined,
     USERNAME: undefined,

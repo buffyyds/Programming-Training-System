@@ -46,6 +46,7 @@ const router = useRouter();
 const store = useStore();
 const loginUser = store.state.user.loginUser;
 
+console.log("loginUser", loginUser);
 // 展示在菜单的路由数组
 //computed是一个计算属性，用于计算一个新的值，当依赖的值发生变化时，会重新计算
 const visibleRoutes = computed(() => {
@@ -76,12 +77,12 @@ const doMenuClick = (key: string) => {
   });
 };
 
-setTimeout(() => {
-  store.dispatch("user/getLoginUser", {
-    userName: "djc管理员",
-    userRole: ACCESS_ENUM.ADMIN,
-  });
-}, 3000);
+// setTimeout(() => {
+//   store.dispatch("user/getLoginUser", {
+//     userName: "djc管理员",
+//     userRole: ACCESS_ENUM.ADMIN,
+//   });
+// }, 3000);
 </script>
 
 <style scoped>
