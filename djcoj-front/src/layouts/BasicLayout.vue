@@ -17,16 +17,20 @@
 }
 
 #basicLayout .header {
+  margin-bottom: 16px;
   box-shadow: #eee 1px 1px 5px;
 }
 
 #basicLayout .content {
-  background-color: #f0f2f5;
+  background: linear-gradient(to right, #fefefe, #fff);
+  margin-bottom: 16px;
+  padding: 20px;
 }
 
 #basicLayout .footer {
+  background: #efefef;
   padding: 16px;
-  position: absolute;
+  position: sticky;
   bottom: 0;
   left: 0;
   right: 0;

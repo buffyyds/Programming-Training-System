@@ -8,7 +8,7 @@
           disabled
         >
           <div>
-            <img class="logo" src="../assets/logo.png" />
+            <img class="logo" src="../assets/logo2.png" />
           </div>
         </a-menu-item>
       </div>
