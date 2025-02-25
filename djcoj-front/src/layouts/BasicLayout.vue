@@ -28,9 +28,9 @@
 }
 
 #basicLayout .footer {
-  background: #efefef;
+  background: #eee;
   padding: 16px;
-  position: sticky;
+  position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
