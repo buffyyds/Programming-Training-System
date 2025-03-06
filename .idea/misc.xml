@@ -6,7 +6,14 @@
       <list>
         <option value="$PROJECT_DIR$/djc-springboot-init-master/pom.xml" />
         <option value="$PROJECT_DIR$/springboot-init-master/pom.xml" />
+        <option value="$PROJECT_DIR$/djcoj-code-sandbox/pom.xml" />
+        <option value="$PROJECT_DIR$/djc-codesandbox/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/djcoj-code-sandbox/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="corretto-1.8" project-jdk-type="JavaSDK">

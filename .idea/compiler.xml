@@ -8,9 +8,11 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="springboot-init" />
+        <module name="yuoj-code-sandbox" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="djcoj-code-sandbox" target="1.8" />
       <module name="springboot-init (1)" target="1.8" />
       <module name="springboot-init (1) (com.yupi)" target="1.8" />
     </bytecodeTargetLevel>
@@ -20,6 +22,7 @@
       <module name="springboot-init" options="-parameters" />
       <module name="springboot-init (1)" options="-parameters" />
       <module name="springboot-init (1) (com.yupi)" options="-parameters" />
+      <module name="yuoj-code-sandbox" options="-parameters" />
     </option>
   </component>
 </project>
