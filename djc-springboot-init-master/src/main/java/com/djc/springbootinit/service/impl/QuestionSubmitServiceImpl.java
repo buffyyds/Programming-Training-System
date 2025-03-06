@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.djc.springbootinit.common.ErrorCode;
 import com.djc.springbootinit.constant.CommonConstant;
 import com.djc.springbootinit.exception.BusinessException;
+import com.djc.springbootinit.judge.JudgeService;
+import com.djc.springbootinit.judge.JudgeServiceImpl;
 import com.djc.springbootinit.mapper.QuestionSubmitMapper;
 import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitQueryRequest;
@@ -43,6 +45,10 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
     private QuestionService questionService;
     @Resource
     private UserService userService;
+
+    @Resource
+    @Lazy
+    private JudgeService judgeService;
 
     /**
      * 题目提交
@@ -82,6 +88,10 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "数据插入失败");
         }
         Long questionSubmitId = questionSubmit.getId();
+        CompletableFuture.runAsync(() -> {
+            // 异步判题
+             judgeService.doJudge(questionSubmitId);
+        });
         return questionSubmitId;
     }
 

@@ -7,7 +7,7 @@
       <a-layout-content class="content">
         <router-view />
       </a-layout-content>
-      <a-layout-footer class="footer">编程训练系统-djc</a-layout-footer>
+      <!--      <a-layout-footer class="footer">编程训练系统-djc</a-layout-footer>-->
     </a-layout>
   </div>
 </template>
@@ -28,9 +28,9 @@
 }
 
 #basicLayout .footer {
-  background: #eee;
+  background: #efefef;
   padding: 16px;
-  position: absolute;
+  position: sticky;
   bottom: 0;
   left: 0;
   right: 0;
