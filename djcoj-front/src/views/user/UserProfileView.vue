@@ -134,6 +134,16 @@ const handleSubmit = async () => {
       }
     }
 
+    if (showAdminCodeInput.value) {
+      // todo 这里可以有更好的逻辑，但是这个管理员申请不是很重要，所以就这样了，有时间再完善
+      if (adminCode.value !== "djcyyds") {
+        Message.error("管理码错误");
+        return;
+      } else {
+        userForm.value.userRole = "admin";
+      }
+    }
+
     const updateData = {
       ...userForm.value,
       userPassword: showChangePassword.value

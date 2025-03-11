@@ -1,7 +1,8 @@
 package com.djc.springbootinit.model.dto.user;
 
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 用户更新个人信息请求
@@ -35,6 +36,11 @@ public class UserUpdateMyRequest implements Serializable {
      * 密码
      */
     private String userPassword;
+
+    /**
+     * 用户角色：user/admin/ban
+     */
+    private String userRole;
 
     private static final long serialVersionUID = 1L;
 }
