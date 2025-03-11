@@ -3,8 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type UserUpdateMyRequest = {
-    userAvatar?: string;
-    userName?: string;
-    userProfile?: string;
+  userAvatar?: string;
+  userName?: string;
+  userPassword?: string;
+  userPhone?: string;
+  userProfile?: string;
 };
-

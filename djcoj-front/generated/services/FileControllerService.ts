@@ -1,8 +1,5 @@
-/* generated using openapi-typescript-codegen -- do not edit */
-/* istanbul ignore file */
-/* tslint:disable */
-/* eslint-disable */
 import type { BaseResponse_string_ } from "../models/BaseResponse_string_";
+import type { UrlResource } from "../models/UrlResource";
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
 import { request as __request } from "../core/request";
@@ -27,6 +24,28 @@ export class FileControllerService {
       },
       formData: {
         file: file,
+      },
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+  /**
+   * getFile
+   * @param filepath filepath
+   * @returns UrlResource OK
+   * @throws ApiError
+   */
+  public static getFileUsingGet(
+    filepath: string
+  ): CancelablePromise<UrlResource> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/file/{filepath}",
+      path: {
+        filepath: filepath,
       },
       errors: {
         401: `Unauthorized`,

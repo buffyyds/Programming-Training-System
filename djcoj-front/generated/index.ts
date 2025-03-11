@@ -25,6 +25,8 @@ export type { BaseResponse_string_ } from './models/BaseResponse_string_';
 export type { BaseResponse_User_ } from './models/BaseResponse_User_';
 export type { BaseResponse_UserVO_ } from './models/BaseResponse_UserVO_';
 export type { DeleteRequest } from './models/DeleteRequest';
+export type { File } from './models/File';
+export type { InputStream } from './models/InputStream';
 export type { JudgeCase } from './models/JudgeCase';
 export type { JudgeConfig } from './models/JudgeConfig';
 export type { JudgeInfo } from './models/JudgeInfo';
@@ -55,6 +57,9 @@ export type { QuestionSubmitQueryRequest } from './models/QuestionSubmitQueryReq
 export type { QuestionSubmitVO } from './models/QuestionSubmitVO';
 export type { QuestionUpdateRequest } from './models/QuestionUpdateRequest';
 export type { QuestionVO } from './models/QuestionVO';
+export type { URI } from './models/URI';
+export type { URL } from './models/URL';
+export type { UrlResource } from './models/UrlResource';
 export type { User } from './models/User';
 export type { UserAddRequest } from './models/UserAddRequest';
 export type { UserLoginRequest } from './models/UserLoginRequest';
