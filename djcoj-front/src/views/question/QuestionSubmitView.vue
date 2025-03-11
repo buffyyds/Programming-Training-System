@@ -97,9 +97,13 @@ onMounted(() => {
 
 const columns = [
   {
-    title: "提交号",
-    dataIndex: "id",
+    title: "题号",
+    dataIndex: "questionId",
   },
+  // {
+  //   title: "提交号",
+  //   dataIndex: "id",
+  // },
   {
     title: "编程语言",
     dataIndex: "language",
@@ -111,10 +115,6 @@ const columns = [
   {
     title: "判题状态",
     dataIndex: "status",
-  },
-  {
-    title: "题目 id",
-    dataIndex: "questionId",
   },
   {
     title: "提交者 id",

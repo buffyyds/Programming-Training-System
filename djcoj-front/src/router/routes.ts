@@ -91,4 +91,22 @@ export const routes: Array<RouteRecordRaw> = [
       hideInMenu: true,
     },
   },
+  {
+    path: "/user/profile",
+    name: "个人信息",
+    component: () => import("../views/user/UserProfileView.vue"),
+    meta: {
+      access: ACCESS_ENUM.USER,
+      hideInMenu: true,
+    },
+  },
+  {
+    path: "/user/messages",
+    name: "我的消息",
+    component: () => import("../views/user/UserMessagesView.vue"),
+    meta: {
+      access: ACCESS_ENUM.USER,
+      hideInMenu: true,
+    },
+  },
 ];

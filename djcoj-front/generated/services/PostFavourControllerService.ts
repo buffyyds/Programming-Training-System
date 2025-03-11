@@ -1,3 +1,7 @@
+/* generated using openapi-typescript-codegen -- do not edit */
+/* istanbul ignore file */
+/* tslint:disable */
+/* eslint-disable */
 import type { BaseResponse_int_ } from "../models/BaseResponse_int_";
 import type { BaseResponse_Page_PostVO_ } from "../models/BaseResponse_Page_PostVO_";
 import type { PostFavourAddRequest } from "../models/PostFavourAddRequest";
@@ -6,7 +10,6 @@ import type { PostQueryRequest } from "../models/PostQueryRequest";
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
 import { request as __request } from "../core/request";
-
 export class PostFavourControllerService {
   /**
    * doPostFavour
@@ -29,7 +32,6 @@ export class PostFavourControllerService {
       },
     });
   }
-
   /**
    * listFavourPostByPage
    * @param postFavourQueryRequest postFavourQueryRequest
@@ -51,7 +53,6 @@ export class PostFavourControllerService {
       },
     });
   }
-
   /**
    * listMyFavourPostByPage
    * @param postQueryRequest postQueryRequest

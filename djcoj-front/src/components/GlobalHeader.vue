@@ -28,8 +28,28 @@
       </div>
     </a-col>
     <a-col flex="100px">
-      <!--记录用户登录信息-->
-      <div>{{ store.state.user?.loginUser?.userName ?? "未登录" }}</div>
+      <a-dropdown trigger="hover">
+        <a-avatar style="cursor: pointer" :size="32">
+          <template #icon>
+            <user-outlined />
+          </template>
+          <div>{{ store.state.user?.loginUser?.userName ?? "未登录" }}</div>
+        </a-avatar>
+        <template #content>
+          <a-doption @click="router.push('/user/profile')">
+            <template #icon><user-outlined /></template>
+            个人信息
+          </a-doption>
+          <a-doption @click="router.push('/user/messages')">
+            <template #icon><message-outlined /></template>
+            我的消息
+          </a-doption>
+          <a-doption @click="handleLogout">
+            <template #icon><logout-outlined /></template>
+            退出登录
+          </a-doption>
+        </template>
+      </a-dropdown>
     </a-col>
   </a-row>
 </template>
@@ -41,6 +61,13 @@ import { computed, ref } from "vue";
 import { useStore } from "vuex";
 import checkAccess from "@/access/checkAccess";
 import ACCESS_ENUM from "@/access/accessEnum";
+import {
+  UserOutlined,
+  MessageOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons-vue";
+import { UserControllerService } from "../../generated";
+import { Message } from "@arco-design/web-vue";
 
 const router = useRouter();
 const store = useStore();
@@ -75,6 +102,18 @@ const doMenuClick = (key: string) => {
   router.push({
     path: key,
   });
+};
+
+const handleLogout = async () => {
+  try {
+    await UserControllerService.userLogoutUsingPost();
+    Message.success("退出登录成功");
+    // 清除用户状态
+    store.commit("user/updateUser", null);
+    await router.push("/user/login");
+  } catch (error) {
+    Message.error("退出登录失败");
+  }
 };
 
 // setTimeout(() => {
