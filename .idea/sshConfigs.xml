@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig authType="PASSWORD" connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="192.168.189.144" id="6992f7e4-91c7-47d1-85a4-1d2298913484" port="22" customName="VMware-Redis" nameFormat="CUSTOM" username="redis" useOpenSSHConfig="true">
+        <option name="customName" value="VMware-Redis" />
+      </sshConfig>
+    </configs>
+  </component>
+</project>

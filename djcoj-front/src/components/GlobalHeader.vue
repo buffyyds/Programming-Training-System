@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import { routes } from "@/router/routes";
 import { useRoute, useRouter } from "vue-router";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useStore } from "vuex";
 import checkAccess from "@/access/checkAccess";
 import ACCESS_ENUM from "@/access/accessEnum";
@@ -70,6 +70,7 @@ import { UserControllerService } from "../../generated";
 import { Message } from "@arco-design/web-vue";
 
 const router = useRouter();
+const route = useRoute();
 const store = useStore();
 const loginUser = store.state.user.loginUser;
 
@@ -91,12 +92,16 @@ const visibleRoutes = computed(() => {
   });
 });
 
-// 动态变量，用于记录当前选中的菜单项，在刷新的时候能够保持选中状态（默认主页）
-const selectedKeys = ref(["/"]);
-// 路由跳转后，更新选中的菜单项
-router.afterEach((to) => {
-  selectedKeys.value = [to.path];
-});
+// 动态变量，用于记录当前选中的菜单项
+const selectedKeys = ref([route.path]);
+
+// 监听路由变化，更新选中的菜单项
+watch(
+  () => route.path,
+  (newPath) => {
+    selectedKeys.value = [newPath];
+  }
+);
 
 const doMenuClick = (key: string) => {
   router.push({

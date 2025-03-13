@@ -3,8 +3,13 @@
     <a-card class="profile-card">
       <template #title>
         <div class="card-title">
-          <icon-user class="title-icon" />
-          个人信息
+          <a-space>
+            <a-button type="text" @click="goBack">
+              <template #icon><icon-arrow-left /></template>
+            </a-button>
+            <icon-user class="title-icon" />
+            个人信息
+          </a-space>
         </div>
       </template>
 
@@ -88,9 +93,11 @@
 import { ref, onMounted } from "vue";
 import { Message } from "@arco-design/web-vue";
 import { useStore } from "vuex";
-import { IconUser } from "@arco-design/web-vue/es/icon";
+import { IconUser, IconArrowLeft } from "@arco-design/web-vue/es/icon";
 import { UserControllerService } from "../../../generated";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const store = useStore();
 const showChangePassword = ref(false);
 const showAdminCodeInput = ref(false);
@@ -171,6 +178,11 @@ const handleSubmit = async () => {
   } catch (error) {
     Message.error("更新失败");
   }
+};
+
+// 返回上一页
+const goBack = () => {
+  router.back();
 };
 </script>
 

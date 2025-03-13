@@ -6,6 +6,7 @@
     <template v-else>
       <BasicLayout />
     </template>
+    <AIAssistant />
   </div>
 </template>
 
@@ -17,6 +18,7 @@
 import BasicLayout from "@/layouts/BasicLayout.vue";
 import { onMounted } from "vue";
 import { useRoute } from "vue-router";
+import AIAssistant from "./components/AIAssistant.vue";
 
 const route = useRoute();
 /**
