@@ -43,10 +43,6 @@ public class PostThumb implements Serializable {
      */
     private Date updateTime;
 
-    /**
-     * 题目id
-     */
-    private Long questionId;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

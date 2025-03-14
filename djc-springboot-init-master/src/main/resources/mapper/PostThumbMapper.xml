@@ -11,11 +11,10 @@
             <result property="userId" column="userId" jdbcType="BIGINT"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
-            <result property="questionId" column="questionId" jdbcType="BIGINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,postId,
-        userId,createTime,updateTime,questionId
+        userId,createTime,updateTime
     </sql>
 </mapper>

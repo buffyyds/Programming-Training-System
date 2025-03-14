@@ -21,11 +21,8 @@ import com.djc.springbootinit.model.vo.UserVO;
 import com.djc.springbootinit.service.PostService;
 import com.djc.springbootinit.service.UserService;
 import com.djc.springbootinit.utils.SqlUtils;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -294,6 +291,18 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         }).collect(Collectors.toList());
         postVOPage.setRecords(postVOList);
         return postVOPage;
+    }
+
+    @Override
+    public List<Long> searchAllReply(long id) {
+        //查询所有replyId为id的评论，返回id列表
+        QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("replyId", id);
+        List<Post> postList = baseMapper.selectList(queryWrapper);
+        if (CollUtil.isNotEmpty(postList)) {
+            return postList.stream().map(Post::getId).collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
 }

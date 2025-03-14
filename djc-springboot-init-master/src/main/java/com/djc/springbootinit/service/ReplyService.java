@@ -11,4 +11,8 @@ import com.djc.springbootinit.model.entity.Reply;
 */
 public interface ReplyService extends IService<Reply> {
 
+
+//    void addReply(long newPostId, Long replyId, Long questionId);
+//
+//    void deleteReply(long id);
 }

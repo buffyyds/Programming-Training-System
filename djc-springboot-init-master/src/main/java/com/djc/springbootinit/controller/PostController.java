@@ -10,14 +10,12 @@ import com.djc.springbootinit.common.ResultUtils;
 import com.djc.springbootinit.constant.UserConstant;
 import com.djc.springbootinit.exception.BusinessException;
 import com.djc.springbootinit.exception.ThrowUtils;
-import com.djc.springbootinit.model.dto.post.PostAddRequest;
-import com.djc.springbootinit.model.dto.post.PostEditRequest;
-import com.djc.springbootinit.model.dto.post.PostQueryRequest;
-import com.djc.springbootinit.model.dto.post.PostUpdateRequest;
+import com.djc.springbootinit.model.dto.post.*;
 import com.djc.springbootinit.model.entity.Post;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.PostVO;
 import com.djc.springbootinit.service.PostService;
+import com.djc.springbootinit.service.ReplyService;
 import com.djc.springbootinit.service.UserService;
 import java.util.List;
 import javax.annotation.Resource;
@@ -45,6 +43,9 @@ public class PostController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private ReplyService replyService;
 
     // region 增删改查
 
@@ -74,6 +75,10 @@ public class PostController {
         boolean result = postService.save(post);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         long newPostId = post.getId();
+//        //如果是回复类型的评论，记录回复表数据
+//        if (postAddRequest.getIsReply() == 1) {
+//            replyService.addReply(newPostId,post.getReplyId(), post.getQuestionId());//评论id ， 回复id ， 问题id
+//        }
         return ResultUtils.success(newPostId);
     }
 
@@ -98,37 +103,40 @@ public class PostController {
         if (!oldPost.getUserId().equals(user.getId()) && !userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
-        boolean b = postService.removeById(id);
+        //删除该评论下的所有回复（这里好像和上面的校验又有一点矛盾，但是我也不知道咋说）
+        List<Long> ids = postService.searchAllReply(id);
+        ids.add(id);
+        boolean b = postService.removeByIds(ids);
         return ResultUtils.success(b);
     }
 
-    /**
-     * 更新（仅管理员） （x）
-     *
-     * @param postUpdateRequest
-     * @return
-     */
-    @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updatePost(@RequestBody PostUpdateRequest postUpdateRequest) {
-        if (postUpdateRequest == null || postUpdateRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        Post post = new Post();
-        BeanUtils.copyProperties(postUpdateRequest, post);
-//        List<String> tags = postUpdateRequest.getTags();
-//        if (tags != null) {
-//            post.setTags(JSONUtil.toJsonStr(tags));
+//    /**
+//     * 更新（仅管理员） （x）
+//     *
+//     * @param postUpdateRequest
+//     * @return
+//     */
+//    @PostMapping("/update")
+//    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+//    public BaseResponse<Boolean> updatePost(@RequestBody PostUpdateRequest postUpdateRequest) {
+//        if (postUpdateRequest == null || postUpdateRequest.getId() <= 0) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
 //        }
-        // 参数校验
-//        postService.validPost(post, false);
-        long id = postUpdateRequest.getId();
-        // 判断是否存在
-        Post oldPost = postService.getById(id);
-        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
-        boolean result = postService.updateById(post);
-        return ResultUtils.success(result);
-    }
+//        Post post = new Post();
+//        BeanUtils.copyProperties(postUpdateRequest, post);
+////        List<String> tags = postUpdateRequest.getTags();
+////        if (tags != null) {
+////            post.setTags(JSONUtil.toJsonStr(tags));
+////        }
+//        // 参数校验
+////        postService.validPost(post, false);
+//        long id = postUpdateRequest.getId();
+//        // 判断是否存在
+//        Post oldPost = postService.getById(id);
+//        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+//        boolean result = postService.updateById(post);
+//        return ResultUtils.success(result);
+//    }
 
     /**
      * 根据 id 获取

@@ -80,6 +80,11 @@ public class Post implements Serializable {
      */
     private Integer isReply;
 
+    /**
+     * 回复的评论Id
+     */
+    private Long replyId;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

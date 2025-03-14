@@ -7,6 +7,7 @@ import com.djc.springbootinit.model.dto.post.PostQueryRequest;
 import com.djc.springbootinit.model.entity.Post;
 import com.djc.springbootinit.model.vo.PostVO;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 帖子服务
@@ -56,4 +57,6 @@ public interface PostService extends IService<Post> {
      * @return
      */
     Page<PostVO> getPostVOPage(Page<Post> postPage, HttpServletRequest request);
+
+    List<Long> searchAllReply(long id);
 }
