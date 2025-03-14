@@ -8,4 +8,5 @@ export type UserUpdateMyRequest = {
   userPassword?: string;
   userPhone?: string;
   userProfile?: string;
+  userRole?: string;
 };

@@ -11,6 +11,7 @@ import type { PostUpdateRequest } from "../models/PostUpdateRequest";
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
 import { request as __request } from "../core/request";
+
 export class PostControllerService {
   /**
    * addPost
@@ -33,6 +34,7 @@ export class PostControllerService {
       },
     });
   }
+
   /**
    * deletePost
    * @param deleteRequest deleteRequest
@@ -54,6 +56,7 @@ export class PostControllerService {
       },
     });
   }
+
   /**
    * editPost
    * @param postEditRequest postEditRequest
@@ -75,6 +78,7 @@ export class PostControllerService {
       },
     });
   }
+
   /**
    * getPostVOById
    * @param id id
@@ -97,6 +101,7 @@ export class PostControllerService {
       },
     });
   }
+
   /**
    * listPostByPage
    * @param postQueryRequest postQueryRequest
@@ -118,6 +123,7 @@ export class PostControllerService {
       },
     });
   }
+
   /**
    * listPostVOByPage
    * @param postQueryRequest postQueryRequest
@@ -139,6 +145,7 @@ export class PostControllerService {
       },
     });
   }
+
   /**
    * listMyPostVOByPage
    * @param postQueryRequest postQueryRequest
@@ -160,6 +167,7 @@ export class PostControllerService {
       },
     });
   }
+
   /**
    * searchPostVOByPage
    * @param postQueryRequest postQueryRequest
@@ -181,6 +189,7 @@ export class PostControllerService {
       },
     });
   }
+
   /**
    * updatePost
    * @param postUpdateRequest postUpdateRequest

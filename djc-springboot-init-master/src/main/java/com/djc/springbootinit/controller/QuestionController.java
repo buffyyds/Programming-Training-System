@@ -332,5 +332,23 @@ public class QuestionController {
         return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage, loginUser));
     }
 
+    /**
+     * 获取用户是否通过题目
+     *
+     * @param questionSubmitQueryRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/question_submit/pass")
+    public BaseResponse<Boolean> getQuestionSubmitPass(@RequestBody QuestionSubmitQueryRequest questionSubmitQueryRequest,
+                                                       HttpServletRequest request) {
+        if (questionSubmitQueryRequest == null || questionSubmitQueryRequest.getQuestionId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Long questionId = questionSubmitQueryRequest.getQuestionId();
+        Long userId = questionSubmitQueryRequest.getUserId();
+        boolean pass = questionSubmitService.getQuestionSubmitPass(questionId, userId);
+        return ResultUtils.success(pass);
+    }
 
 }

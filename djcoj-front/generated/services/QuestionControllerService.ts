@@ -1,3 +1,7 @@
+/* generated using openapi-typescript-codegen -- do not edit */
+/* istanbul ignore file */
+/* tslint:disable */
+/* eslint-disable */
 import type { BaseResponse_boolean_ } from "../models/BaseResponse_boolean_";
 import type { BaseResponse_long_ } from "../models/BaseResponse_long_";
 import type { BaseResponse_Page_Question_ } from "../models/BaseResponse_Page_Question_";
@@ -15,6 +19,7 @@ import type { QuestionUpdateRequest } from "../models/QuestionUpdateRequest";
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
 import { request as __request } from "../core/request";
+
 export class QuestionControllerService {
   /**
    * addQuestion
@@ -37,6 +42,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * deleteQuestion
    * @param deleteRequest deleteRequest
@@ -58,6 +64,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * editQuestion
    * @param questionEditRequest questionEditRequest
@@ -79,6 +86,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * getQuestionById
    * @param id id
@@ -101,6 +109,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * getQuestionVOById
    * @param id id
@@ -123,6 +132,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * listQuestionByPage
    * @param questionQueryRequest questionQueryRequest
@@ -144,6 +154,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * listQuestionVOByPage
    * @param questionQueryRequest questionQueryRequest
@@ -165,6 +176,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * listMyQuestionVOByPage
    * @param questionQueryRequest questionQueryRequest
@@ -186,6 +198,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * doQuestionSubmit
    * @param questionSubmitAddRequest questionSubmitAddRequest
@@ -207,6 +220,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * listQuestionSubmitByPage
    * @param questionSubmitQueryRequest questionSubmitQueryRequest
@@ -228,6 +242,29 @@ export class QuestionControllerService {
       },
     });
   }
+
+  /**
+   * getQuestionSubmitPass
+   * @param questionSubmitQueryRequest questionSubmitQueryRequest
+   * @returns BaseResponse_boolean_ OK
+   * @returns any Created
+   * @throws ApiError
+   */
+  public static getQuestionSubmitPassUsingPost(
+    questionSubmitQueryRequest: QuestionSubmitQueryRequest
+  ): CancelablePromise<BaseResponse_boolean_ | any> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/question/question_submit/pass",
+      body: questionSubmitQueryRequest,
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
   /**
    * updateQuestion
    * @param questionUpdateRequest questionUpdateRequest

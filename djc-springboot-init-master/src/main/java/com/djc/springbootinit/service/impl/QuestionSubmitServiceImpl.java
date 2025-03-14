@@ -151,6 +151,20 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         return questionSubmitVOPage;
     }
 
+    @Override
+    public Boolean getQuestionSubmitPass(Long questionId, Long userId) {
+        // 根据questionId和userId查询题目提交记录
+        QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("questionId", questionId);
+        queryWrapper.eq("userId", userId);
+        queryWrapper.eq("status", QuestionSubmitStatusEnum.SUCCEED.getValue());
+        List<QuestionSubmit> questionSubmitList = this.list(queryWrapper);
+        if (CollectionUtils.isNotEmpty(questionSubmitList)) {
+            return true;
+        }
+        return false;
+    }
+
 }
 
 

@@ -1,7 +1,7 @@
 import { RouteRecordRaw } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import AdminView from "../views/AdminView.vue";
-import NoAuthView from "@/views/NoAuthView.vue";
+import NoAuthView from "../views/NoAuthView.vue";
 import ACCESS_ENUM from "@/access/accessEnum";
 import UserLayout from "../layouts/UserLayout.vue";
 import UserLoginView from "../views/user/UserLoginView.vue";

@@ -50,4 +50,6 @@ public interface QuestionSubmitService extends IService<QuestionSubmit> {
      * @return
      */
     Page<QuestionSubmitVO> getQuestionSubmitVOPage(Page<QuestionSubmit> questionSubmitPage, User loginUser);
+
+    Boolean getQuestionSubmitPass(Long questionId, Long userId);
 }
