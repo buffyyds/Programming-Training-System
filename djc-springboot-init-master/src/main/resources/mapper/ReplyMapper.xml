@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.djc.springbootinit.mapper.ReplyMapper">
+
+    <resultMap id="BaseResultMap" type="com.djc.springbootinit.model.entity.Reply">
+            <id property="id" column="id" />
+            <result property="replyId" column="replyId" />
+            <result property="postId" column="postId" />
+            <result property="questionId" column="questionId" />
+            <result property="replyTime" column="replyTime" />
+            <result property="updateTime" column="updateTime" />
+            <result property="isDelete" column="isDelete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,replyId,postId,questionId,replyTime,updateTime,
+        isDelete
+    </sql>
+</mapper>

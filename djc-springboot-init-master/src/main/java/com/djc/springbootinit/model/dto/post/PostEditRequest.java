@@ -18,7 +18,7 @@ public class PostEditRequest implements Serializable {
     private Long id;
 
     /**
-     * 标题
+     * 标题 （本项目不使用）
      */
     private String title;
 
@@ -28,7 +28,7 @@ public class PostEditRequest implements Serializable {
     private String content;
 
     /**
-     * 标签列表
+     * 标签列表 （本项目不使用）
      */
     private List<String> tags;
 

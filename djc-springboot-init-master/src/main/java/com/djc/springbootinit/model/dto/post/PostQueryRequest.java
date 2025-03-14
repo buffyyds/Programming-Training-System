@@ -31,7 +31,7 @@ public class PostQueryRequest extends PageRequest implements Serializable {
     private String searchText;
 
     /**
-     * 标题
+     * 标题 （本项目不使用）
      */
     private String title;
 
@@ -41,12 +41,12 @@ public class PostQueryRequest extends PageRequest implements Serializable {
     private String content;
 
     /**
-     * 标签列表
+     * 标签列表 （本项目不使用）
      */
     private List<String> tags;
 
     /**
-     * 至少有一个标签
+     * 至少有一个标签 （本项目不使用）
      */
     private List<String> orTags;
 
@@ -56,9 +56,20 @@ public class PostQueryRequest extends PageRequest implements Serializable {
     private Long userId;
 
     /**
-     * 收藏用户 id
+     * 收藏用户 id  （本项目不使用）
      */
     private Long favourUserId;
+
+    /**
+     * 题目id
+     */
+    private Long questionId;
+
+    /**
+     * 是否是回复类型的评论 0-否 1-是
+     */
+    private Integer isReply;
+
 
     private static final long serialVersionUID = 1L;
 }

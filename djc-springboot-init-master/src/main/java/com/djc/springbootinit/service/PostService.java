@@ -15,13 +15,13 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface PostService extends IService<Post> {
 
-    /**
-     * 校验
-     *
-     * @param post
-     * @param add
-     */
-    void validPost(Post post, boolean add);
+//    /**
+//     * 校验
+//     *
+//     * @param post
+//     * @param add
+//     */
+//    void validPost(Post post, boolean add);
 
     /**
      * 获取查询条件

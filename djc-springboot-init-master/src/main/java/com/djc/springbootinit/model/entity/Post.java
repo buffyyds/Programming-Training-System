@@ -70,6 +70,16 @@ public class Post implements Serializable {
     @TableLogic
     private Integer isDelete;
 
+    /**
+     * 题目id
+     */
+    private Long questionId;
+
+    /**
+     * 是否是回复类型的评论 0-否 1-是
+     */
+    private Integer isReply;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

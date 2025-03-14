@@ -18,7 +18,6 @@ import java.util.List;
 /**
  * 帖子 ES 包装类
  *
-
  **/
 // todo 取消注释开启 ES（须先配置 ES）
 //@Document(indexName = "post")
@@ -34,7 +33,7 @@ public class PostEsDTO implements Serializable {
     private Long id;
 
     /**
-     * 标题
+     * 标题 （本项目不使用）
      */
     private String title;
 
@@ -44,7 +43,7 @@ public class PostEsDTO implements Serializable {
     private String content;
 
     /**
-     * 标签列表
+     * 标签列表 （本项目不使用）
      */
     private List<String> tags;
 
@@ -54,7 +53,7 @@ public class PostEsDTO implements Serializable {
     private Integer thumbNum;
 
     /**
-     * 收藏数
+     * 收藏数 （本项目不使用）
      */
     private Integer favourNum;
 
@@ -79,6 +78,11 @@ public class PostEsDTO implements Serializable {
      * 是否删除
      */
     private Integer isDelete;
+
+    /**
+     * 题目id
+     */
+    private Long questionId;
 
     private static final long serialVersionUID = 1L;
 

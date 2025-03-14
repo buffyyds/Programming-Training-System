@@ -18,7 +18,7 @@ public class PostUpdateRequest implements Serializable {
     private Long id;
 
     /**
-     * 标题
+     * 标题   （本项目不使用）
      */
     private String title;
 

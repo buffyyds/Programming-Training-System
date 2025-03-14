@@ -67,6 +67,11 @@ public class PostVO implements Serializable {
     private UserVO user;
 
     /**
+     * 题目Id
+     */
+    private Long questionId;
+
+    /**
      * 是否已点赞
      */
     private Boolean hasThumb;

@@ -62,11 +62,11 @@ public class PostController {
         }
         Post post = new Post();
         BeanUtils.copyProperties(postAddRequest, post);
-        List<String> tags = postAddRequest.getTags();
-        if (tags != null) {
-            post.setTags(JSONUtil.toJsonStr(tags));
-        }
-        postService.validPost(post, true);
+//        List<String> tags = postAddRequest.getTags();
+//        if (tags != null) {
+//            post.setTags(JSONUtil.toJsonStr(tags));
+//        }
+//        postService.validPost(post, true);
         User loginUser = userService.getLoginUser(request);
         post.setUserId(loginUser.getId());
         post.setFavourNum(0);
@@ -103,7 +103,7 @@ public class PostController {
     }
 
     /**
-     * 更新（仅管理员）
+     * 更新（仅管理员） （x）
      *
      * @param postUpdateRequest
      * @return
@@ -116,12 +116,12 @@ public class PostController {
         }
         Post post = new Post();
         BeanUtils.copyProperties(postUpdateRequest, post);
-        List<String> tags = postUpdateRequest.getTags();
-        if (tags != null) {
-            post.setTags(JSONUtil.toJsonStr(tags));
-        }
+//        List<String> tags = postUpdateRequest.getTags();
+//        if (tags != null) {
+//            post.setTags(JSONUtil.toJsonStr(tags));
+//        }
         // 参数校验
-        postService.validPost(post, false);
+//        postService.validPost(post, false);
         long id = postUpdateRequest.getId();
         // 判断是否存在
         Post oldPost = postService.getById(id);
@@ -227,7 +227,7 @@ public class PostController {
     }
 
     /**
-     * 编辑（用户）
+     * 编辑（用户）（x）
      *
      * @param postEditRequest
      * @param request
@@ -245,7 +245,7 @@ public class PostController {
             post.setTags(JSONUtil.toJsonStr(tags));
         }
         // 参数校验
-        postService.validPost(post, false);
+//        postService.validPost(post, false);
         User loginUser = userService.getLoginUser(request);
         long id = postEditRequest.getId();
         // 判断是否存在

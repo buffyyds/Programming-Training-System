@@ -67,26 +67,26 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Resource
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
 
-    @Override
-    public void validPost(Post post, boolean add) {
-        if (post == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        String title = post.getTitle();
-        String content = post.getContent();
-        String tags = post.getTags();
-        // 创建时，参数不能为空
-        if (add) {
-            ThrowUtils.throwIf(StringUtils.isAnyBlank(title, content, tags), ErrorCode.PARAMS_ERROR);
-        }
-        // 有参数则校验
-        if (StringUtils.isNotBlank(title) && title.length() > 80) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "标题过长");
-        }
-        if (StringUtils.isNotBlank(content) && content.length() > 8192) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "内容过长");
-        }
-    }
+//    @Override
+//    public void validPost(Post post, boolean add) {
+//        if (post == null) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//        }
+//        String title = post.getTitle();
+//        String content = post.getContent();
+//        String tags = post.getTags();
+//        // 创建时，参数不能为空
+//        if (add) {
+//            ThrowUtils.throwIf(StringUtils.isAnyBlank(title, content, tags), ErrorCode.PARAMS_ERROR);
+//        }
+//        // 有参数则校验
+//        if (StringUtils.isNotBlank(title) && title.length() > 80) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "标题过长");
+//        }
+//        if (StringUtils.isNotBlank(content) && content.length() > 8192) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "内容过长");
+//        }
+//    }
 
     /**
      * 获取查询包装类
@@ -104,22 +104,14 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         String sortField = postQueryRequest.getSortField();
         String sortOrder = postQueryRequest.getSortOrder();
         Long id = postQueryRequest.getId();
-        String title = postQueryRequest.getTitle();
         String content = postQueryRequest.getContent();
-        List<String> tagList = postQueryRequest.getTags();
         Long userId = postQueryRequest.getUserId();
         Long notId = postQueryRequest.getNotId();
         // 拼接查询条件
         if (StringUtils.isNotBlank(searchText)) {
-            queryWrapper.and(qw -> qw.like("title", searchText).or().like("content", searchText));
+            queryWrapper.and(qw -> qw.like("content", searchText));
         }
-        queryWrapper.like(StringUtils.isNotBlank(title), "title", title);
         queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
-        if (CollUtil.isNotEmpty(tagList)) {
-            for (String tag : tagList) {
-                queryWrapper.like("tags", "\"" + tag + "\"");
-            }
-        }
         queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
