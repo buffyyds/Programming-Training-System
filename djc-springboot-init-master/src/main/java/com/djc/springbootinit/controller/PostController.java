@@ -63,22 +63,19 @@ public class PostController {
         }
         Post post = new Post();
         BeanUtils.copyProperties(postAddRequest, post);
-//        List<String> tags = postAddRequest.getTags();
-//        if (tags != null) {
-//            post.setTags(JSONUtil.toJsonStr(tags));
-//        }
-//        postService.validPost(post, true);
         User loginUser = userService.getLoginUser(request);
         post.setUserId(loginUser.getId());
         post.setFavourNum(0);
         post.setThumbNum(0);
+        // 参数校验
+        if (post.getIsReply() == false) {  //非回复类型评论getReplyId要没有值
+            ThrowUtils.throwIf((post.getReplyId() != 0), ErrorCode.PARAMS_ERROR);
+        } else {        //回复类型评论getReplyId要有值
+            ThrowUtils.throwIf((post.getReplyId() == 0), ErrorCode.PARAMS_ERROR);
+        }
         boolean result = postService.save(post);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         long newPostId = post.getId();
-//        //如果是回复类型的评论，记录回复表数据
-//        if (postAddRequest.getIsReply() == 1) {
-//            replyService.addReply(newPostId,post.getReplyId(), post.getQuestionId());//评论id ， 回复id ， 问题id
-//        }
         return ResultUtils.success(newPostId);
     }
 
@@ -109,34 +106,6 @@ public class PostController {
         boolean b = postService.removeByIds(ids);
         return ResultUtils.success(b);
     }
-
-//    /**
-//     * 更新（仅管理员） （x）
-//     *
-//     * @param postUpdateRequest
-//     * @return
-//     */
-//    @PostMapping("/update")
-//    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-//    public BaseResponse<Boolean> updatePost(@RequestBody PostUpdateRequest postUpdateRequest) {
-//        if (postUpdateRequest == null || postUpdateRequest.getId() <= 0) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        Post post = new Post();
-//        BeanUtils.copyProperties(postUpdateRequest, post);
-////        List<String> tags = postUpdateRequest.getTags();
-////        if (tags != null) {
-////            post.setTags(JSONUtil.toJsonStr(tags));
-////        }
-//        // 参数校验
-////        postService.validPost(post, false);
-//        long id = postUpdateRequest.getId();
-//        // 判断是否存在
-//        Post oldPost = postService.getById(id);
-//        ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
-//        boolean result = postService.updateById(post);
-//        return ResultUtils.success(result);
-//    }
 
     /**
      * 根据 id 获取

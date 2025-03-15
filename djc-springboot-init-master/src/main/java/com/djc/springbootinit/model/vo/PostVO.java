@@ -21,10 +21,6 @@ public class PostVO implements Serializable {
      */
     private Long id;
 
-    /**
-     * 标题
-     */
-    private String title;
 
     /**
      * 内容
@@ -36,10 +32,6 @@ public class PostVO implements Serializable {
      */
     private Integer thumbNum;
 
-    /**
-     * 收藏数
-     */
-    private Integer favourNum;
 
     /**
      * 创建用户 id
@@ -56,10 +48,6 @@ public class PostVO implements Serializable {
      */
     private Date updateTime;
 
-    /**
-     * 标签列表
-     */
-    private List<String> tagList;
 
     /**
      * 创建人信息
@@ -76,10 +64,16 @@ public class PostVO implements Serializable {
      */
     private Boolean hasThumb;
 
+
     /**
-     * 是否已收藏
+     * 是否是回复
      */
-    private Boolean hasFavour;
+    private Boolean isReply;
+
+    /**
+     * 回复的评论数据
+     */
+    private List<ReplyVO> reply;
 
     /**
      * 包装类转对象
@@ -93,8 +87,6 @@ public class PostVO implements Serializable {
         }
         Post post = new Post();
         BeanUtils.copyProperties(postVO, post);
-        List<String> tagList = postVO.getTagList();
-        post.setTags(JSONUtil.toJsonStr(tagList));
         return post;
     }
 
@@ -110,7 +102,6 @@ public class PostVO implements Serializable {
         }
         PostVO postVO = new PostVO();
         BeanUtils.copyProperties(post, postVO);
-        postVO.setTagList(JSONUtil.toList(post.getTags(), String.class));
         return postVO;
     }
 }

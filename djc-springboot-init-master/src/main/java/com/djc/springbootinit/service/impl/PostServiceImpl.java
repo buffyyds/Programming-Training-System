@@ -17,8 +17,10 @@ import com.djc.springbootinit.model.entity.PostFavour;
 import com.djc.springbootinit.model.entity.PostThumb;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.PostVO;
+import com.djc.springbootinit.model.vo.ReplyVO;
 import com.djc.springbootinit.model.vo.UserVO;
 import com.djc.springbootinit.service.PostService;
+import com.djc.springbootinit.service.ReplyService;
 import com.djc.springbootinit.service.UserService;
 import com.djc.springbootinit.utils.SqlUtils;
 
@@ -64,26 +66,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Resource
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
 
-//    @Override
-//    public void validPost(Post post, boolean add) {
-//        if (post == null) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        String title = post.getTitle();
-//        String content = post.getContent();
-//        String tags = post.getTags();
-//        // 创建时，参数不能为空
-//        if (add) {
-//            ThrowUtils.throwIf(StringUtils.isAnyBlank(title, content, tags), ErrorCode.PARAMS_ERROR);
-//        }
-//        // 有参数则校验
-//        if (StringUtils.isNotBlank(title) && title.length() > 80) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "标题过长");
-//        }
-//        if (StringUtils.isNotBlank(content) && content.length() > 8192) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR, "内容过长");
-//        }
-//    }
+    @Resource
+    private ReplyService replyService;
 
     /**
      * 获取查询包装类
@@ -97,22 +81,14 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (postQueryRequest == null) {
             return queryWrapper;
         }
-        String searchText = postQueryRequest.getSearchText();
+//        String searchText = postQueryRequest.getSearchText();
         String sortField = postQueryRequest.getSortField();
         String sortOrder = postQueryRequest.getSortOrder();
-        Long id = postQueryRequest.getId();
-        String content = postQueryRequest.getContent();
-        Long userId = postQueryRequest.getUserId();
-        Long notId = postQueryRequest.getNotId();
-        // 拼接查询条件
-        if (StringUtils.isNotBlank(searchText)) {
-            queryWrapper.and(qw -> qw.like("content", searchText));
-        }
-        queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
-        queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
-        queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
-        queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
-        queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
+        Long questionId = postQueryRequest.getQuestionId();
+        queryWrapper.eq(ObjectUtils.isNotEmpty(questionId), "questionId", questionId);
+        // 获取非回复类型的评论，在下层获取VO封装类时再获取对应评论的回复评论。
+        queryWrapper.eq("isReply", 0);
+        queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_DESC),
                 sortField);
         return queryWrapper;
     }
@@ -122,10 +98,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         Long id = postQueryRequest.getId();
         Long notId = postQueryRequest.getNotId();
         String searchText = postQueryRequest.getSearchText();
-        String title = postQueryRequest.getTitle();
         String content = postQueryRequest.getContent();
-        List<String> tagList = postQueryRequest.getTags();
-        List<String> orTagList = postQueryRequest.getOrTags();
         Long userId = postQueryRequest.getUserId();
         // es 起始页为 0
         long current = postQueryRequest.getCurrent() - 1;
@@ -144,31 +117,11 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (userId != null) {
             boolQueryBuilder.filter(QueryBuilders.termQuery("userId", userId));
         }
-        // 必须包含所有标签
-        if (CollUtil.isNotEmpty(tagList)) {
-            for (String tag : tagList) {
-                boolQueryBuilder.filter(QueryBuilders.termQuery("tags", tag));
-            }
-        }
-        // 包含任何一个标签即可
-        if (CollUtil.isNotEmpty(orTagList)) {
-            BoolQueryBuilder orTagBoolQueryBuilder = QueryBuilders.boolQuery();
-            for (String tag : orTagList) {
-                orTagBoolQueryBuilder.should(QueryBuilders.termQuery("tags", tag));
-            }
-            orTagBoolQueryBuilder.minimumShouldMatch(1);
-            boolQueryBuilder.filter(orTagBoolQueryBuilder);
-        }
         // 按关键词检索
         if (StringUtils.isNotBlank(searchText)) {
             boolQueryBuilder.should(QueryBuilders.matchQuery("title", searchText));
             boolQueryBuilder.should(QueryBuilders.matchQuery("description", searchText));
             boolQueryBuilder.should(QueryBuilders.matchQuery("content", searchText));
-            boolQueryBuilder.minimumShouldMatch(1);
-        }
-        // 按标题检索
-        if (StringUtils.isNotBlank(title)) {
-            boolQueryBuilder.should(QueryBuilders.matchQuery("title", title));
             boolQueryBuilder.minimumShouldMatch(1);
         }
         // 按内容检索
@@ -239,8 +192,6 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             QueryWrapper<PostFavour> postFavourQueryWrapper = new QueryWrapper<>();
             postFavourQueryWrapper.in("postId", postId);
             postFavourQueryWrapper.eq("userId", loginUser.getId());
-            PostFavour postFavour = postFavourMapper.selectOne(postFavourQueryWrapper);
-            postVO.setHasFavour(postFavour != null);
         }
         return postVO;
     }
@@ -258,7 +209,6 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                 .collect(Collectors.groupingBy(User::getId));
         // 2. 已登录，获取用户点赞、收藏状态
         Map<Long, Boolean> postIdHasThumbMap = new HashMap<>();
-        Map<Long, Boolean> postIdHasFavourMap = new HashMap<>();
         User loginUser = userService.getLoginUserPermitNull(request);
         if (loginUser != null) {
             Set<Long> postIdSet = postList.stream().map(Post::getId).collect(Collectors.toSet());
@@ -269,12 +219,6 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             postThumbQueryWrapper.eq("userId", loginUser.getId());
             List<PostThumb> postPostThumbList = postThumbMapper.selectList(postThumbQueryWrapper);
             postPostThumbList.forEach(postPostThumb -> postIdHasThumbMap.put(postPostThumb.getPostId(), true));
-            // 获取收藏
-            QueryWrapper<PostFavour> postFavourQueryWrapper = new QueryWrapper<>();
-            postFavourQueryWrapper.in("postId", postIdSet);
-            postFavourQueryWrapper.eq("userId", loginUser.getId());
-            List<PostFavour> postFavourList = postFavourMapper.selectList(postFavourQueryWrapper);
-            postFavourList.forEach(postFavour -> postIdHasFavourMap.put(postFavour.getPostId(), true));
         }
         // 填充信息
         List<PostVO> postVOList = postList.stream().map(post -> {
@@ -286,7 +230,13 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
             }
             postVO.setUser(userService.getUserVO(user));
             postVO.setHasThumb(postIdHasThumbMap.getOrDefault(post.getId(), false));
-            postVO.setHasFavour(postIdHasFavourMap.getOrDefault(post.getId(), false));
+            //获取回复评论列表
+            List<Post> reply = replyService.getReply(post.getQuestionId(), post.getId());
+            if (CollUtil.isNotEmpty(reply)) {
+                //转成VO
+                List<ReplyVO> replyVOList = reply.stream().map(replyService::objToVo).collect(Collectors.toList());
+                postVO.setReply(replyVOList);
+            }
             return postVO;
         }).collect(Collectors.toList());
         postVOPage.setRecords(postVOList);

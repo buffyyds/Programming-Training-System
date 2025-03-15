@@ -128,12 +128,6 @@
             <artifactId>docker-java-transport-httpclient5</artifactId>
             <version>3.3.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>dashscope-sdk-java</artifactId>
-            <!-- 查询最新版本号：https://mvnrepository.com/artifact/com.alibaba/dashscope-sdk-java -->
-            <version>2.18.3</version>
-        </dependency>
 
     </dependencies>
 

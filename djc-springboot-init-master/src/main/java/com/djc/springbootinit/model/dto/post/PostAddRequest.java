@@ -35,7 +35,7 @@ public class PostAddRequest implements Serializable {
     /**
      * 是否是回复类型的评论 0-否 1-是
      */
-    private Integer isReply;
+    private Boolean isReply;
 
     /**
      * 回复的评论Id

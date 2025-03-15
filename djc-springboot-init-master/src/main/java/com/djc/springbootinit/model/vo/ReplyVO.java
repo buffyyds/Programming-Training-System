@@ -1,18 +1,19 @@
-package com.djc.springbootinit.model.entity;
+package com.djc.springbootinit.model.vo;
 
-import com.baomidou.mybatisplus.annotation.*;
-import com.djc.springbootinit.model.vo.UserVO;
+
+import cn.hutool.json.JSONUtil;
+import com.djc.springbootinit.model.entity.Post;
+import com.djc.springbootinit.service.UserService;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 
-/**
- * 
- * @TableName reply
- */
 @Data
-public class Reply {
+public class ReplyVO {
+
     /**
      * id
      */
@@ -54,22 +55,21 @@ public class Reply {
     private Long questionId;
 
     /**
-     * 评论Id
-     */
-    private Long replyId;
-
-
-    /**
      * 是否已点赞
      */
     private Boolean hasThumb;
 
     /**
-     * 是否删除
+     * 是否是回复
      */
-    @TableLogic
-    private Integer isDelete;
+    private Boolean isReply;
 
-    @TableField(exist = false)
+    /**
+     * 回复的评论Id
+     */
+    private Long replyId;
+
     private static final long serialVersionUID = 1L;
+
+
 }

@@ -1,7 +1,7 @@
 package com.djc.springbootinit.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.djc.springbootinit.model.entity.Reply;
+import com.djc.springbootinit.model.entity.Post;
 
 
 /**
@@ -10,7 +10,7 @@ import com.djc.springbootinit.model.entity.Reply;
 * @createDate 2025-03-14 19:23:34
 * @Entity generator.domain.Reply
 */
-public interface ReplyMapper extends BaseMapper<Reply> {
+public interface ReplyMapper extends BaseMapper<Post> {
 
 }
 
