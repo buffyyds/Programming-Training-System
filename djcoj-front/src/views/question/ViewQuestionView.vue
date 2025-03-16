@@ -48,98 +48,122 @@
                   show-word-limit
                 />
                 <div class="comment-actions">
-                  <a-button type="primary" @click="submitComment"
-                    >发布评论</a-button
+                  <a-button
+                    type="primary"
+                    @click="submitComment"
+                    :loading="commentLoading"
                   >
+                    发布评论
+                  </a-button>
                 </div>
               </div>
               <!-- 分隔线 -->
               <a-divider style="margin: 16px 0" />
               <!-- 评论列表 -->
               <div class="comment-list">
-                <a-comment
-                  v-for="comment in comments"
-                  :key="comment.id"
-                  :author="comment.userName"
-                  :content="comment.content"
-                  :datetime="formatTime(comment.createTime)"
-                >
-                  <template #avatar>
-                    <a-avatar>{{ comment.userName[0] }}</a-avatar>
-                  </template>
-                  <template #actions>
-                    <span class="action-item" @click="handleLike(comment)">
-                      <icon-heart-fill
-                        v-if="comment.isLiked"
-                        style="color: #ff4757"
-                      />
-                      <icon-heart v-else />
-                      {{ comment.likeCount || 0 }}
-                    </span>
-                    <span class="action-item" @click="toggleReply(comment)">
-                      <icon-message />
-                      {{ comment.showReplyInput ? "收起" : "回复" }}
-                    </span>
-                    <span
-                      v-if="isCurrentUser(comment.userId)"
-                      class="action-item"
-                      @click="deleteComment(comment)"
-                    >
-                      <icon-delete /> 删除
-                    </span>
-                  </template>
-                  <!-- 回复输入框 -->
-                  <div v-if="comment.showReplyInput" class="reply-input">
-                    <a-textarea
-                      v-model="comment.replyContent"
-                      :max-length="500"
-                      placeholder="写下你的回复..."
-                      allow-clear
-                    />
-                    <div class="reply-actions">
-                      <a-space>
-                        <a-button @click="toggleReply(comment)">取消</a-button>
-                        <a-button type="primary" @click="submitReply(comment)"
-                          >回复</a-button
-                        >
-                      </a-space>
-                    </div>
-                  </div>
-                  <!-- 回复列表 -->
-                  <template
-                    v-if="comment.replies && comment.replies.length > 0"
+                <a-spin :loading="commentLoading">
+                  <a-comment
+                    v-for="comment in comments"
+                    :key="comment.id"
+                    :author="comment.user.userName"
+                    :content="comment.content"
+                    :datetime="formatTime(comment.createTime)"
                   >
-                    <a-divider style="margin: 12px 0" />
-                    <a-comment
-                      v-for="reply in comment.replies"
-                      :key="reply.id"
-                      :author="reply.userName"
-                      :content="reply.content"
-                      :datetime="formatTime(reply.createTime)"
+                    <template #avatar>
+                      <a-avatar>{{ comment.user.userName[0] }}</a-avatar>
+                    </template>
+                    <template #actions>
+                      <span class="action-item" @click="handleLike(comment)">
+                        <icon-heart-fill
+                          v-if="comment.hasThumb"
+                          style="color: #ff4757"
+                        />
+                        <icon-heart v-else />
+                        {{ comment.thumbNum }}
+                      </span>
+                      <span class="action-item" @click="toggleReply(comment)">
+                        <icon-message />
+                        {{
+                          comment.showReplyInput
+                            ? "收起"
+                            : comment.reply?.length
+                            ? `${comment.reply.length}条回复`
+                            : "回复"
+                        }}
+                      </span>
+                      <span
+                        v-if="isCurrentUser(comment.userId)"
+                        class="action-item"
+                        @click="deleteComment(comment)"
+                      >
+                        <icon-delete /> 删除
+                      </span>
+                    </template>
+                    <!-- 回复输入框 -->
+                    <div v-if="comment.showReplyInput" class="reply-input">
+                      <a-textarea
+                        v-model="comment.replyContent"
+                        :max-length="500"
+                        placeholder="写下你的回复..."
+                        allow-clear
+                      />
+                      <div class="reply-actions">
+                        <a-space>
+                          <a-button @click="toggleReply(comment)"
+                            >取消
+                          </a-button>
+                          <a-button type="primary" @click="submitReply(comment)"
+                            >回复
+                          </a-button>
+                        </a-space>
+                      </div>
+                    </div>
+                    <!-- 回复列表 -->
+                    <template
+                      v-if="comment.showReplyInput && comment.reply?.length"
                     >
-                      <template #avatar>
-                        <a-avatar>{{ reply.userName[0] }}</a-avatar>
-                      </template>
-                      <template #actions>
-                        <span class="action-item" @click="handleLike(reply)">
-                          <icon-heart-fill
-                            v-if="reply.isLiked"
-                            style="color: #ff4757"
-                          />
-                          <icon-heart v-else />
-                          {{ reply.likeCount || 0 }}
-                        </span>
-                        <span
-                          v-if="isCurrentUser(reply.userId)"
-                          class="action-item"
-                          @click="deleteComment(reply)"
-                        >
-                          <icon-delete /> 删除
-                        </span>
-                      </template>
-                    </a-comment>
-                  </template>
-                </a-comment>
+                      <a-divider style="margin: 12px 0" />
+                      <a-comment
+                        v-for="reply in comment.reply"
+                        :key="reply.id"
+                        :author="reply.user.userName"
+                        :content="reply.content"
+                        :datetime="formatTime(reply.createTime)"
+                      >
+                        <template #avatar>
+                          <a-avatar>{{ reply.user.userName[0] }}</a-avatar>
+                        </template>
+                        <template #actions>
+                          <span class="action-item" @click="handleLike(reply)">
+                            <icon-heart-fill
+                              v-if="reply.hasThumb"
+                              style="color: #ff4757"
+                            />
+                            <icon-heart v-else />
+                            {{ reply.thumbNum }}
+                          </span>
+                          <span
+                            v-if="isCurrentUser(reply.userId)"
+                            class="action-item"
+                            @click="deleteComment(reply)"
+                          >
+                            <icon-delete /> 删除
+                          </span>
+                        </template>
+                      </a-comment>
+                    </template>
+                  </a-comment>
+                </a-spin>
+                <!-- 分页 -->
+                <div class="pagination" v-if="commentPagination.total > 0">
+                  <a-pagination
+                    v-model:current="commentPagination.current"
+                    v-model:pageSize="commentPagination.pageSize"
+                    :total="commentPagination.total"
+                    show-total
+                    show-jumper
+                  />
+                </div>
               </div>
             </div>
           </a-tab-pane>
@@ -202,6 +226,8 @@ import message from "@arco-design/web-vue/es/message";
 import CodeEditor from "@/components/CodeEditor.vue";
 import MdViewer from "@/components/MdViewer.vue";
 import {
+  PostControllerService,
+  PostThumbControllerService,
   QuestionControllerService,
   QuestionSubmitAddRequest,
   QuestionVO,
@@ -343,47 +369,178 @@ const doSubmit = async () => {
  */
 onMounted(() => {
   loadData();
+  loadComments();
 });
 
 const changeCode = (value: string) => {
   form.value.code = value;
 };
 
+// 评论相关的类型定义
+interface UserVO {
+  id: string;
+  userName: string;
+  userAvatar: string;
+  userProfile: string;
+  userRole: string;
+  createTime: string;
+}
+
+interface PostVO {
+  id: string;
+  content: string;
+  thumbNum: number;
+  userId: string;
+  createTime: string;
+  updateTime: string;
+  user: UserVO;
+  questionId: string;
+  hasThumb: boolean;
+  isReply: boolean;
+  replyId?: string;
+  reply?: PostVO[];
+  showReplyInput?: boolean;
+  replyContent?: string;
+}
+
 // 评论相关的状态
 const commentContent = ref("");
-const comments = ref<any[]>([
-  // 模拟数据，后续替换为接口数据
-  {
-    id: 1,
-    userId: 1,
-    userName: "用户A",
-    content: "这道题解题思路很清晰",
-    createTime: "2024-01-20 12:00:00",
-    likeCount: 12,
-    isLiked: false,
-    showReplyInput: false,
-    replyContent: "",
-    replies: [
-      {
-        id: 2,
-        userId: 2,
-        userName: "用户B",
-        content: "同意，我也是这么想的",
-        createTime: "2024-01-20 12:30:00",
-        likeCount: 3,
-        isLiked: false,
-      },
-    ],
-  },
-]);
+const comments = ref<PostVO[]>([]);
+const commentLoading = ref(false);
+const commentPagination = ref({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+});
 
-// 格式化时间
-const formatTime = (time: string) => {
-  return dayjs(time).fromNow();
+// 加载评论列表
+const loadComments = async () => {
+  if (!props.id) return;
+
+  commentLoading.value = true;
+  try {
+    const res = await PostControllerService.listPostVoByPageUsingPost({
+      current: commentPagination.value.current,
+      pageSize: commentPagination.value.pageSize,
+      questionId: props.id as any,
+      sortField: "createTime",
+      sortOrder: "desc",
+    });
+
+    if (res.code === 0 && res.data) {
+      comments.value = res.data.records.map((comment) => ({
+        ...comment,
+        showReplyInput: false,
+        replyContent: "",
+      }));
+      commentPagination.value.total = Number(res.data.total);
+    }
+  } catch (error) {
+    Message.error("加载评论失败，请稍后重试");
+  } finally {
+    commentLoading.value = false;
+  }
+};
+
+// 提交评论
+const submitComment = async () => {
+  if (!commentContent.value.trim()) {
+    Message.warning("评论内容不能为空");
+    return;
+  }
+
+  try {
+    const res = await PostControllerService.addPostUsingPost({
+      content: commentContent.value.trim(),
+      isReply: false,
+      questionId: props.id as any,
+      replyId: "0", // 非回复型评论，replyId为0
+    });
+
+    if (res.code === 0) {
+      Message.success("评论成功");
+      commentContent.value = "";
+      // 重新加载评论列表
+      await loadComments();
+    } else {
+      Message.error("评论失败：" + res.message);
+    }
+  } catch (error) {
+    Message.error("评论失败，请稍后重试");
+  }
+};
+
+// 提交回复
+const submitReply = async (comment: PostVO) => {
+  if (!comment.replyContent?.trim()) {
+    Message.warning("回复内容不能为空");
+    return;
+  }
+
+  try {
+    const res = await PostControllerService.addPostUsingPost({
+      content: comment.replyContent.trim(),
+      isReply: true,
+      questionId: props.id as any,
+      replyId: comment.id, // 回复型评论，replyId为被回复的评论id
+    });
+
+    if (res.code === 0) {
+      Message.success("回复成功");
+      comment.showReplyInput = false;
+      // 重新加载评论列表
+      await loadComments();
+    } else {
+      Message.error("回复失败：" + res.message);
+    }
+  } catch (error) {
+    Message.error("回复失败，请稍后重试");
+  }
+};
+
+// 删除评论
+const deleteComment = async (comment: PostVO) => {
+  try {
+    const res = await PostControllerService.deletePostUsingPost(comment.id);
+    if (res.code === 0) {
+      Message.success("删除成功");
+      // 重新加载评论列表
+      await loadComments();
+    } else {
+      Message.error("删除失败：" + res.message);
+    }
+  } catch (error) {
+    Message.error("删除失败，请稍后重试");
+  }
+};
+
+// 点赞/取消点赞
+const handleLike = async (comment: PostVO) => {
+  try {
+    const res = await PostThumbControllerService.doThumbUsingPost({
+      postId: comment.id,
+    });
+
+    if (res.code === 0) {
+      // 更新评论的点赞状态和数量
+      comment.hasThumb = !comment.hasThumb;
+      comment.thumbNum += comment.hasThumb ? 1 : -1;
+      Message.success(comment.hasThumb ? "点赞成功" : "已取消点赞");
+    } else {
+      Message.error("操作失败：" + res.message);
+    }
+  } catch (error) {
+    Message.error("操作失败，请稍后重试");
+  }
+};
+
+// 检查是否是当前用户的评论
+const isCurrentUser = (userId: string) => {
+  return store.state.user.loginUser?.id === userId;
 };
 
 // 切换回复框显示状态
-const toggleReply = (comment: any) => {
+const toggleReply = (comment: PostVO) => {
   // 先关闭其他所有评论的回复框
   comments.value.forEach((item) => {
     if (item.id !== comment.id) {
@@ -398,56 +555,17 @@ const toggleReply = (comment: any) => {
   }
 };
 
-// 点赞/取消点赞
-const handleLike = async (comment: any) => {
-  try {
-    // TODO: 调用后端接口进行点赞/取消点赞
-    // const res = await PostControllerService.likePostUsingPost({
-    //   postId: comment.id,
-    //   userId: store.state.user.loginUser?.id
-    // });
-    // if (res.code === 0) {
-    comment.isLiked = !comment.isLiked;
-    comment.likeCount += comment.isLiked ? 1 : -1;
-    Message.success(comment.isLiked ? "点赞成功" : "已取消点赞");
-    // }
-  } catch (error) {
-    Message.error("操作失败，请稍后重试");
+// 格式化时间
+const formatTime = (time: string) => {
+  return dayjs(time).fromNow();
+};
+
+// 监听分页变化
+watchEffect(() => {
+  if (activeTab.value === "comment") {
+    loadComments();
   }
-};
-
-// 检查是否是当前用户的评论
-const isCurrentUser = (userId: number) => {
-  return store.state.user.loginUser?.id === userId;
-};
-
-// 提交评论
-const submitComment = async () => {
-  if (!commentContent.value.trim()) {
-    Message.warning("评论内容不能为空");
-    return;
-  }
-  // TODO: 调用后端接口提交评论
-  Message.success("评论成功");
-  commentContent.value = "";
-};
-
-// 删除评论
-const deleteComment = (comment: any) => {
-  // TODO: 调用后端接口删除评论
-  console.log("删除评论:", comment);
-};
-
-// 提交回复
-const submitReply = async (comment: any) => {
-  if (!comment.replyContent?.trim()) {
-    Message.warning("回复内容不能为空");
-    return;
-  }
-  // TODO: 调用后端接口提交回复
-  Message.success("回复成功");
-  comment.showReplyInput = false;
-};
+});
 </script>
 
 <style>
@@ -609,5 +727,10 @@ const submitReply = async (comment: any) => {
 :deep(.arco-avatar) {
   background-color: #00aeec;
   color: #fff;
+}
+
+.pagination {
+  margin-top: 24px;
+  text-align: center;
 }
 </style>

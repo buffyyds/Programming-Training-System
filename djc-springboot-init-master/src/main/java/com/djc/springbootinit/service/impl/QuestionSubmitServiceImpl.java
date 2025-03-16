@@ -17,6 +17,8 @@ import com.djc.springbootinit.model.entity.QuestionSubmit;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.enums.QuestionSubmitStatusEnum;
 import com.djc.springbootinit.model.vo.QuestionSubmitVO;
+import com.djc.springbootinit.model.vo.QuestionVO;
+import com.djc.springbootinit.model.vo.UserVO;
 import com.djc.springbootinit.service.QuestionService;
 import com.djc.springbootinit.service.QuestionSubmitService;
 import com.djc.springbootinit.service.UserService;
@@ -109,15 +111,27 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         }
         String language = questionSubmitQueryRequest.getLanguage();
         Integer status = questionSubmitQueryRequest.getStatus();
-        Long questionId = questionSubmitQueryRequest.getQuestionId();
+        //Long questionId = questionSubmitQueryRequest.getQuestionId();
         Long userId = questionSubmitQueryRequest.getUserId();
+        String title = questionSubmitQueryRequest.getTitle();
         String sortField = questionSubmitQueryRequest.getSortField();
         String sortOrder = questionSubmitQueryRequest.getSortOrder();
+
+        //处理题目，将通过title查询到的questionId放入questionIds
+        if (StringUtils.isNotBlank(title)) {
+            QueryWrapper<Question> questionQueryWrapper = new QueryWrapper<>();
+            questionQueryWrapper.like("title", title);
+            List<Question> questionList = questionService.list(questionQueryWrapper);
+            if (CollectionUtils.isNotEmpty(questionList)) {
+                List<Long> questionIds = questionList.stream().map(Question::getId).collect(Collectors.toList());
+                queryWrapper.in("questionId", questionIds);
+            }
+        }
 
         // 拼接查询条件
         queryWrapper.eq(StringUtils.isNotBlank(language), "language", language);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
-        queryWrapper.eq(ObjectUtils.isNotEmpty(questionId), "questionId", questionId);
+        //queryWrapper.eq(ObjectUtils.isNotEmpty(questionId), "questionId", questionId);
         queryWrapper.eq(QuestionSubmitStatusEnum.getEnumByValue(status) != null, "status", status);
         queryWrapper.eq("isDelete", false);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
@@ -147,6 +161,13 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         List<QuestionSubmitVO> questionSubmitVOList = questionSubmitList.stream()
                 .map(questionSubmit -> getQuestionSubmitVO(questionSubmit, loginUser))
                 .collect(Collectors.toList());
+        //通过questionSubmitVOList里的userId获取对应UserVo questionId获取对应QuestionVo
+        questionSubmitVOList.forEach(questionSubmitVO -> {
+            UserVO userVO = UserVO.objToVo(userService.getById(questionSubmitVO.getUserId()));
+            QuestionVO questionVo = QuestionVO.objToVo(questionService.getById(questionSubmitVO.getQuestionId()));
+            questionSubmitVO.setUserVO(userVO);
+            questionSubmitVO.setQuestionVO(questionVo);
+        });
         questionSubmitVOPage.setRecords(questionSubmitVOList);
         return questionSubmitVOPage;
     }

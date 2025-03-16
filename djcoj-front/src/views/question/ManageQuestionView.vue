@@ -44,7 +44,7 @@ const searchParams = ref({
 });
 
 const loadData = async () => {
-  const res = await QuestionControllerService.listQuestionByPageUsingPost(
+  const res = await QuestionControllerService.listQuestionVoByPageUsingPost(
     searchParams.value
   );
   if (res.code === 0) {
@@ -77,16 +77,8 @@ const columns = [
     dataIndex: "title",
   },
   {
-    title: "内容",
-    dataIndex: "content",
-  },
-  {
     title: "标签",
     dataIndex: "tags",
-  },
-  {
-    title: "答案",
-    dataIndex: "answer",
   },
   {
     title: "提交数",
@@ -97,16 +89,8 @@ const columns = [
     dataIndex: "acceptedNum",
   },
   {
-    title: "判题配置",
-    dataIndex: "judgeConfig",
-  },
-  {
-    title: "判题用例",
-    dataIndex: "judgeCase",
-  },
-  {
-    title: "用户id",
-    dataIndex: "userId",
+    title: "创建用户",
+    dataIndex: "userVO.userName",
   },
   {
     title: "创建时间",
@@ -145,6 +129,7 @@ const doUpdate = (question: Question) => {
     path: "/update/question",
     query: {
       id: question.id,
+      isUpdate: "true", // 添加标记，表示是从管理页面进入的修改
     },
   });
 };

@@ -2,10 +2,21 @@
   <div id="questionsView">
     <a-form :model="searchParams" layout="inline">
       <a-form-item field="title" label="名称" style="min-width: 240px">
-        <a-input v-model="searchParams.title" placeholder="请输入名称" />
+        <a-input
+          v-model="searchParams.title"
+          placeholder="请输入名称"
+          allow-clear
+          @press-enter="doSubmit"
+        />
       </a-form-item>
       <a-form-item field="tags" label="标签" style="min-width: 240px">
-        <a-input-tag v-model="searchParams.tags" placeholder="请输入标签" />
+        <a-input-tag
+          v-model="searchParams.tags"
+          placeholder="请输入标签"
+          allow-clear
+          :options="allTags"
+          @press-enter="doSubmit"
+        />
       </a-form-item>
       <a-form-item>
         <a-button type="primary" @click="doSubmit">提交</a-button>
@@ -159,11 +170,92 @@ const doSubmit = () => {
     current: 1,
   };
 };
+
+// 预定义的所有可用标签
+const allTags = [
+  // 数据结构
+  "数组",
+  "链表",
+  "栈",
+  "队列",
+  "哈希表",
+  "树",
+  "二叉树",
+  "二叉搜索树",
+  "堆",
+  "优先队列",
+  "图",
+  "字符串",
+  "前缀树",
+  "并查集",
+  // 算法思想
+  "动态规划",
+  "贪心",
+  "分治",
+  "回溯",
+  "递归",
+  "深度优先搜索",
+  "广度优先搜索",
+  "双指针",
+  "滑动窗口",
+  "二分查找",
+  "排序",
+  // 算法技巧
+  "位运算",
+  "数学",
+  "模拟",
+  "前缀和",
+  "差分",
+  "状态压缩",
+  "记忆化搜索",
+  "剪枝",
+  "拓扑排序",
+  // 难度分类
+  "简单",
+  "中等",
+  "困难",
+  // 高级算法
+  "线段树",
+  "树状数组",
+  "最短路",
+  "最小生成树",
+  "网络流",
+  "KMP",
+  "马拉车算法",
+  "AC自动机",
+  // 实际应用
+  "设计",
+  "数据库",
+  "操作系统",
+  "计算机网络",
+  "系统设计",
+  "多线程",
+  "分布式",
+];
 </script>
 
 <style scoped>
 #questionsView {
   max-width: 1280px;
   margin: 0 auto;
+}
+
+:deep(.arco-input-tag) {
+  background-color: var(--color-bg-2);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+:deep(.arco-input-tag:hover) {
+  border-color: rgb(var(--primary-6));
+}
+
+:deep(.arco-input-tag-inner) {
+  padding: 4px 8px;
+}
+
+:deep(.arco-tag) {
+  margin: 2px;
 }
 </style>

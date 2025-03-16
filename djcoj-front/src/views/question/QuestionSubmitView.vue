@@ -1,14 +1,20 @@
 <template>
   <div id="questionSubmitView">
     <a-form :model="searchParams" layout="inline">
-      <a-form-item field="questionId" label="题号" style="min-width: 240px">
-        <a-input v-model="searchParams.questionId" placeholder="请输入" />
+      <a-form-item field="title" label="题目" style="min-width: 240px">
+        <a-input
+          v-model="searchParams.title"
+          placeholder="请输入题目"
+          allow-clear
+          @press-enter="doSubmit"
+        />
       </a-form-item>
       <a-form-item field="language" label="编程语言" style="min-width: 240px">
         <a-select
           v-model="searchParams.language"
           :style="{ width: '320px' }"
           placeholder="选择编程语言"
+          allow-clear
         >
           <a-option>java</a-option>
           <a-option>cpp</a-option>
@@ -20,7 +26,7 @@
         <a-button type="primary" @click="doSubmit">搜索</a-button>
       </a-form-item>
     </a-form>
-    <a-divider size="0" />
+    <a-divider :size="0" />
     <a-table
       :ref="tableRef"
       :columns="columns"
@@ -33,18 +39,24 @@
       }"
       @page-change="onPageChange"
     >
-      <template #judgeInfo="{ record }">
-        {{ JSON.stringify(record.judgeInfo) }}
+      <template #judgeResult="{ record }">
+        {{ getJudgeResultText(record.judgeInfo.message) }}
+      </template>
+      <template #memory="{ record }">
+        {{ record.judgeInfo.memory + " KB" }}
+      </template>
+      <template #time="{ record }">
+        {{ record.judgeInfo.time + " ms" }}
       </template>
       <template #createTime="{ record }">
-        {{ moment(record.createTime).format("YYYY-MM-DD") }}
+        {{ moment(record.createTime).format("YYYY-MM-DD HH:mm:ss") }}
       </template>
     </a-table>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watchEffect } from "vue";
+import { onMounted, ref } from "vue";
 import {
   Question,
   QuestionControllerService,
@@ -58,12 +70,53 @@ const tableRef = ref();
 
 const dataList = ref([]);
 const total = ref(0);
-const searchParams = ref<QuestionSubmitQueryRequest>({
-  questionId: undefined,
+
+// 扩展 QuestionSubmitQueryRequest 类型以包含 title
+interface ExtendedQuestionSubmitQueryRequest
+  extends QuestionSubmitQueryRequest {
+  title?: string;
+}
+
+const searchParams = ref<ExtendedQuestionSubmitQueryRequest>({
+  title: undefined,
   language: undefined,
   pageSize: 10,
   current: 1,
 });
+
+// 判题结果映射类型
+type JudgeResult =
+  | "Accepted"
+  | "Wrong Answer"
+  | "Compile Error"
+  | "Memory Limit Exceeded"
+  | "Time Limit Exceeded"
+  | "Presentation Error"
+  | "Waiting"
+  | "Output Limit Exceeded"
+  | "Dangerous Operation"
+  | "Runtime Error"
+  | "System Error";
+
+// 判题结果映射
+const judgeResultMap: Record<JudgeResult, string> = {
+  Accepted: "成功",
+  "Wrong Answer": "答案错误",
+  "Compile Error": "编译错误",
+  "Memory Limit Exceeded": "内存溢出",
+  "Time Limit Exceeded": "超时",
+  "Presentation Error": "展示错误",
+  Waiting: "等待中",
+  "Output Limit Exceeded": "输出溢出",
+  "Dangerous Operation": "危险操作",
+  "Runtime Error": "运行错误",
+  "System Error": "系统错误",
+};
+
+// 获取判题结果的中文描述
+const getJudgeResultText = (message: string) => {
+  return judgeResultMap[message as JudgeResult] || message;
+};
 
 const loadData = async () => {
   const res = await QuestionControllerService.listQuestionSubmitByPageUsingPost(
@@ -82,13 +135,6 @@ const loadData = async () => {
 };
 
 /**
- * 监听 searchParams 变量，改变时触发页面的重新加载
- */
-watchEffect(() => {
-  loadData();
-});
-
-/**
  * 页面加载时，请求数据
  */
 onMounted(() => {
@@ -97,31 +143,31 @@ onMounted(() => {
 
 const columns = [
   {
-    title: "题号",
-    dataIndex: "questionId",
+    title: "题目",
+    dataIndex: "questionVO.title",
   },
-  // {
-  //   title: "提交号",
-  //   dataIndex: "id",
-  // },
   {
     title: "编程语言",
     dataIndex: "language",
   },
   {
-    title: "判题信息",
-    slotName: "judgeInfo",
+    title: "判题结果",
+    slotName: "judgeResult",
   },
   {
-    title: "判题状态",
-    dataIndex: "status",
+    title: "消耗内存",
+    slotName: "memory",
   },
   {
-    title: "提交者 id",
-    dataIndex: "userId",
+    title: "花费时间",
+    slotName: "time",
   },
   {
-    title: "创建时间",
+    title: "提交者",
+    dataIndex: "userVO.userName",
+  },
+  {
+    title: "提交时间",
     slotName: "createTime",
   },
 ];
@@ -131,6 +177,7 @@ const onPageChange = (page: number) => {
     ...searchParams.value,
     current: page,
   };
+  loadData();
 };
 
 const router = useRouter();
@@ -154,6 +201,7 @@ const doSubmit = () => {
     ...searchParams.value,
     current: 1,
   };
+  loadData();
 };
 </script>
 
@@ -161,5 +209,33 @@ const doSubmit = () => {
 #questionSubmitView {
   max-width: 1280px;
   margin: 0 auto;
+}
+
+:deep(.arco-table-th) {
+  background-color: var(--color-fill-2) !important;
+}
+
+:deep(.arco-table-tr:hover) {
+  background-color: var(--color-fill-2);
+}
+
+:deep(.arco-input-wrapper) {
+  background-color: var(--color-bg-2);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s;
+}
+
+:deep(.arco-input-wrapper:hover) {
+  border-color: rgb(var(--primary-6));
+}
+
+:deep(.arco-select-view) {
+  background-color: var(--color-bg-2);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s;
+}
+
+:deep(.arco-select-view:hover) {
+  border-color: rgb(var(--primary-6));
 }
 </style>
