@@ -19,12 +19,13 @@
         <result property="questionId" column="questionId" jdbcType="BIGINT"/>
         <result property="isReply" column="isReply" jdbcType="TINYINT"/>
         <result property="replyId" column="replyId" jdbcType="BIGINT"/>
+        <result property="isRead" column="isRead" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,title,content,tags,
         thumbNum,favourNum,userId,
-        createTime,updateTime,isDelete,isReply,replyId,questionId
+        createTime,updateTime,isDelete,isReply,replyId,questionId,isRead
     </sql>
 
     <select id="listPostWithDelete" resultType="com.djc.springbootinit.model.entity.Post">

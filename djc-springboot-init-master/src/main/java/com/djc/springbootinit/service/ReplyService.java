@@ -2,6 +2,7 @@ package com.djc.springbootinit.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.djc.springbootinit.model.entity.Post;
+import com.djc.springbootinit.model.entity.Reply;
 import com.djc.springbootinit.model.vo.ReplyVO;
 import org.apache.poi.ss.formula.functions.T;
 
@@ -17,5 +18,9 @@ public interface ReplyService extends IService<Post> {
 
     List<Post> getReply(Long questionId, Long id);
 
-    ReplyVO objToVo(Post post);
+    ReplyVO postObjToReplyVo(Post post);
+
+    List<Post> getMyReply(Long id);
+
+    boolean markAsRead(Long id, Long userId);
 }

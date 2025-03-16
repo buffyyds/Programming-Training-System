@@ -83,6 +83,11 @@ public class Post implements Serializable {
      */
     private Long replyId;
 
+    /**
+     * 是否已读
+     */
+    private Boolean isRead;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

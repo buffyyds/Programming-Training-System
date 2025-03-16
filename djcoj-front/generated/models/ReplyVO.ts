@@ -2,19 +2,19 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ReplyVO } from './ReplyVO';
 import type { UserVO } from './UserVO';
-export type PostVO = {
+export type ReplyVO = {
     content?: string;
     createTime?: string;
     hasThumb?: boolean;
     id?: number;
     isReply?: boolean;
     questionId?: number;
-    reply?: Array<ReplyVO>;
+    replyId?: number;
     thumbNum?: number;
     updateTime?: string;
     user?: UserVO;
     userId?: number;
+    isRead?: boolean;
 };
 

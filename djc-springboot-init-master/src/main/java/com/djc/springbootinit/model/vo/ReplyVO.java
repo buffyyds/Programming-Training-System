@@ -69,6 +69,11 @@ public class ReplyVO {
      */
     private Long replyId;
 
+    /**
+     * 是否已读
+     */
+    private Boolean isRead;
+
     private static final long serialVersionUID = 1L;
 
 

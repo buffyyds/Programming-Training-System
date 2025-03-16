@@ -3,10 +3,7 @@ package com.djc.springbootinit.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.djc.springbootinit.common.ErrorCode;
 import com.djc.springbootinit.constant.CommonConstant;
-import com.djc.springbootinit.exception.BusinessException;
-import com.djc.springbootinit.exception.ThrowUtils;
 import com.djc.springbootinit.mapper.PostFavourMapper;
 import com.djc.springbootinit.mapper.PostMapper;
 import com.djc.springbootinit.mapper.PostThumbMapper;
@@ -37,6 +34,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
@@ -66,7 +64,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Resource
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
 
-    @Resource
+    @Autowired
     private ReplyService replyService;
 
     /**
@@ -209,18 +207,20 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                 .collect(Collectors.groupingBy(User::getId));
         // 2. 已登录，获取用户点赞、收藏状态
         Map<Long, Boolean> postIdHasThumbMap = new HashMap<>();
-        User loginUser = userService.getLoginUserPermitNull(request);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser != null) {
-            Set<Long> postIdSet = postList.stream().map(Post::getId).collect(Collectors.toSet());
-            loginUser = userService.getLoginUser(request);
+//            Set<Long> postIdSet = postList.stream().map(Post::getId).collect(Collectors.toSet());
+
             // 获取点赞
-            QueryWrapper<PostThumb> postThumbQueryWrapper = new QueryWrapper<>();
-            postThumbQueryWrapper.in("postId", postIdSet);
-            postThumbQueryWrapper.eq("userId", loginUser.getId());
-            List<PostThumb> postPostThumbList = postThumbMapper.selectList(postThumbQueryWrapper);
-            postPostThumbList.forEach(postPostThumb -> postIdHasThumbMap.put(postPostThumb.getPostId(), true));
+//            QueryWrapper<PostThumb> postThumbQueryWrapper = new QueryWrapper<>();
+//            postThumbQueryWrapper.in("postId", postIdSet);
+//            postThumbQueryWrapper.eq("userId", loginUser.getId());
+//            List<PostThumb> postPostThumbList = postThumbMapper.selectList(postThumbQueryWrapper);
+//            postPostThumbList.forEach(postPostThumb -> postIdHasThumbMap.put(postPostThumb.getPostId(), true));
+            postIdHasThumbMap = searchThumbPost(postList, loginUser.getId());
         }
         // 填充信息
+        Map<Long, Boolean> finalPostIdHasThumbMap = postIdHasThumbMap;
         List<PostVO> postVOList = postList.stream().map(post -> {
             PostVO postVO = PostVO.objToVo(post);
             Long userId = post.getUserId();
@@ -229,12 +229,17 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                 user = userIdUserListMap.get(userId).get(0);
             }
             postVO.setUser(userService.getUserVO(user));
-            postVO.setHasThumb(postIdHasThumbMap.getOrDefault(post.getId(), false));
+            postVO.setHasThumb(finalPostIdHasThumbMap.getOrDefault(post.getId(), false));
             //获取回复评论列表
             List<Post> reply = replyService.getReply(post.getQuestionId(), post.getId());
             if (CollUtil.isNotEmpty(reply)) {
                 //转成VO
-                List<ReplyVO> replyVOList = reply.stream().map(replyService::objToVo).collect(Collectors.toList());
+                List<ReplyVO> replyVOList = reply.stream().map(replyService::postObjToReplyVo).collect(Collectors.toList());
+                //获取登录用户的点赞评论
+                Map<Long, Boolean> longBooleanMap = searchThumbPost(reply, loginUser.getId());
+                replyVOList.forEach(replyVO -> {
+                    replyVO.setHasThumb(longBooleanMap.get(replyVO.getId()));
+                });
                 postVO.setReply(replyVOList);
             }
             return postVO;
@@ -254,6 +259,22 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         }
         return Collections.emptyList();
     }
+
+    //获取登录用户的点赞评论
+    @Override
+    public Map<Long, Boolean> searchThumbPost(List<Post> postList, long userId) {
+        // 2. 已登录，获取用户点赞、收藏状态
+        Map<Long, Boolean> postIdHasThumbMap = new HashMap<>();
+        // 获取点赞
+        Set<Long> postIdSet = postList.stream().map(Post::getId).collect(Collectors.toSet());
+        QueryWrapper<PostThumb> postThumbQueryWrapper = new QueryWrapper<>();
+        postThumbQueryWrapper.in(ObjectUtils.isNotEmpty(postIdSet),"postId", postIdSet);
+        postThumbQueryWrapper.eq(ObjectUtils.isNotEmpty(userId),"userId", userId);
+        List<PostThumb> postPostThumbList = postThumbMapper.selectList(postThumbQueryWrapper);
+        postPostThumbList.forEach(postPostThumb -> postIdHasThumbMap.put(postPostThumb.getPostId(), true));
+        return postIdHasThumbMap;
+    }
+
 
 }
 

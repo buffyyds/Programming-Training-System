@@ -8,6 +8,7 @@ import com.djc.springbootinit.model.entity.Post;
 import com.djc.springbootinit.model.vo.PostVO;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 帖子服务
@@ -59,4 +60,7 @@ public interface PostService extends IService<Post> {
     Page<PostVO> getPostVOPage(Page<Post> postPage, HttpServletRequest request);
 
     List<Long> searchAllReply(long id);
+
+    //获取登录用户的点赞评论
+    Map<Long, Boolean> searchThumbPost(List<Post> postList, long userId);
 }

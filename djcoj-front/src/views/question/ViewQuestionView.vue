@@ -14,13 +14,13 @@
                 :column="{ xs: 1, md: 2, lg: 3 }"
               >
                 <a-descriptions-item label="时间限制">
-                  {{ question.judgeConfig.timeLimit ?? 0 }}
+                  {{ question.judgeConfig?.timeLimit ?? 0 }}
                 </a-descriptions-item>
                 <a-descriptions-item label="内存限制">
-                  {{ question.judgeConfig.memoryLimit ?? 0 }}
+                  {{ question.judgeConfig?.memoryLimit ?? 0 }}
                 </a-descriptions-item>
                 <a-descriptions-item label="堆栈限制">
-                  {{ question.judgeConfig.stackLimit ?? 0 }}
+                  {{ question.judgeConfig?.stackLimit ?? 0 }}
                 </a-descriptions-item>
               </a-descriptions>
               <MdViewer :value="question.content || ''" />
@@ -65,6 +65,7 @@
                   <a-comment
                     v-for="comment in comments"
                     :key="comment.id"
+                    :id="'comment-' + comment.id"
                     :author="comment.user.userName"
                     :content="comment.content"
                     :datetime="formatTime(comment.createTime)"
@@ -211,7 +212,7 @@
           :language="form.language"
           :handle-change="changeCode"
         />
-        <a-divider size="0" />
+        <a-divider :size="0" />
         <a-button type="primary" style="min-width: 200px" @click="doSubmit">
           提交代码
         </a-button>
@@ -249,7 +250,7 @@ dayjs.extend(relativeTime);
 dayjs.locale("zh-cn");
 
 interface Props {
-  id: string;
+  id: string | number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -268,7 +269,7 @@ const store = useStore();
 
 const loadData = async () => {
   const res = await QuestionControllerService.getQuestionVoByIdUsingGet(
-    props.id as any
+    props.id
   );
   if (res.code === 0) {
     question.value = res.data;
@@ -300,7 +301,7 @@ const checkCanViewAnswer = async (forceCheck = false) => {
 
   try {
     const res = await QuestionControllerService.getQuestionSubmitPassUsingPost({
-      questionId: props.id,
+      questionId: typeof props.id === "string" ? parseInt(props.id) : props.id,
       userId: userId,
     });
 
@@ -308,7 +309,7 @@ const checkCanViewAnswer = async (forceCheck = false) => {
       // 如果通过了，获取答案
       if (res.data === true) {
         const answer = await QuestionControllerService.getQuestionByIdUsingGet(
-          props.id
+          typeof props.id === "string" ? parseInt(props.id) : props.id
         );
         if (answer.code === 0 && answer.data?.answer) {
           answerContent.value = answer.data.answer;
@@ -334,8 +335,8 @@ const checkCanViewAnswer = async (forceCheck = false) => {
 /**
  * 切换页签
  */
-const handleTabChange = async (key: string) => {
-  activeTab.value = key;
+const handleTabChange = async (key: string | number) => {
+  activeTab.value = key.toString();
   if (key === "answer") {
     await checkCanViewAnswer();
   }
@@ -370,6 +371,40 @@ const doSubmit = async () => {
 onMounted(() => {
   loadData();
   loadComments();
+  // 如果有 tab 参数，切换到对应的页签
+  const tab = route.query.tab;
+  if (tab) {
+    activeTab.value = tab as string;
+  }
+  // 如果有 replyId 参数，找到对应的评论并展开回复
+  const replyId = route.query.replyId;
+  if (replyId) {
+    watchEffect(() => {
+      if (comments.value.length > 0) {
+        // 先找到包含这个回复的原始评论
+        const parentComment = comments.value.find((comment) =>
+          comment.reply?.some((reply) => reply.id === Number(replyId))
+        );
+        if (parentComment) {
+          parentComment.showReplyInput = true;
+          // 滚动到父评论
+          setTimeout(() => {
+            const element = document.getElementById(
+              `comment-${parentComment.id}`
+            );
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+              // 添加高亮效果
+              element.classList.add("comment-highlight");
+              setTimeout(() => {
+                element.classList.remove("comment-highlight");
+              }, 3000);
+            }
+          }, 100);
+        }
+      }
+    });
+  }
 });
 
 const changeCode = (value: string) => {
@@ -378,7 +413,7 @@ const changeCode = (value: string) => {
 
 // 评论相关的类型定义
 interface UserVO {
-  id: string;
+  id: number;
   userName: string;
   userAvatar: string;
   userProfile: string;
@@ -387,17 +422,17 @@ interface UserVO {
 }
 
 interface PostVO {
-  id: string;
+  id: number;
   content: string;
   thumbNum: number;
-  userId: string;
+  userId: number;
   createTime: string;
   updateTime: string;
   user: UserVO;
-  questionId: string;
+  questionId: number;
   hasThumb: boolean;
   isReply: boolean;
-  replyId?: string;
+  replyId?: number;
   reply?: PostVO[];
   showReplyInput?: boolean;
   replyContent?: string;
@@ -422,13 +457,13 @@ const loadComments = async () => {
     const res = await PostControllerService.listPostVoByPageUsingPost({
       current: commentPagination.value.current,
       pageSize: commentPagination.value.pageSize,
-      questionId: props.id as any,
+      questionId: props.id,
       sortField: "createTime",
       sortOrder: "desc",
     });
 
     if (res.code === 0 && res.data) {
-      comments.value = res.data.records.map((comment) => ({
+      comments.value = res.data.records.map((comment: any) => ({
         ...comment,
         showReplyInput: false,
         replyContent: "",
@@ -453,8 +488,8 @@ const submitComment = async () => {
     const res = await PostControllerService.addPostUsingPost({
       content: commentContent.value.trim(),
       isReply: false,
-      questionId: props.id as any,
-      replyId: "0", // 非回复型评论，replyId为0
+      questionId: props.id,
+      replyId: 0,
     });
 
     if (res.code === 0) {
@@ -481,8 +516,8 @@ const submitReply = async (comment: PostVO) => {
     const res = await PostControllerService.addPostUsingPost({
       content: comment.replyContent.trim(),
       isReply: true,
-      questionId: props.id as any,
-      replyId: comment.id, // 回复型评论，replyId为被回复的评论id
+      questionId: props.id,
+      replyId: comment.id,
     });
 
     if (res.code === 0) {
@@ -501,7 +536,9 @@ const submitReply = async (comment: PostVO) => {
 // 删除评论
 const deleteComment = async (comment: PostVO) => {
   try {
-    const res = await PostControllerService.deletePostUsingPost(comment.id);
+    const res = await PostControllerService.deletePostUsingPost({
+      id: comment.id,
+    });
     if (res.code === 0) {
       Message.success("删除成功");
       // 重新加载评论列表
@@ -535,7 +572,7 @@ const handleLike = async (comment: PostVO) => {
 };
 
 // 检查是否是当前用户的评论
-const isCurrentUser = (userId: string) => {
+const isCurrentUser = (userId: number) => {
   return store.state.user.loginUser?.id === userId;
 };
 
@@ -732,5 +769,18 @@ watchEffect(() => {
 .pagination {
   margin-top: 24px;
   text-align: center;
+}
+
+.comment-highlight {
+  animation: highlight 3s ease-out;
+}
+
+@keyframes highlight {
+  0% {
+    background-color: rgba(var(--primary-6), 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 </style>

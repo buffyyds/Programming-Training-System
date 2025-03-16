@@ -1,3 +1,7 @@
+/* generated using openapi-typescript-codegen -- do not edit */
+/* istanbul ignore file */
+/* tslint:disable */
+/* eslint-disable */
 import type { BaseResponse_boolean_ } from "../models/BaseResponse_boolean_";
 import type { BaseResponse_long_ } from "../models/BaseResponse_long_";
 import type { BaseResponse_Page_Post_ } from "../models/BaseResponse_Page_Post_";
@@ -7,7 +11,6 @@ import type { DeleteRequest } from "../models/DeleteRequest";
 import type { PostAddRequest } from "../models/PostAddRequest";
 import type { PostEditRequest } from "../models/PostEditRequest";
 import type { PostQueryRequest } from "../models/PostQueryRequest";
-import type { PostUpdateRequest } from "../models/PostUpdateRequest";
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
 import { request as __request } from "../core/request";
@@ -182,28 +185,6 @@ export class PostControllerService {
       method: "POST",
       url: "/api/post/search/page/vo",
       body: postQueryRequest,
-      errors: {
-        401: `Unauthorized`,
-        403: `Forbidden`,
-        404: `Not Found`,
-      },
-    });
-  }
-
-  /**
-   * updatePost
-   * @param postUpdateRequest postUpdateRequest
-   * @returns BaseResponse_boolean_ OK
-   * @returns any Created
-   * @throws ApiError
-   */
-  public static updatePostUsingPost(
-    postUpdateRequest: PostUpdateRequest
-  ): CancelablePromise<BaseResponse_boolean_ | any> {
-    return __request(OpenAPI, {
-      method: "POST",
-      url: "/api/post/update",
-      body: postUpdateRequest,
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,
