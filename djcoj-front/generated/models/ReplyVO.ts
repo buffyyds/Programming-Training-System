@@ -8,6 +8,7 @@ export type ReplyVO = {
     createTime?: string;
     hasThumb?: boolean;
     id?: number;
+    isRead?: boolean;
     isReply?: boolean;
     questionId?: number;
     replyId?: number;
@@ -15,6 +16,5 @@ export type ReplyVO = {
     updateTime?: string;
     user?: UserVO;
     userId?: number;
-    isRead?: boolean;
 };
 

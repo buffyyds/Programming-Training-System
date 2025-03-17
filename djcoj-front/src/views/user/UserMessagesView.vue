@@ -32,11 +32,7 @@
           <div class="message-content">
             <div class="message-header">
               <a-space>
-                <a-avatar :size="32">
-                  <template #icon>
-                    <icon-user />
-                  </template>
-                </a-avatar>
+                <a-avatar :size="32">{{ reply.user?.userName?.[0] }}</a-avatar>
                 <span class="username">{{ reply.user?.userName }}</span>
               </a-space>
               <span class="time">{{
@@ -60,7 +56,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { ReplyControllerService } from "../../../generated";
+import {
+  ReplyControllerService,
+  PostControllerService,
+} from "../../../generated";
 import { IconLeft, IconUser } from "@arco-design/web-vue/es/icon";
 import { Message } from "@arco-design/web-vue";
 import dayjs from "dayjs";
@@ -80,13 +79,37 @@ const goBack = () => {
 };
 
 // 跳转到问题详情页
-const goToQuestion = (questionId?: number, replyId?: number) => {
-  if (questionId) {
+const goToQuestion = async (questionId?: number, replyId?: number) => {
+  if (questionId && replyId) {
+    try {
+      // 获取评论页码
+      console.log("questionId", questionId);
+      console.log("replyId", replyId);
+      const res = await PostControllerService.getCommentPagePositionUsingGet(
+        questionId,
+        replyId
+      );
+      if (res.code === 0) {
+        const page = res.data;
+        router.push({
+          path: `/view/question/${questionId}`,
+          query: {
+            tab: "comment", // 默认打开评论页签
+            page: page.toString(), // 传递页码
+            replyId: replyId.toString(), // 传递评论ID
+          },
+        });
+      } else {
+        Message.error("获取评论位置失败：" + res.message);
+      }
+    } catch (error: any) {
+      Message.error("获取评论位置失败：" + error.message);
+    }
+  } else if (questionId) {
     router.push({
-      path: `/question/${questionId}`,
+      path: `/view/question/${questionId}`,
       query: {
         tab: "comment", // 默认打开评论页签
-        replyId: replyId?.toString(), // 传递评论ID
       },
     });
   }
@@ -123,11 +146,17 @@ const loadMessages = async () => {
     loading.value = true;
     const res = await ReplyControllerService.getMyReplyUsingGet();
     if (res.code === 0) {
-      // 使用后端返回的已读状态
-      replies.value = (res.data || []).map((reply) => ({
-        ...reply,
-        isRead: reply.isRead ?? false, // 如果后端返回 null 则默认为未读
-      }));
+      // 使用后端返回的已读状态,并按时间倒序排序
+      replies.value = (res.data || [])
+        .map((reply) => ({
+          ...reply,
+          isRead: reply.isRead ?? false, // 如果后端返回 null 则默认为未读
+        }))
+        .sort((a, b) => {
+          const timeA = new Date(a.createTime || "").getTime();
+          const timeB = new Date(b.createTime || "").getTime();
+          return timeB - timeA; // 倒序排序,最新的在前面
+        });
     } else {
       Message.error("获取消息失败：" + res.message);
     }

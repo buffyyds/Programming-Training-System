@@ -301,7 +301,7 @@ const checkCanViewAnswer = async (forceCheck = false) => {
 
   try {
     const res = await QuestionControllerService.getQuestionSubmitPassUsingPost({
-      questionId: typeof props.id === "string" ? parseInt(props.id) : props.id,
+      questionId: props.id,
       userId: userId,
     });
 
@@ -309,7 +309,7 @@ const checkCanViewAnswer = async (forceCheck = false) => {
       // 如果通过了，获取答案
       if (res.data === true) {
         const answer = await QuestionControllerService.getQuestionByIdUsingGet(
-          typeof props.id === "string" ? parseInt(props.id) : props.id
+          props.id
         );
         if (answer.code === 0 && answer.data?.answer) {
           answerContent.value = answer.data.answer;
@@ -368,43 +368,22 @@ const doSubmit = async () => {
 /**
  * 页面加载时，请求数据
  */
-onMounted(() => {
-  loadData();
-  loadComments();
+onMounted(async () => {
+  await loadData();
   // 如果有 tab 参数，切换到对应的页签
   const tab = route.query.tab;
   if (tab) {
     activeTab.value = tab as string;
   }
-  // 如果有 replyId 参数，找到对应的评论并展开回复
-  const replyId = route.query.replyId;
-  if (replyId) {
-    watchEffect(() => {
-      if (comments.value.length > 0) {
-        // 先找到包含这个回复的原始评论
-        const parentComment = comments.value.find((comment) =>
-          comment.reply?.some((reply) => reply.id === Number(replyId))
-        );
-        if (parentComment) {
-          parentComment.showReplyInput = true;
-          // 滚动到父评论
-          setTimeout(() => {
-            const element = document.getElementById(
-              `comment-${parentComment.id}`
-            );
-            if (element) {
-              element.scrollIntoView({ behavior: "smooth", block: "center" });
-              // 添加高亮效果
-              element.classList.add("comment-highlight");
-              setTimeout(() => {
-                element.classList.remove("comment-highlight");
-              }, 3000);
-            }
-          }, 100);
-        }
-      }
-    });
+
+  // 如果有 page 参数，设置当前页码
+  const page = route.query.page;
+  if (page) {
+    commentPagination.value.current = Number(page);
   }
+
+  // 加载评论
+  await loadComments();
 });
 
 const changeCode = (value: string) => {
@@ -469,6 +448,32 @@ const loadComments = async () => {
         replyContent: "",
       }));
       commentPagination.value.total = Number(res.data.total);
+
+      // 检查是否有需要展开的评论
+      const replyId = route.query.replyId;
+      if (replyId) {
+        // 直接找到对应的评论
+        const targetComment = comments.value.find(
+          (comment) => comment.id == replyId
+        );
+        if (targetComment) {
+          targetComment.showReplyInput = true;
+          // 滚动到目标评论
+          setTimeout(() => {
+            const element = document.getElementById(
+              `comment-${targetComment.id}`
+            );
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+              // 添加高亮效果
+              element.classList.add("comment-highlight");
+              setTimeout(() => {
+                element.classList.remove("comment-highlight");
+              }, 3000);
+            }
+          }, 100);
+        }
+      }
     }
   } catch (error) {
     Message.error("加载评论失败，请稍后重试");

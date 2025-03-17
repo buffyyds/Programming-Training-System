@@ -63,4 +63,12 @@ public interface PostService extends IService<Post> {
 
     //获取登录用户的点赞评论
     Map<Long, Boolean> searchThumbPost(List<Post> postList, long userId);
+
+    /**
+     * 获取评论在分页中的位置
+     * @param questionId 问题ID
+     * @param commentId 评论ID
+     * @return 页码（从1开始）
+     */
+    long getCommentPagePosition(long questionId, long commentId);
 }

@@ -67,6 +67,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     @Autowired
     private ReplyService replyService;
 
+    @Autowired
+    private PostMapper postMapper;
+
     /**
      * 获取查询包装类
      *
@@ -79,7 +82,6 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (postQueryRequest == null) {
             return queryWrapper;
         }
-//        String searchText = postQueryRequest.getSearchText();
         String sortField = postQueryRequest.getSortField();
         String sortOrder = postQueryRequest.getSortOrder();
         Long questionId = postQueryRequest.getQuestionId();
@@ -275,6 +277,27 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return postIdHasThumbMap;
     }
 
+    @Override
+    public long getCommentPagePosition(long questionId, long commentId) {
+        // 获取非回复类型的评论的总数
+        long total = postMapper.selectCount(
+            new QueryWrapper<Post>()
+                .eq("questionId", questionId)
+                .eq("isReply", 0)
+                .eq("isDelete", 0)
+        );
+        
+        // 获取评论在列表中的位置（从0开始）
+        long position = postMapper.selectCount(
+            new QueryWrapper<Post>()
+                .eq("questionId", questionId)
+                .eq("isDelete", 0)
+                .lt("createTime", postMapper.selectById(commentId).getCreateTime())
+        );
+        
+        // 计算页码（从1开始）
+        return (position / 10) + 1;
+    }
 
 }
 

@@ -40,7 +40,15 @@
       @page-change="onPageChange"
     >
       <template #judgeResult="{ record }">
-        {{ getJudgeResultText(record.judgeInfo.message) }}
+        <a-space>
+          <div
+            class="status-dot"
+            :class="
+              record.judgeInfo.message === 'Accepted' ? 'success' : 'error'
+            "
+          ></div>
+          {{ getJudgeResultText(record.judgeInfo.message) }}
+        </a-space>
       </template>
       <template #memory="{ record }">
         {{ record.judgeInfo.memory + " KB" }}
@@ -237,5 +245,20 @@ const doSubmit = () => {
 
 :deep(.arco-select-view:hover) {
   border-color: rgb(var(--primary-6));
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.success {
+  background-color: #52c41a;
+}
+
+.status-dot.error {
+  background-color: #ff4d4f;
 }
 </style>

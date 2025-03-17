@@ -8,6 +8,7 @@ export type Post = {
     favourNum?: number;
     id?: number;
     isDelete?: number;
+    isRead?: boolean;
     isReply?: boolean;
     questionId?: number;
     replyId?: number;

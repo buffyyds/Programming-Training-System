@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -232,6 +233,13 @@ public class PostController {
         }
         boolean result = postService.updateById(post);
         return ResultUtils.success(result);
+    }
+
+    @GetMapping("/get/page/position")
+    public BaseResponse<Long> getCommentPagePosition(
+            @RequestParam("questionId") long questionId,
+            @RequestParam("commentId") long commentId) {
+        return ResultUtils.success(postService.getCommentPagePosition(questionId, commentId));
     }
 
 }

@@ -83,6 +83,32 @@ export class PostControllerService {
   }
 
   /**
+   * getCommentPagePosition
+   * @param commentId commentId
+   * @param questionId questionId
+   * @returns BaseResponse_long_ OK
+   * @throws ApiError
+   */
+  public static getCommentPagePositionUsingGet(
+      questionId: number,
+      commentId: number
+  ): CancelablePromise<BaseResponse_long_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/post/get/page/position",
+      query: {
+        questionId: questionId,
+        commentId: commentId,
+      },
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
    * getPostVOById
    * @param id id
    * @returns BaseResponse_PostVO_ OK
