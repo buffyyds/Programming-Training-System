@@ -159,6 +159,15 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         questionVOPage.setRecords(questionVOList);
         return questionVOPage;
     }
+
+    @Override
+    public String getQuestionAnswerById(long questionId) {
+        Question question = getById(questionId);
+        if (question == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        return question.getAnswer();
+    }
 }
 
 

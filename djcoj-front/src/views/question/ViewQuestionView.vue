@@ -170,7 +170,7 @@
           </a-tab-pane>
           <a-tab-pane key="answer" title="答案">
             <div v-if="canViewAnswer" class="question-answer">
-              <MdViewer :value="answerContent" />
+              <pre><code>{{ answerContent }}</code></pre>
             </div>
             <div v-else class="no-answer">
               <a-result
@@ -308,14 +308,15 @@ const checkCanViewAnswer = async (forceCheck = false) => {
     if (res.code === 0) {
       // 如果通过了，获取答案
       if (res.data === true) {
-        const answer = await QuestionControllerService.getQuestionByIdUsingGet(
+        const answer = await QuestionControllerService.getAnswerByIdUsingGet(
           props.id
         );
-        if (answer.code === 0 && answer.data?.answer) {
-          answerContent.value = answer.data.answer;
+        if (answer.code === 0 && answer.data) {
+          answerContent.value = answer.data;
           canViewAnswer.value = true;
         } else {
           canViewAnswer.value = false;
+          console.error("获取答案失败:", answer.message);
         }
       } else {
         canViewAnswer.value = false;
@@ -621,28 +622,27 @@ watchEffect(() => {
 }
 
 .question-answer {
-  padding: 24px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.question-answer :deep(.markdown-body) {
-  font-size: 15px;
-  line-height: 1.8;
-  color: #333;
-}
-
-.question-answer :deep(pre) {
-  background-color: #f6f8fa;
-  border-radius: 6px;
   padding: 16px;
-  margin: 16px 0;
+  background-color: var(--color-fill-2);
+  border-radius: 4px;
 }
 
-.question-answer :deep(code) {
-  font-family: Monaco, Consolas, "Courier New", monospace;
+.question-answer pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: monospace;
   font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-1);
+}
+
+.question-answer code {
+  display: block;
+  padding: 16px;
+  background-color: var(--color-bg-2);
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
 }
 
 .no-answer {

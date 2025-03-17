@@ -279,20 +279,13 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     @Override
     public long getCommentPagePosition(long questionId, long commentId) {
-        // 获取非回复类型的评论的总数
-        long total = postMapper.selectCount(
-            new QueryWrapper<Post>()
-                .eq("questionId", questionId)
-                .eq("isReply", 0)
-                .eq("isDelete", 0)
-        );
-        
         // 获取评论在列表中的位置（从0开始）
         long position = postMapper.selectCount(
             new QueryWrapper<Post>()
                 .eq("questionId", questionId)
                 .eq("isDelete", 0)
-                .lt("createTime", postMapper.selectById(commentId).getCreateTime())
+                .eq("isReply", 0)
+                .gt("createTime", postMapper.selectById(commentId).getCreateTime())
         );
         
         // 计算页码（从1开始）

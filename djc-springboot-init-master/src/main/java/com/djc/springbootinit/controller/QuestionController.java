@@ -174,6 +174,21 @@ public class QuestionController {
     }
 
     /**
+     * 根据id获取答案
+     */
+    @GetMapping("/getAnswer")
+    public BaseResponse<String> getAnswerById(long id, HttpServletRequest request) {
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String answer = questionService.getQuestionAnswerById(id);
+        if (answer == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        return ResultUtils.success(answer);
+    }
+
+    /**
      * 根据 id 获取（脱敏）
      *
      * @param id
