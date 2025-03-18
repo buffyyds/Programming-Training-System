@@ -7,7 +7,7 @@ interface UserState {
     id?: number;
     userName: string;
     userRole?: string;
-  };
+  } | null;
   aiMessages: {
     [key: number]: Array<{
       type: "user" | "ai";
@@ -24,10 +24,7 @@ export default {
   namespaced: true,
   // state 存储用户状态信息
   state: {
-    loginUser: {
-      //id?
-      userName: "未登录",
-    },
+    loginUser: null,
     aiMessages: {}, // 存储每个用户的AI对话记录
   } as UserState,
   //actions 执行异步操作，并且触发mutations更新state
@@ -70,7 +67,7 @@ export default {
       try {
         await UserControllerService.userLogoutUsingPost();
         // 清空当前用户的对话记录
-        if (state.loginUser.id) {
+        if (state.loginUser?.id) {
           commit("clearAiMessages", state.loginUser.id);
         }
         // 重置用户状态

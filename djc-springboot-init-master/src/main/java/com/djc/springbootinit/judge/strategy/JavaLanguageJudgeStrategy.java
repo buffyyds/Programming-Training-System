@@ -40,6 +40,13 @@ public class JavaLanguageJudgeStrategy implements JudgeStrategy {
             judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());
             return judgeInfoResponse;
         }
+        // outputList中可能带有换行符，如果最末尾是换行符，则删掉最末尾的换行符，否则不用删
+        for (int i = 0; i < outputList.size(); i++) {
+            String output = outputList.get(i);
+            if (output.endsWith("\n")) {
+                outputList.set(i, output.substring(0, output.length() - 1));
+            }
+        }
         // 依次判断每一项输出和预期输出是否相等
         for (int i = 0; i < judgeCaseList.size(); i++) {
             JudgeCase judgeCase = judgeCaseList.get(i);

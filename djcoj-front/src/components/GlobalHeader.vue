@@ -33,21 +33,33 @@
           <template #icon>
             <user-outlined />
           </template>
-          <div>{{ store.state.user?.loginUser?.userName ?? "未登录" }}</div>
+          <div>{{ loginUser?.userName || "未登录" }}</div>
         </a-avatar>
         <template #content>
-          <a-doption @click="router.push('/user/profile')">
-            <template #icon><user-outlined /></template>
-            个人信息
-          </a-doption>
-          <a-doption @click="router.push('/user/messages')">
-            <template #icon><message-outlined /></template>
-            我的消息
-          </a-doption>
-          <a-doption @click="handleLogout">
-            <template #icon><logout-outlined /></template>
-            退出登录
-          </a-doption>
+          <template v-if="loginUser?.userName">
+            <a-doption @click="router.push('/user/profile')">
+              <template #icon><user-outlined /></template>
+              个人信息
+            </a-doption>
+            <a-doption @click="router.push('/user/messages')">
+              <template #icon><message-outlined /></template>
+              我的消息
+            </a-doption>
+            <a-doption @click="handleLogout">
+              <template #icon><logout-outlined /></template>
+              退出登录
+            </a-doption>
+          </template>
+          <template v-else>
+            <a-doption @click="router.push('/user/login')">
+              <template #icon><login-outlined /></template>
+              登录
+            </a-doption>
+            <a-doption @click="router.push('/user/register')">
+              <template #icon><user-add-outlined /></template>
+              注册
+            </a-doption>
+          </template>
         </template>
       </a-dropdown>
     </a-col>
@@ -65,6 +77,8 @@ import {
   UserOutlined,
   MessageOutlined,
   LogoutOutlined,
+  LoginOutlined,
+  UserAddOutlined,
 } from "@ant-design/icons-vue";
 import { UserControllerService } from "../../generated";
 import { Message } from "@arco-design/web-vue";
@@ -72,9 +86,8 @@ import { Message } from "@arco-design/web-vue";
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
-const loginUser = store.state.user.loginUser;
+const loginUser = computed(() => store.state.user?.loginUser);
 
-console.log("loginUser", loginUser);
 // 展示在菜单的路由数组
 //computed是一个计算属性，用于计算一个新的值，当依赖的值发生变化时，会重新计算
 const visibleRoutes = computed(() => {

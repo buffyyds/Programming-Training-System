@@ -24,9 +24,18 @@
         />
       </a-form-item>
       <a-form-item>
-        <a-button type="primary" html-type="submit" style="width: 120px">
-          注册
-        </a-button>
+        <a-space>
+          <a-button type="primary" html-type="submit" style="width: 120px">
+            注册
+          </a-button>
+          <a-button
+            type="outline"
+            @click="router.push('/user/login')"
+            style="width: 120px"
+          >
+            登录
+          </a-button>
+        </a-space>
       </a-form-item>
     </a-form>
   </div>

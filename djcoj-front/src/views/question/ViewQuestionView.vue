@@ -189,7 +189,7 @@
         </a-tabs>
       </a-col>
       <a-col :md="12" :xs="24">
-        <a-form :model="form" layout="inline">
+        <a-form :model="form" layout="inline" style="margin-bottom: 16px">
           <a-form-item
             field="language"
             label="编程语言"
@@ -206,23 +206,57 @@
               <a-option>html</a-option>
             </a-select>
           </a-form-item>
+          <a-form-item>
+            <a-button
+              type="primary"
+              :loading="submitting"
+              @click="doSubmit"
+              style="min-width: 120px"
+            >
+              {{ submitting ? "提交中..." : "提交代码" }}
+            </a-button>
+          </a-form-item>
         </a-form>
         <CodeEditor
           :value="form.code as string"
           :language="form.language"
           :handle-change="changeCode"
         />
-        <a-divider :size="0" />
-        <a-button type="primary" style="min-width: 200px" @click="doSubmit">
-          提交代码
-        </a-button>
+        <!-- 添加判题结果展示区域 -->
+        <div v-if="judgeResult" class="judge-result">
+          <div class="judge-result-title">判题结果</div>
+          <div class="judge-result-content">
+            <div class="judge-result-item">
+              <span class="label">执行结果：</span>
+              <span
+                :class="['value', getJudgeResultClass(judgeResult.message)]"
+                >{{ judgeResult.message }}</span
+              >
+            </div>
+            <div class="judge-result-item">
+              <span class="label">执行时间：</span>
+              <span class="value">{{ judgeResult.time }}ms</span>
+            </div>
+            <div class="judge-result-item">
+              <span class="label">内存消耗：</span>
+              <span class="value">{{ judgeResult.memory }}B</span>
+            </div>
+          </div>
+        </div>
       </a-col>
     </a-row>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watchEffect, withDefaults, defineProps } from "vue";
+import {
+  onMounted,
+  ref,
+  watchEffect,
+  withDefaults,
+  defineProps,
+  onUnmounted,
+} from "vue";
 import message from "@arco-design/web-vue/es/message";
 import CodeEditor from "@/components/CodeEditor.vue";
 import MdViewer from "@/components/MdViewer.vue";
@@ -279,6 +313,7 @@ const loadData = async () => {
 };
 
 const form = ref<QuestionSubmitAddRequest>({
+  questionId: props.id,
   language: "java",
   code: "",
 });
@@ -343,26 +378,95 @@ const handleTabChange = async (key: string | number) => {
   }
 };
 
+// 提交状态
+const submitting = ref(false);
+const judgeResult = ref<any>(null);
+let pollTimer: number | null = null;
+
+// 获取判题结果
+const getJudgeResult = async (submitId: number) => {
+  try {
+    const res =
+      await QuestionControllerService.getQuestionSubmitJudgeInfoByIdUsingGet(
+        submitId
+      );
+    if (res.code === 0 && res.data) {
+      const result = JSON.parse(res.data);
+      judgeResult.value = result;
+      // 如果判题完成，停止轮询
+      if (result.message) {
+        if (pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+        submitting.value = false;
+      }
+    }
+  } catch (error) {
+    console.error("获取判题结果失败", error);
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+    submitting.value = false;
+    message.error("获取判题结果失败");
+  }
+};
+
+// 开始轮询判题结果
+const startPolling = (submitId: number) => {
+  // 先立即获取一次
+  getJudgeResult(submitId);
+  // 每2秒轮询一次
+  pollTimer = window.setInterval(() => {
+    getJudgeResult(submitId);
+  }, 2000);
+};
+
+// 获取判题结果样式
+const getJudgeResultClass = (message: string) => {
+  if (message === "Accepted" || message === "成功") return "success";
+  if (message === "Wrong Answer" || message === "答案错误") return "error";
+  if (message === "Compile Error" || message === "编译错误") return "error";
+  if (message === "Memory Limit Exceeded" || message === "内存溢出")
+    return "error";
+  if (message === "Time Limit Exceeded" || message === "超时") return "error";
+  if (message === "Presentation Error" || message === "展示错误")
+    return "error";
+  if (message === "Output Limit Exceeded" || message === "输出溢出")
+    return "error";
+  if (message === "Dangerous Operation" || message === "危险操作")
+    return "error";
+  if (message === "Runtime Error" || message === "运行错误") return "error";
+  if (message === "System Error" || message === "系统错误") return "error";
+  return "error";
+};
+
 /**
  * 提交代码
  */
 const doSubmit = async () => {
-  if (!question.value?.id) {
+  if (!form.value.code) {
+    message.error("请输入代码");
     return;
   }
-
-  const res = await QuestionControllerService.doQuestionSubmitUsingPost({
-    ...form.value,
-    questionId: question.value.id,
-  });
-  if (res.code === 0) {
-    message.success("提交成功");
-    hasCheckedAnswer.value = false;
-    if (activeTab.value === "answer") {
-      await checkCanViewAnswer(true);
+  submitting.value = true;
+  judgeResult.value = null;
+  try {
+    const res = await QuestionControllerService.doQuestionSubmitUsingPost(
+      form.value
+    );
+    if (res.code === 0 && res.data) {
+      message.success("提交成功");
+      // 开始轮询判题结果
+      startPolling(res.data);
+    } else {
+      submitting.value = false;
+      message.error("提交失败，" + res.message);
     }
-  } else {
-    message.error("提交失败," + res.message);
+  } catch (error) {
+    submitting.value = false;
+    message.error("提交失败");
   }
 };
 
@@ -787,5 +891,61 @@ watchEffect(() => {
   100% {
     background-color: transparent;
   }
+}
+
+.judge-result {
+  margin-top: 16px;
+  background-color: #1d2129;
+  border-radius: 4px;
+  padding: 16px;
+  color: #fff;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.judge-result-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+.judge-result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.judge-result-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.judge-result-item .label {
+  color: #86909c;
+  min-width: 80px;
+}
+
+.judge-result-item .value {
+  font-weight: 500;
+}
+
+.judge-result-item .value.success {
+  color: #52c41a !important;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.judge-result-item .value.error {
+  color: #f53f3f !important;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.judge-result-item .value.warning {
+  color: #faad14 !important;
+  font-size: 16px;
+  font-weight: 600;
 }
 </style>

@@ -44,14 +44,17 @@
           <div
             class="status-dot"
             :class="
-              record.judgeInfo.message === 'Accepted' ? 'success' : 'error'
+              record.judgeInfo.message === 'Accepted' ||
+              record.judgeInfo.message === '成功'
+                ? 'success'
+                : 'error'
             "
           ></div>
           {{ getJudgeResultText(record.judgeInfo.message) }}
         </a-space>
       </template>
       <template #memory="{ record }">
-        {{ record.judgeInfo.memory + " KB" }}
+        {{ record.judgeInfo.memory + " B" }}
       </template>
       <template #time="{ record }">
         {{ record.judgeInfo.time + " ms" }}

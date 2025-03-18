@@ -1,5 +1,6 @@
 package com.djc.djcojcodesandbox.controller;
 
+import com.djc.djcojcodesandbox.JavaDockerCodeSandbox;
 import com.djc.djcojcodesandbox.JavaNativeCodeSandbox;
 import com.djc.djcojcodesandbox.model.ExecuteCodeRequest;
 import com.djc.djcojcodesandbox.model.ExecuteCodeResponse;
@@ -22,6 +23,9 @@ public class MainController {
 
     @Resource
     private JavaNativeCodeSandbox javaNativeCodeSandbox;
+
+    @Resource
+    private JavaDockerCodeSandbox javaDockerCodeSandbox;
 
     @GetMapping("/health")
     public String healthCheck() {
@@ -46,6 +50,6 @@ public class MainController {
         if (executeCodeRequest == null) {
             throw new RuntimeException("请求参数为空");
         }
-        return javaNativeCodeSandbox.executeCode(executeCodeRequest);
+        return javaDockerCodeSandbox.executeCode(executeCodeRequest);
     }
 }

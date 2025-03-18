@@ -246,6 +246,29 @@ export class QuestionControllerService {
   }
 
   /**
+   * getQuestionSubmitJudgeInfoById
+   * @param id id
+   * @returns BaseResponse_string_ OK
+   * @throws ApiError
+   */
+  public static getQuestionSubmitJudgeInfoByIdUsingGet(
+    id?: number
+  ): CancelablePromise<BaseResponse_string_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/question/question_submit/judgeInfo",
+      query: {
+        id: id,
+      },
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
    * listQuestionSubmitByPage
    * @param questionSubmitQueryRequest questionSubmitQueryRequest
    * @returns BaseResponse_Page_QuestionSubmitVO_ OK

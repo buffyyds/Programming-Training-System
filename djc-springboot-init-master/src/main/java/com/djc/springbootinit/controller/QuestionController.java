@@ -366,4 +366,18 @@ public class QuestionController {
         return ResultUtils.success(pass);
     }
 
+    /**
+     * 通过题目提交 id 获取题目提交judgeInfo
+     */
+    @GetMapping("/question_submit/judgeInfo")
+    public BaseResponse<String> getQuestionSubmitJudgeInfoById(long id, HttpServletRequest request) {
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QuestionSubmit questionSubmit = questionSubmitService.getById(id);
+        if (questionSubmit == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        return ResultUtils.success(JSONUtil.toJsonStr(questionSubmit.getJudgeInfo()));
+    }
 }

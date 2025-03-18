@@ -15,6 +15,7 @@ import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitQueryReques
 import com.djc.springbootinit.model.entity.Question;
 import com.djc.springbootinit.model.entity.QuestionSubmit;
 import com.djc.springbootinit.model.entity.User;
+import com.djc.springbootinit.model.enums.JudgeInfoMessageEnum;
 import com.djc.springbootinit.model.enums.QuestionSubmitStatusEnum;
 import com.djc.springbootinit.model.vo.QuestionSubmitVO;
 import com.djc.springbootinit.model.vo.QuestionVO;
@@ -178,7 +179,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("questionId", questionId);
         queryWrapper.eq("userId", userId);
-        queryWrapper.eq("status", QuestionSubmitStatusEnum.SUCCEED.getValue());
+        queryWrapper.like("judgeInfo", JudgeInfoMessageEnum.ACCEPTED.getValue());
         List<QuestionSubmit> questionSubmitList = this.list(queryWrapper);
         if (CollectionUtils.isNotEmpty(questionSubmitList)) {
             return true;

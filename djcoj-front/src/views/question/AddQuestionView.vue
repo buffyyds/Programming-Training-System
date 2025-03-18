@@ -30,36 +30,32 @@
       </a-form-item>
       <a-form-item label="判题配置" :content-flex="false" :merge-props="false">
         <a-space direction="vertical" style="min-width: 480px">
-          <a-form-item field="judgeConfig.timeLimit" label="时间限制">
+          <a-form-item field="form.judgeConfig.timeLimit" label="时间限制">
             <a-input-number
-              :model-value="Number(form.judgeConfig.timeLimit)"
-              @change="(value) => (form.judgeConfig.timeLimit = Number(value))"
+              v-model="form.judgeConfig.timeLimit"
               placeholder="请输入时间限制"
-              mode="button"
               :min="0"
-              size="large"
-            />
+              style="width: 100%"
+            >
+              <template #suffix>ms</template>
+            </a-input-number>
           </a-form-item>
-          <a-form-item field="judgeConfig.memoryLimit" label="内存限制">
+          <a-form-item field="form.judgeConfig.memoryLimit" label="内存限制">
             <a-input-number
-              :model-value="Number(form.judgeConfig.memoryLimit)"
-              @change="
-                (value) => (form.judgeConfig.memoryLimit = Number(value))
-              "
+              v-model="form.judgeConfig.memoryLimit"
               placeholder="请输入内存限制"
-              mode="button"
               :min="0"
-              size="large"
-            />
+              style="width: 100%"
+            >
+              <template #suffix>B</template>
+            </a-input-number>
           </a-form-item>
-          <a-form-item field="judgeConfig.stackLimit" label="堆栈限制">
+          <a-form-item field="form.judgeConfig.stackLimit" label="堆栈限制">
             <a-input-number
-              :model-value="Number(form.judgeConfig.stackLimit)"
-              @change="(value) => (form.judgeConfig.stackLimit = Number(value))"
+              v-model="form.judgeConfig.stackLimit"
               placeholder="请输入堆栈限制"
-              mode="button"
               :min="0"
-              size="large"
+              style="width: 100%"
             />
           </a-form-item>
         </a-space>
@@ -417,6 +413,15 @@ onMounted(() => {
 });
 
 const doSubmit = async () => {
+  // 添加表单验证
+  if (
+    !form.value.judgeConfig.timeLimit ||
+    !form.value.judgeConfig.memoryLimit ||
+    !form.value.judgeConfig.stackLimit
+  ) {
+    message.error("请填写完整的判题配置信息");
+    return;
+  }
   console.log(form.value);
   // 区分更新还是创建
   if (isUpdate.value) {
