@@ -9,6 +9,7 @@
             <result property="language" column="language" />
             <result property="code" column="code" />
             <result property="judgeInfo" column="judgeInfo" />
+            <result property="executeResult" column="executeResult" />
             <result property="status" column="status" />
             <result property="questionId" column="questionId" />
             <result property="userId" column="userId" />
@@ -18,7 +19,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,language,code,judgeInfo,status,questionId,
+        id,language,code,judgeInfo,executeResult,status,questionId,
         userId,createTime,updateTime,isDelete
     </sql>
 </mapper>

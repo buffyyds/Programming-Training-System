@@ -378,6 +378,25 @@ public class QuestionController {
         if (questionSubmit == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        return ResultUtils.success(JSONUtil.toJsonStr(questionSubmit.getJudgeInfo()));
+        return ResultUtils.success(JSONUtil.toJsonStr(questionSubmit.getJudgeInfo()+questionSubmit.getExecuteResult()));
+    }
+
+    /**
+     * 通过题目id获取题目judgeCase
+     * (用于前端获取输入用例并展示)
+     * @param id
+     * @param request
+     * @return
+     */
+    @GetMapping("/question/judgeCase")
+    public BaseResponse<String> getQuestionJudgeCaseById(long id, HttpServletRequest request) {
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Question question = questionService.getById(id);
+        if (question == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        return ResultUtils.success(question.getJudgeCase());
     }
 }

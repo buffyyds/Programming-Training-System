@@ -36,6 +36,11 @@ public class QuestionSubmit {
     private String judgeInfo;
 
     /**
+     * 执行结果
+     */
+    private String executeResult;
+
+    /**
      * 判题状态（0 - 待判题、1 - 判题中、2 - 成功、3 - 失败）
      */
     private Integer status;
