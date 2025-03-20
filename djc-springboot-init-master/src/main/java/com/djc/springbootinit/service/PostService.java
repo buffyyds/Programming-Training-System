@@ -71,4 +71,6 @@ public interface PostService extends IService<Post> {
      * @return 页码（从1开始）
      */
     long getCommentPagePosition(long questionId, long commentId);
+
+    Long getUnread(Long id);
 }

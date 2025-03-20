@@ -109,6 +109,23 @@ export class PostControllerService {
   }
 
   /**
+   * getUnread
+   * @returns BaseResponse_long_ OK
+   * @throws ApiError
+   */
+  public static getUnreadUsingGet(): CancelablePromise<BaseResponse_long_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/post/get/unread",
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
    * getPostVOById
    * @param id id
    * @returns BaseResponse_PostVO_ OK

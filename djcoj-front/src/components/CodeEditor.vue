@@ -1,84 +1,94 @@
 <template>
   <div
     id="code-editor"
-    ref="codeEditorRef"
+    ref="editorRef"
     style="min-height: 400px; height: 60vh"
   />
   <!--  <a-button @click="fillValue">填充值</a-button>-->
 </template>
 
 <script setup lang="ts">
-import * as monaco from "monaco-editor";
 import { onMounted, ref, toRaw, withDefaults, defineProps, watch } from "vue";
+import * as monaco from "monaco-editor";
 
 /**
  * 定义组件属性类型
  */
 interface Props {
-  value: string;
+  value?: string;
   language?: string;
-  handleChange: (v: string) => void;
+  handleChange?: (value: string) => void;
 }
 
 /**
  * 给组件指定初始值
  */
 const props = withDefaults(defineProps<Props>(), {
-  value: () => "",
-  language: () => "java",
-  handleChange: (v: string) => {
-    console.log(v);
+  value: "",
+  language: "java",
+  handleChange: (value: string) => {
+    // 默认的变更处理函数
+    console.log("Code changed:", value);
   },
 });
 
-const codeEditorRef = ref();
-const codeEditor = ref();
+const editorRef = ref<HTMLElement>();
+let editor: monaco.editor.IStandaloneCodeEditor;
 
 // const fillValue = () => {
-//   if (!codeEditor.value) {
+//   if (!editor.value) {
 //     return;
 //   }
 //   // 改变值
-//   toRaw(codeEditor.value).setValue("新的值");
+//   toRaw(editor.value).setValue("新的值");
 // };
 
+// 监听语言变化
 watch(
   () => props.language,
-  () => {
-    if (codeEditor.value) {
-      monaco.editor.setModelLanguage(
-        toRaw(codeEditor.value).getModel(),
-        props.language
-      );
+  (newLang) => {
+    if (editor) {
+      // 先清空编辑器内容
+      editor.setValue("");
+      // 设置新的语言
+      monaco.editor.setModelLanguage(editor.getModel()!, newLang);
+      // 设置新的内容
+      editor.setValue(props.value);
+    }
+  }
+);
+
+// 监听值变化
+watch(
+  () => props.value,
+  (newValue) => {
+    if (editor && editor.getValue() !== newValue) {
+      editor.setValue(newValue);
     }
   }
 );
 
 onMounted(() => {
-  if (!codeEditorRef.value) {
-    return;
-  }
-  // Hover on each property to see its docs!
-  codeEditor.value = monaco.editor.create(codeEditorRef.value, {
-    value: props.value,
-    language: props.language,
-    automaticLayout: true,
-    colorDecorators: true,
-    minimap: {
-      enabled: true,
-    },
-    readOnly: false,
-    theme: "vs-dark",
-    // lineNumbers: "off",
-    // roundedSelection: false,
-    // scrollBeyondLastLine: false,
-  });
+  if (editorRef.value) {
+    editor = monaco.editor.create(editorRef.value, {
+      value: props.value,
+      language: props.language,
+      theme: "vs-dark",
+      automaticLayout: true,
+      minimap: {
+        enabled: false,
+      },
+      scrollBeyondLastLine: false,
+      fontSize: 14,
+      tabSize: 4,
+      insertSpaces: true,
+      wordWrap: "on",
+    });
 
-  // 编辑 监听内容变化
-  codeEditor.value.onDidChangeModelContent(() => {
-    props.handleChange(toRaw(codeEditor.value).getValue());
-    //console.log("目前内容为:", toRaw(codeEditor.value).getValue());
-  });
+    editor.onDidChangeModelContent(() => {
+      props.handleChange(editor.getValue());
+    });
+  }
 });
 </script>
 

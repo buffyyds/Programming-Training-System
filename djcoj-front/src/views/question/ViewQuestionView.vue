@@ -186,6 +186,35 @@
               </a-result>
             </div>
           </a-tab-pane>
+          <a-tab-pane key="ai" title="AI代码评分">
+            <div class="tab-content">
+              <div class="ai-score-content">
+                <div class="ai-score-header">
+                  <a-tooltip position="left">
+                    <template #content>
+                      <span class="score-tooltip">评分与题目无关</span>
+                    </template>
+                    <a-button
+                      type="primary"
+                      :loading="aiScoring"
+                      @click="requestAIScore"
+                    >
+                      {{ aiScoring ? "评分中..." : "开始评分" }}
+                    </a-button>
+                  </a-tooltip>
+                </div>
+                <div v-if="aiScoreResult" class="ai-score-result">
+                  <div
+                    v-html="formatMarkdown(aiScoreResult)"
+                    class="markdown-content"
+                  ></div>
+                </div>
+                <div v-else class="empty-content">
+                  <a-empty description="暂无评分结果" />
+                </div>
+              </div>
+            </div>
+          </a-tab-pane>
         </a-tabs>
       </a-col>
       <a-col :md="12" :xs="24">
@@ -200,10 +229,10 @@
               :style="{ width: '320px' }"
               placeholder="选择编程语言"
             >
-              <a-option>java</a-option>
-              <a-option>cpp</a-option>
-              <a-option>go</a-option>
-              <a-option>html</a-option>
+              <a-option value="java">Java</a-option>
+              <a-option value="cpp">C++</a-option>
+              <a-option value="go">Go</a-option>
+              <a-option value="python">Python</a-option>
             </a-select>
           </a-form-item>
           <a-form-item>
@@ -222,26 +251,101 @@
           :language="form.language"
           :handle-change="changeCode"
         />
-        <!-- 添加判题结果展示区域 -->
-        <div v-if="judgeResult" class="judge-result">
-          <div class="judge-result-title">判题结果</div>
-          <div class="judge-result-content">
-            <div class="judge-result-item">
-              <span class="label">执行结果：</span>
-              <span
-                :class="['value', getJudgeResultClass(judgeResult.message)]"
-                >{{ judgeResult.message }}</span
-              >
-            </div>
-            <div class="judge-result-item">
-              <span class="label">执行时间：</span>
-              <span class="value">{{ judgeResult.time }}ms</span>
-            </div>
-            <div class="judge-result-item">
-              <span class="label">内存消耗：</span>
-              <span class="value">{{ judgeResult.memory }}B</span>
-            </div>
-          </div>
+        <!-- 修改判题结果展示区域，移除v-if条件 -->
+        <div class="judge-result">
+          <a-tabs v-model:active-key="activeJudgeTab">
+            <a-tab-pane key="input" title="输入用例">
+              <div class="tab-content">
+                <template v-if="judgeCases.length > 0">
+                  <div
+                    v-for="(testCase, index) in judgeCases.slice(0, 2)"
+                    :key="index"
+                    class="test-case-content"
+                    style="margin-bottom: 16px"
+                  >
+                    <div class="case-title">用例{{ index + 1 }}：</div>
+                    <div class="case-content">
+                      <div class="case-item">
+                        <div class="case-label">输入：</div>
+                        <div class="case-value">{{ testCase.input }}</div>
+                      </div>
+                      <div class="case-item">
+                        <div class="case-label">输出：</div>
+                        <div class="case-value">{{ testCase.output }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+                <div v-else class="empty-content">
+                  <a-empty description="暂无输入用例" />
+                </div>
+              </div>
+            </a-tab-pane>
+            <a-tab-pane key="result" title="判题结果">
+              <div class="tab-content">
+                <div v-if="judgeResult" class="judge-result-content">
+                  <div class="judge-result-item">
+                    <span class="label">判题结果：</span>
+                    <span
+                      :class="[
+                        'value',
+                        getJudgeResultClass(judgeResult.message),
+                      ]"
+                    >
+                      <span
+                        :class="[
+                          'status-dot',
+                          getJudgeResultClass(judgeResult.message),
+                        ]"
+                      ></span>
+                      {{ judgeResult.message }}
+                    </span>
+                  </div>
+                  <div class="judge-result-item">
+                    <span class="label">内存占用：</span>
+                    <span class="value">{{ judgeResult.memory }}B</span>
+                  </div>
+                  <div class="judge-result-item">
+                    <span class="label">消耗时间：</span>
+                    <span class="value">{{ judgeResult.time }}ms</span>
+                  </div>
+                  <div v-if="judgeCases.length > 0">
+                    <div
+                      v-for="(testCase, index) in judgeCases.slice(0, 2)"
+                      :key="index"
+                      class="test-case-content"
+                      style="margin-bottom: 16px"
+                    >
+                      <div class="case-title">用例{{ index + 1 }}：</div>
+                      <div class="case-content">
+                        <div class="case-item">
+                          <div class="case-label">输入：</div>
+                          <div class="case-value">{{ testCase.input }}</div>
+                        </div>
+                        <div class="case-item">
+                          <div class="case-label">运行结果：</div>
+                          <div
+                            :class="[
+                              'case-value',
+                              judgeResult.testCaseResults?.[index] ===
+                              testCase.output
+                                ? 'success-result'
+                                : 'error-result',
+                            ]"
+                          >
+                            {{ judgeResult.testCaseResults?.[index] }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="empty-content">
+                  <a-empty description="暂无判题结果" />
+                </div>
+              </div>
+            </a-tab-pane>
+          </a-tabs>
         </div>
       </a-col>
     </a-row>
@@ -256,6 +360,9 @@ import {
   withDefaults,
   defineProps,
   onUnmounted,
+  computed,
+  nextTick,
+  watch,
 } from "vue";
 import message from "@arco-design/web-vue/es/message";
 import CodeEditor from "@/components/CodeEditor.vue";
@@ -279,6 +386,8 @@ import {
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/zh-cn";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 dayjs.extend(relativeTime);
 dayjs.locale("zh-cn");
@@ -301,22 +410,104 @@ const answerContent = ref("");
 const route = useRoute();
 const store = useStore();
 
+// 添加判例相关的状态
+const judgeCases = ref<Array<{ input: string; output: string }>>([]);
+
+// 计算要显示的判例（最多显示2个）
+const displayJudgeCases = computed(() => {
+  return judgeCases.value.slice(0, 2);
+});
+
+const activeJudgeTab = ref("input");
+
+// 修改加载数据的逻辑
 const loadData = async () => {
   const res = await QuestionControllerService.getQuestionVoByIdUsingGet(
     props.id
   );
   if (res.code === 0) {
     question.value = res.data;
+    // 解析判例数据
+    try {
+      if (question.value.judgeCase) {
+        judgeCases.value = JSON.parse(question.value.judgeCase);
+      }
+    } catch (error) {
+      console.error("解析判例数据失败:", error);
+    }
   } else {
     message.error("加载失败，" + res.message);
   }
 };
 
+// 添加默认代码模板
+const getDefaultCode = (language: string): string => {
+  const templates: Record<string, string> = {
+    java: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        // 在这里编写你的代码
+        
+        scanner.close();
+    }
+}`,
+    cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+    // 在这里编写你的代码
+    
+    return 0;
+}`,
+    go: `package main
+
+import (
+    "fmt"
+    "bufio"
+    "os"
+)
+
+func main() {
+    scanner := bufio.NewScanner(os.Stdin)
+    // 在这里编写你的代码
+    
+}`,
+    python: `# 在这里编写你的代码
+
+if __name__ == "__main__":
+    # 读取输入
+    n = int(input())
+    # 处理逻辑
+    
+    # 输出结果
+    
+`,
+  };
+  return templates[language] || "";
+};
+
+// 修改表单的初始值
 const form = ref<QuestionSubmitAddRequest>({
   questionId: props.id,
   language: "java",
-  code: "",
+  code: getDefaultCode("java"),
 });
+
+// 监听语言变化，更新默认代码
+watch(
+  () => form.value.language,
+  (newLang) => {
+    // 直接更新为新语言的默认代码模板
+    form.value.code = getDefaultCode(newLang);
+  }
+);
+
+// 修改代码编辑器的变更处理函数
+const changeCode = (value: string) => {
+  form.value.code = value;
+};
 
 /**
  * 检查是否可以查看答案
@@ -381,65 +572,80 @@ const handleTabChange = async (key: string | number) => {
 // 提交状态
 const submitting = ref(false);
 const judgeResult = ref<any>(null);
-let pollTimer: number | null = null;
+const submitId = ref<number | null>(null);
+const pollInterval = ref<number | null>(null);
 
-// 获取判题结果
-const getJudgeResult = async (submitId: number) => {
+// 修改轮询获取判题结果的逻辑
+const pollJudgeResult = async () => {
+  if (!submitId.value) return;
+
   try {
     const res =
       await QuestionControllerService.getQuestionSubmitJudgeInfoByIdUsingGet(
-        submitId
+        submitId.value
       );
     if (res.code === 0 && res.data) {
-      const result = JSON.parse(res.data);
-      judgeResult.value = result;
-      // 如果判题完成，停止轮询
-      if (result.message) {
-        if (pollTimer) {
-          clearInterval(pollTimer);
-          pollTimer = null;
+      try {
+        // 解析返回的字符串数据
+        const dataStr = res.data;
+        // 找到第一个数组的开始位置
+        const arrayStartIndex = dataStr.indexOf("[");
+        if (arrayStartIndex === -1) {
+          throw new Error("无法找到测试用例结果数组");
+        }
+
+        // 分离判题信息和测试用例结果
+        const judgeInfoStr = dataStr.substring(0, arrayStartIndex);
+        const testCaseResultsStr = dataStr.substring(arrayStartIndex);
+
+        // 解析判题信息
+        const judgeInfo = JSON.parse(judgeInfoStr);
+        // 解析测试用例结果
+        const testCaseResults = JSON.parse(testCaseResultsStr);
+
+        judgeResult.value = {
+          ...judgeInfo,
+          testCaseResults: testCaseResults,
+        };
+
+        // 如果判题完成，停止轮询
+        if (judgeInfo.message !== "判题中") {
+          if (pollInterval.value) {
+            clearInterval(pollInterval.value);
+            pollInterval.value = null;
+          }
+          submitting.value = false;
+        }
+      } catch (error) {
+        console.error("解析判题结果失败:", error);
+        Message.error("解析判题结果失败");
+        if (pollInterval.value) {
+          clearInterval(pollInterval.value);
+          pollInterval.value = null;
         }
         submitting.value = false;
       }
     }
   } catch (error) {
-    console.error("获取判题结果失败", error);
-    if (pollTimer) {
-      clearInterval(pollTimer);
-      pollTimer = null;
+    console.error("获取判题结果失败:", error);
+    Message.error("获取判题结果失败");
+    if (pollInterval.value) {
+      clearInterval(pollInterval.value);
+      pollInterval.value = null;
     }
     submitting.value = false;
-    message.error("获取判题结果失败");
   }
 };
 
 // 开始轮询判题结果
-const startPolling = (submitId: number) => {
+const startPolling = (id: number) => {
+  submitId.value = id;
   // 先立即获取一次
-  getJudgeResult(submitId);
+  pollJudgeResult();
   // 每2秒轮询一次
-  pollTimer = window.setInterval(() => {
-    getJudgeResult(submitId);
+  pollInterval.value = window.setInterval(() => {
+    pollJudgeResult();
   }, 2000);
-};
-
-// 获取判题结果样式
-const getJudgeResultClass = (message: string) => {
-  if (message === "Accepted" || message === "成功") return "success";
-  if (message === "Wrong Answer" || message === "答案错误") return "error";
-  if (message === "Compile Error" || message === "编译错误") return "error";
-  if (message === "Memory Limit Exceeded" || message === "内存溢出")
-    return "error";
-  if (message === "Time Limit Exceeded" || message === "超时") return "error";
-  if (message === "Presentation Error" || message === "展示错误")
-    return "error";
-  if (message === "Output Limit Exceeded" || message === "输出溢出")
-    return "error";
-  if (message === "Dangerous Operation" || message === "危险操作")
-    return "error";
-  if (message === "Runtime Error" || message === "运行错误") return "error";
-  if (message === "System Error" || message === "系统错误") return "error";
-  return "error";
 };
 
 /**
@@ -459,7 +665,7 @@ const doSubmit = async () => {
     if (res.code === 0 && res.data) {
       message.success("提交成功");
       // 开始轮询判题结果
-      startPolling(res.data);
+      startPolling(42);
     } else {
       submitting.value = false;
       message.error("提交失败，" + res.message);
@@ -489,11 +695,29 @@ onMounted(async () => {
 
   // 加载评论
   await loadComments();
-});
 
-const changeCode = (value: string) => {
-  form.value.code = value;
-};
+  // 从本地存储中获取评分结果
+  const currentUser = store.state.user.loginUser;
+  const savedScore = localStorage.getItem(`aiScoreResult_${props.id}`);
+  if (savedScore && currentUser) {
+    try {
+      const scoreData = JSON.parse(savedScore);
+      // 检查是否是当前题目的评分结果，以及是否是当前用户的评分
+      if (
+        scoreData.questionId === props.id &&
+        scoreData.userId === currentUser.id
+      ) {
+        aiScoreResult.value = scoreData.result;
+      } else {
+        // 如果不是当前用户的评分，清除缓存
+        localStorage.removeItem(`aiScoreResult_${props.id}`);
+      }
+    } catch (error) {
+      console.error("解析保存的评分结果失败:", error);
+      localStorage.removeItem(`aiScoreResult_${props.id}`);
+    }
+  }
+});
 
 // 评论相关的类型定义
 interface UserVO {
@@ -713,6 +937,113 @@ watchEffect(() => {
     loadComments();
   }
 });
+
+// 获取判题结果样式
+const getJudgeResultClass = (message: string) => {
+  if (message === "Accepted" || message === "成功") return "success";
+  if (message === "Wrong Answer" || message === "答案错误") return "error";
+  if (message === "Compile Error" || message === "编译错误") return "error";
+  if (message === "Memory Limit Exceeded" || message === "内存溢出")
+    return "error";
+  if (message === "Time Limit Exceeded" || message === "超时") return "error";
+  if (message === "Presentation Error" || message === "展示错误")
+    return "error";
+  if (message === "Output Limit Exceeded" || message === "输出溢出")
+    return "error";
+  if (message === "Dangerous Operation" || message === "危险操作")
+    return "error";
+  if (message === "Runtime Error" || message === "运行错误") return "error";
+  if (message === "System Error" || message === "系统错误") return "error";
+  return "error";
+};
+
+// 组件卸载时清理轮询
+onUnmounted(() => {
+  if (pollInterval.value) {
+    clearInterval(pollInterval.value);
+    pollInterval.value = null;
+  }
+});
+
+// 添加AI评分相关的功能
+const aiScoring = ref(false);
+const aiScoreResult = ref<string>("");
+
+// 格式化Markdown内容
+const formatMarkdown = (markdown: string) => {
+  return DOMPurify.sanitize(marked(markdown));
+};
+
+// 请求AI评分
+const requestAIScore = async () => {
+  if (!form.value.code) {
+    message.error("请先编写代码");
+    return;
+  }
+
+  const currentUser = store.state.user.loginUser;
+  if (!currentUser) {
+    message.error("请先登录");
+    return;
+  }
+
+  aiScoring.value = true;
+  try {
+    const res = await QuestionControllerService.getAiScoreUsingPost({
+      code: form.value.code,
+      language: form.value.language,
+      questionId: props.id,
+    });
+
+    if (res.code === 0 && res.data) {
+      // 将评分结果保存到本地存储
+      const scoreData = {
+        result: res.data,
+        timestamp: new Date().getTime(),
+        questionId: props.id,
+        userId: currentUser.id, // 添加用户ID
+      };
+      localStorage.setItem(
+        `aiScoreResult_${props.id}`,
+        JSON.stringify(scoreData)
+      );
+      aiScoreResult.value = res.data;
+    } else {
+      message.error("评分失败：" + res.message);
+    }
+  } catch (error) {
+    message.error("评分失败，请稍后重试");
+  } finally {
+    aiScoring.value = false;
+  }
+};
+
+// 监听用户登录状态变化
+watch(
+  () => store.state.user.loginUser,
+  (newUser) => {
+    if (!newUser) {
+      // 用户退出登录时，清除所有AI评分缓存
+      const keys = Object.keys(localStorage);
+      keys.forEach((key) => {
+        if (key.startsWith("aiScoreResult_")) {
+          localStorage.removeItem(key);
+        }
+      });
+      // 清空当前显示的评分结果
+      aiScoreResult.value = "";
+    }
+  }
+);
+
+// 监听路由变化
+watch(
+  () => route.path,
+  () => {
+    // 当路由变化时，清空评分结果
+    aiScoreResult.value = "";
+  }
+);
 </script>
 
 <style>
@@ -893,6 +1224,15 @@ watchEffect(() => {
   }
 }
 
+.empty-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  background-color: #2a2d35;
+  border-radius: 4px;
+}
+
 .judge-result {
   margin-top: 16px;
   background-color: #1d2129;
@@ -901,34 +1241,90 @@ watchEffect(() => {
   color: #fff;
   width: 100%;
   box-sizing: border-box;
+  min-height: 300px;
 }
 
-.judge-result-title {
-  font-size: 16px;
+.tab-content {
+  padding: 16px 0;
+}
+
+.test-case-content {
+  padding: 16px;
+  background-color: #2a2d35;
+  border-radius: 4px;
+}
+
+.case-title {
+  color: #fff;
+  font-size: 15px;
   font-weight: 500;
   margin-bottom: 12px;
+}
+
+.case-content {
+  padding-left: 16px;
+}
+
+.case-item {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+.case-item:last-child {
+  margin-bottom: 0;
+}
+
+.case-label {
+  color: #86909c;
+  min-width: 80px;
+  flex-shrink: 0;
+  font-size: 14px;
+  padding-top: 4px;
+}
+
+.case-value {
+  flex: 1;
+  font-family: monospace;
+  white-space: pre-wrap;
+  word-break: break-all;
   color: #fff;
+  font-size: 14px;
+  line-height: 1.6;
+  background-color: #1d2129;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.case-value.success-result {
+  color: #52c41a !important;
+}
+
+.case-value.error-result {
+  color: #f53f3f !important;
 }
 
 .judge-result-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .judge-result-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 }
 
 .judge-result-item .label {
   color: #86909c;
   min-width: 80px;
+  flex-shrink: 0;
 }
 
 .judge-result-item .value {
   font-weight: 500;
+  flex: 1;
+  word-break: break-all;
 }
 
 .judge-result-item .value.success {
@@ -947,5 +1343,245 @@ watchEffect(() => {
   color: #faad14 !important;
   font-size: 16px;
   font-weight: 600;
+}
+
+.ai-score-content {
+  position: relative;
+  min-height: 200px;
+}
+
+.ai-score-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 16px;
+  z-index: 1;
+}
+
+.ai-score-result {
+  padding: 24px;
+  background-color: #1d2129;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid #2b2f3a;
+}
+
+.markdown-content {
+  color: #e5e7eb;
+  line-height: 1.8;
+  font-size: 15px;
+}
+
+.markdown-content h1 {
+  color: #7ee787;
+  font-size: 28px;
+  margin: 32px 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #30363d;
+}
+
+.markdown-content h2 {
+  color: #79c0ff;
+  font-size: 24px;
+  margin: 28px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #30363d;
+}
+
+.markdown-content h3 {
+  color: #d2a8ff;
+  font-size: 20px;
+  margin: 24px 0 16px;
+}
+
+.markdown-content p {
+  margin: 16px 0;
+  line-height: 1.8;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 24px;
+  margin: 16px 0;
+}
+
+.markdown-content li {
+  margin: 8px 0;
+  line-height: 1.6;
+  position: relative;
+}
+
+.markdown-content li::before {
+  content: "•";
+  color: #58a6ff;
+  position: absolute;
+  left: -18px;
+  font-weight: bold;
+}
+
+.markdown-content code {
+  background-color: #2d333b;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 14px;
+  color: #ff7b72;
+  border: 1px solid #444c56;
+}
+
+.markdown-content pre {
+  background-color: #2d333b;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  overflow-x: auto;
+  border: 1px solid #444c56;
+}
+
+.markdown-content pre code {
+  background-color: transparent;
+  padding: 0;
+  border: none;
+  color: #e5e7eb;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.markdown-content strong {
+  color: #ff7b72;
+  font-weight: 600;
+}
+
+.markdown-content em {
+  color: #d2a8ff;
+  font-style: italic;
+}
+
+.markdown-content blockquote {
+  border-left: 4px solid #58a6ff;
+  padding: 12px 20px;
+  margin: 20px 0;
+  background-color: #2d333b;
+  border-radius: 0 8px 8px 0;
+  color: #8b949e;
+}
+
+.markdown-content hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(to right, #30363d, #58a6ff, #30363d);
+  margin: 32px 0;
+}
+
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background-color: #2d333b;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.markdown-content th {
+  background-color: #444c56;
+  color: #e5e7eb;
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.markdown-content td {
+  padding: 12px 16px;
+  border-top: 1px solid #444c56;
+  color: #e5e7eb;
+}
+
+.markdown-content tr:hover {
+  background-color: #2b2f3a;
+}
+
+/* 添加评分结果的特殊样式 */
+.markdown-content .score-section {
+  background-color: #2d333b;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  border: 1px solid #444c56;
+}
+
+.markdown-content .score-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #7ee787;
+  margin: 8px 0;
+}
+
+.markdown-content .improvement {
+  color: #ff7b72;
+  font-weight: 500;
+}
+
+.markdown-content .success {
+  color: #7ee787;
+  font-weight: 500;
+}
+
+.markdown-content .warning {
+  color: #e3b341;
+  font-weight: 500;
+}
+
+/* 添加动画效果 */
+.ai-score-result {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 代码块行号样式 */
+.markdown-content pre {
+  counter-reset: line;
+}
+
+.markdown-content pre code {
+  display: block;
+  position: relative;
+  padding-left: 40px;
+}
+
+.markdown-content pre code::before {
+  counter-increment: line;
+  content: counter(line);
+  position: absolute;
+  left: -40px;
+  width: 30px;
+  text-align: right;
+  color: #484f58;
+  padding-right: 10px;
+  border-right: 1px solid #444c56;
+  user-select: none;
+}
+
+.score-tooltip {
+  color: #f53f3f;
+  font-size: 14px;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.5px;
+}
+
+:deep(.arco-tooltip-content) {
+  background-color: #2a2d35;
+  border: 1px solid #424242;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 </style>

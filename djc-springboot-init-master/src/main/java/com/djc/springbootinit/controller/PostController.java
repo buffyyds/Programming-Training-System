@@ -242,4 +242,13 @@ public class PostController {
         return ResultUtils.success(postService.getCommentPagePosition(questionId, commentId));
     }
 
+    /**
+     * 获取是否有未读消息
+     */
+    @GetMapping("/get/unread")
+    public BaseResponse<Long> getUnread(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(postService.getUnread(loginUser.getId()));
+    }
+
 }

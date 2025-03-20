@@ -292,6 +292,25 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return (position / 10) + 1;
     }
 
+    @Override
+    public Long getUnread(Long id) {
+        // 获取是否有未读消息，以及未读消息数量
+        QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", id);
+        queryWrapper.eq("isReply",0);
+        List<Post> posts = baseMapper.selectList(queryWrapper);
+        if (CollUtil.isEmpty(posts)) {
+            return 0L;
+        }
+        //根据posts中的id查询post表中replyId为posts中id的评论，并记录isRead为0的数量
+        List<Long> ids = posts.stream().map(Post::getId).collect(Collectors.toList());
+        QueryWrapper<Post> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.in("replyId", ids);
+        queryWrapper1.eq("isRead", 0);
+        queryWrapper1.ne("userId", id);
+        return baseMapper.selectCount(queryWrapper1);
+    }
+
 }
 
 

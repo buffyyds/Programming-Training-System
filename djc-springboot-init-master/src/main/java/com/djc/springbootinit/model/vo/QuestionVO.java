@@ -83,6 +83,11 @@ public class QuestionVO implements Serializable {
     private UserVO userVO;
 
     /**
+     * 判题用例（json 数组）
+     */
+    private String judgeCase;
+
+    /**
      * 包装类转对象
      *
      * @param questionVO

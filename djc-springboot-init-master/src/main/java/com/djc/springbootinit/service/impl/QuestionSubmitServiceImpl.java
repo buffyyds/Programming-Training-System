@@ -85,6 +85,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         // 设置初始状态
         questionSubmit.setStatus(QuestionSubmitStatusEnum.WAITING.getValue());
         questionSubmit.setJudgeInfo("{}");
+        questionSubmit.setExecuteResult("{}");
         //save方法是继承自ServiceImpl的方法,用于判断是否插入成功
         boolean save = this.save(questionSubmit);
         if (!save){

@@ -29,34 +29,53 @@
     </a-col>
     <a-col flex="100px">
       <a-dropdown trigger="hover">
-        <a-avatar style="cursor: pointer" :size="32">
-          <template #icon>
-            <user-outlined />
-          </template>
-          <div>{{ loginUser?.userName || "未登录" }}</div>
-        </a-avatar>
+        <div class="avatar-wrapper">
+          <a-avatar style="cursor: pointer" :size="32">
+            <template #icon>
+              <user-outlined />
+            </template>
+            <div>{{ loginUser?.userName || "未登录" }}</div>
+          </a-avatar>
+          <div v-if="hasUnreadMessages" class="red-dot avatar-badge"></div>
+        </div>
         <template #content>
           <template v-if="loginUser?.userName">
             <a-doption @click="router.push('/user/profile')">
-              <template #icon><user-outlined /></template>
+              <template #icon>
+                <user-outlined />
+              </template>
               个人信息
             </a-doption>
             <a-doption @click="router.push('/user/messages')">
-              <template #icon><message-outlined /></template>
+              <template #icon>
+                <div class="message-icon-wrapper">
+                  <message-outlined />
+                  <div
+                    v-if="hasUnreadMessages"
+                    class="red-dot message-badge"
+                  ></div>
+                </div>
+              </template>
               我的消息
             </a-doption>
             <a-doption @click="handleLogout">
-              <template #icon><logout-outlined /></template>
+              <template #icon>
+                <logout-outlined />
+              </template>
               退出登录
             </a-doption>
           </template>
           <template v-else>
             <a-doption @click="router.push('/user/login')">
-              <template #icon><login-outlined /></template>
+              <template #icon>
+                <login-outlined />
+              </template>
               登录
             </a-doption>
             <a-doption @click="router.push('/user/register')">
-              <template #icon><user-add-outlined /></template>
+              <template #icon>
+                <user-add-outlined />
+              </template>
               注册
             </a-doption>
           </template>
@@ -69,7 +88,7 @@
 <script setup lang="ts">
 import { routes } from "@/router/routes";
 import { useRoute, useRouter } from "vue-router";
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useStore } from "vuex";
 import checkAccess from "@/access/checkAccess";
 import ACCESS_ENUM from "@/access/accessEnum";
@@ -80,7 +99,7 @@ import {
   LoginOutlined,
   UserAddOutlined,
 } from "@ant-design/icons-vue";
-import { UserControllerService } from "../../generated";
+import { UserControllerService, PostControllerService } from "../../generated";
 import { Message } from "@arco-design/web-vue";
 
 const router = useRouter();
@@ -134,6 +153,58 @@ const handleLogout = async () => {
   }
 };
 
+// 添加未读消息相关的状态
+const hasUnreadMessages = ref(false);
+const unreadCount = ref("0");
+
+// 检查未读消息
+const checkUnreadMessages = async () => {
+  if (!loginUser.value) return;
+
+  try {
+    const res = await PostControllerService.getUnreadUsingGet();
+    if (res.code === 0 && res.data) {
+      const count = parseInt(res.data);
+      if (!isNaN(count)) {
+        unreadCount.value = res.data;
+        hasUnreadMessages.value = count > 0;
+      }
+    }
+  } catch (error) {
+    console.error("获取未读消息状态失败:", error);
+  }
+};
+
+// 定期检查未读消息
+let checkInterval: number | null = null;
+
+onMounted(() => {
+  // 首次检查
+  checkUnreadMessages();
+  // 每分钟检查一次
+  checkInterval = window.setInterval(checkUnreadMessages, 60000);
+});
+
+onUnmounted(() => {
+  if (checkInterval) {
+    clearInterval(checkInterval);
+    checkInterval = null;
+  }
+});
+
+// 监听用户登录状态变化
+watch(
+  () => loginUser.value,
+  (newUser) => {
+    if (newUser) {
+      checkUnreadMessages();
+    } else {
+      hasUnreadMessages.value = false;
+      unreadCount.value = "0";
+    }
+  }
+);
+
 // setTimeout(() => {
 //   store.dispatch("user/getLoginUser", {
 //     userName: "djc管理员",
@@ -145,5 +216,62 @@ const handleLogout = async () => {
 <style scoped>
 .logo {
   height: 80px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+}
+
+.message-icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.message-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+}
+
+:deep(.arco-badge-dot) {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #f53f3f;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+:deep(.arco-badge-text) {
+  background-color: #f53f3f;
+  border-radius: 10px;
+  padding: 0 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #fff;
+  box-shadow: 0 0 0 1px #fff;
+}
+
+:deep(.arco-dropdown-option) {
+  padding: 8px 12px;
+}
+
+:deep(.arco-dropdown-option:hover) {
+  background-color: #f2f3f5;
+}
+
+.red-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #f53f3f;
+  box-shadow: 0 0 0 2px #fff;
 }
 </style>

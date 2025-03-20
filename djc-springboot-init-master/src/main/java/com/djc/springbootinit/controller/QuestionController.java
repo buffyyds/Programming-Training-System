@@ -382,21 +382,15 @@ public class QuestionController {
     }
 
     /**
-     * 通过题目id获取题目judgeCase
-     * (用于前端获取输入用例并展示)
-     * @param id
-     * @param request
-     * @return
+     * AI代码评分
      */
-    @GetMapping("/question/judgeCase")
-    public BaseResponse<String> getQuestionJudgeCaseById(long id, HttpServletRequest request) {
-        if (id <= 0) {
+    @PostMapping("/question_submit/ai/judge")
+    public BaseResponse<String> getAIScore(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest, HttpServletRequest request) {
+        if (questionSubmitAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Question question = questionService.getById(id);
-        if (question == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-        }
-        return ResultUtils.success(question.getJudgeCase());
+        String aiScore = questionService.getAIScore(questionSubmitAddRequest);
+        return ResultUtils.success(aiScore);
     }
+
 }

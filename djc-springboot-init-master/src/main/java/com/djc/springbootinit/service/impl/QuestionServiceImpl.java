@@ -12,6 +12,7 @@ import com.djc.springbootinit.constant.CommonConstant;
 import com.djc.springbootinit.exception.BusinessException;
 import com.djc.springbootinit.exception.ThrowUtils;
 import com.djc.springbootinit.mapper.QuestionMapper;
+import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import org.apache.commons.collections4.CollectionUtils;
 import com.djc.springbootinit.model.dto.question.QuestionQueryRequest;
 import com.djc.springbootinit.model.entity.*;
@@ -28,6 +29,11 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.alibaba.dashscope.app.*;
+import com.alibaba.dashscope.exception.ApiException;
+import com.alibaba.dashscope.exception.InputRequiredException;
+import com.alibaba.dashscope.exception.NoApiKeyException;
 
 /**
 * @author djc
@@ -168,6 +174,31 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         }
         return question.getAnswer();
     }
+
+    @Override
+    public String getAIScore(QuestionSubmitAddRequest questionSubmitAddRequest) {
+        String code = questionSubmitAddRequest.getCode();
+        String language = questionSubmitAddRequest.getLanguage();
+        if (StringUtils.isBlank(code)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        ApplicationParam param = ApplicationParam.builder()
+                // 若没有配置环境变量，可用百炼API Key将下行替换为：.apiKey("sk-xxx")。但不建议在生产环境中直接将API Key硬编码到代码中，以减少API Key泄露风险。
+                .apiKey("sk-4962bb75201c45959f53b3bda82689d7")
+                .appId("2c7611926de447d28e235a86d579bce9")  // 替换为实际的应用 ID
+                .prompt("请你分析以下"+language+"代码："+"\n"+code)
+                .build();
+
+        Application application = new Application();
+        ApplicationResult result = null;
+        try {
+            result = application.call(param);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return result.getOutput().getText();
+    }
+
 }
 
 

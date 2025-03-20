@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.djc.springbootinit.model.dto.question.QuestionQueryRequest;
+import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.djc.springbootinit.model.entity.Question;
 import com.djc.springbootinit.model.vo.QuestionVO;
 
@@ -51,4 +52,6 @@ public interface QuestionService extends IService<Question> {
     Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request);
 
     String getQuestionAnswerById(long questionId);
+
+    String getAIScore(QuestionSubmitAddRequest questionSubmitAddRequest);
 }

@@ -224,6 +224,28 @@ export class QuestionControllerService {
   }
 
   /**
+   * getAIScore
+   * @param questionSubmitAddRequest questionSubmitAddRequest
+   * @returns BaseResponse_string_ OK
+   * @returns any Created
+   * @throws ApiError
+   */
+  public static getAiScoreUsingPost(
+    questionSubmitAddRequest: QuestionSubmitAddRequest
+  ): CancelablePromise<BaseResponse_string_ | any> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/question/question_submit/ai/judge",
+      body: questionSubmitAddRequest,
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
    * doQuestionSubmit
    * @param questionSubmitAddRequest questionSubmitAddRequest
    * @returns BaseResponse_long_ OK
