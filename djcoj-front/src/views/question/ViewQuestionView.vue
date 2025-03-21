@@ -231,7 +231,6 @@
             >
               <a-option value="java">Java</a-option>
               <a-option value="cpp">C++</a-option>
-              <a-option value="go">Go</a-option>
               <a-option value="python">Python</a-option>
             </a-select>
           </a-form-item>
@@ -420,6 +419,12 @@ const displayJudgeCases = computed(() => {
 
 const activeJudgeTab = ref("input");
 
+// 添加轮询超时时间常量
+const POLL_TIMEOUT = 30000; // 30秒超时
+
+// 添加一个标志位来标记是否已经获取到结果
+const hasGotResult = ref(false);
+
 // 修改加载数据的逻辑
 const loadData = async () => {
   const res = await QuestionControllerService.getQuestionVoByIdUsingGet(
@@ -460,19 +465,6 @@ int main() {
     // 在这里编写你的代码
     
     return 0;
-}`,
-    go: `package main
-
-import (
-    "fmt"
-    "bufio"
-    "os"
-)
-
-func main() {
-    scanner := bufio.NewScanner(os.Stdin)
-    // 在这里编写你的代码
-    
 }`,
     python: `# 在这里编写你的代码
 
@@ -577,7 +569,7 @@ const pollInterval = ref<number | null>(null);
 
 // 修改轮询获取判题结果的逻辑
 const pollJudgeResult = async () => {
-  if (!submitId.value) return;
+  if (!submitId.value || hasGotResult.value) return;
 
   try {
     const res =
@@ -588,10 +580,17 @@ const pollJudgeResult = async () => {
       try {
         // 解析返回的字符串数据
         const dataStr = res.data;
+
+        // 如果数据为空或只包含空白字符，说明判题还未完成
+        if (!dataStr || dataStr.trim() === "") {
+          return;
+        }
+
         // 找到第一个数组的开始位置
         const arrayStartIndex = dataStr.indexOf("[");
         if (arrayStartIndex === -1) {
-          throw new Error("无法找到测试用例结果数组");
+          // 如果找不到数组，说明数据格式不完整，继续等待
+          return;
         }
 
         // 分离判题信息和测试用例结果
@@ -603,49 +602,75 @@ const pollJudgeResult = async () => {
         // 解析测试用例结果
         const testCaseResults = JSON.parse(testCaseResultsStr);
 
+        // 如果判题信息为空，继续等待
+        if (!judgeInfo || !judgeInfo.message) {
+          return;
+        }
+
         judgeResult.value = {
           ...judgeInfo,
           testCaseResults: testCaseResults,
         };
 
-        // 如果判题完成，停止轮询
+        // 如果判题完成，停止轮询并跳转到判题结果页签
         if (judgeInfo.message !== "判题中") {
           if (pollInterval.value) {
             clearInterval(pollInterval.value);
             pollInterval.value = null;
           }
           submitting.value = false;
+          hasGotResult.value = true; // 标记已获取到结果
+          // 自动跳转到判题结果页签
+          activeJudgeTab.value = "result";
         }
       } catch (error) {
-        console.error("解析判题结果失败:", error);
-        Message.error("解析判题结果失败");
-        if (pollInterval.value) {
-          clearInterval(pollInterval.value);
-          pollInterval.value = null;
-        }
-        submitting.value = false;
+        // 解析失败时不立即停止轮询，继续等待
+        console.log("等待判题结果...");
+        return;
       }
     }
   } catch (error) {
     console.error("获取判题结果失败:", error);
-    Message.error("获取判题结果失败");
-    if (pollInterval.value) {
-      clearInterval(pollInterval.value);
-      pollInterval.value = null;
-    }
-    submitting.value = false;
+    // 获取失败时不立即停止轮询，继续等待
+    return;
   }
 };
 
-// 开始轮询判题结果
+// 修改开始轮询的逻辑
 const startPolling = (id: number) => {
   submitId.value = id;
+  judgeResult.value = null; // 清空之前的判题结果
+  hasGotResult.value = false; // 重置结果标志位
+
   // 先立即获取一次
   pollJudgeResult();
+
   // 每2秒轮询一次
   pollInterval.value = window.setInterval(() => {
     pollJudgeResult();
   }, 2000);
+
+  // 设置超时处理
+  setTimeout(() => {
+    if (!hasGotResult.value) {
+      // 只有在未获取到结果时才执行超时处理
+      if (pollInterval.value) {
+        clearInterval(pollInterval.value);
+        pollInterval.value = null;
+      }
+      submitting.value = false;
+      // 设置超时结果
+      judgeResult.value = {
+        message: "Time Limit Exceeded",
+        time: POLL_TIMEOUT,
+        memory: 0,
+        testCaseResults: [],
+      };
+      // 自动跳转到判题结果页签
+      activeJudgeTab.value = "result";
+      Message.error("判题超时，请稍后重试");
+    }
+  }, POLL_TIMEOUT);
 };
 
 /**
@@ -665,7 +690,7 @@ const doSubmit = async () => {
     if (res.code === 0 && res.data) {
       message.success("提交成功");
       // 开始轮询判题结果
-      startPolling(42);
+      startPolling(res.data);
     } else {
       submitting.value = false;
       message.error("提交失败，" + res.message);

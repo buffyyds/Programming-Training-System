@@ -30,6 +30,7 @@ public class RemoteCodeSandbox implements CodeSandbox {
                 .body(json)
                 .execute()
                 .body();
+
         if (StringUtils.isBlank(responseStr)) {
             throw new BusinessException(ErrorCode.API_REQUEST_ERROR, "executeCode remoteSandbox error, message = " + responseStr);
         }

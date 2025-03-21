@@ -5,28 +5,26 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 
 @Component
-public class JavaDockerCodeSandbox extends DockerCodeSandboxTemplate {
+public class PythonDockerCodeSandbox extends DockerCodeSandboxTemplate {
 
     @Override
     protected String getImage() {
-        return "openjdk:8-alpine";
+        return "python:latest";
     }
 
     @Override
     protected String getFileExtension() {
-        return "java";
+        return "py";
     }
 
     @Override
     protected String getCompileCommand(File userCodeFile) {
-        return String.format("javac -encoding utf-8 %s", userCodeFile.getAbsolutePath());
+        // Python不需要编译
+        return "echo 'Python不需要编译'";
     }
 
     @Override
     protected String getRunCommand(String userCodeParentPath, String inputArgs) {
-        return String.format("java -cp /app Main %s", inputArgs);
+        return String.format("python /app/Main.py %s", inputArgs);
     }
-}
-
-
-
+} 

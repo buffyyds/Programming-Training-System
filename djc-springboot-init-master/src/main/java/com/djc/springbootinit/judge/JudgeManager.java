@@ -1,10 +1,7 @@
 package com.djc.springbootinit.judge;
 
 import com.djc.springbootinit.judge.codesandbox.model.JudgeInfo;
-import com.djc.springbootinit.judge.strategy.DefaultJudgeStrategy;
-import com.djc.springbootinit.judge.strategy.JavaLanguageJudgeStrategy;
-import com.djc.springbootinit.judge.strategy.JudgeContext;
-import com.djc.springbootinit.judge.strategy.JudgeStrategy;
+import com.djc.springbootinit.judge.strategy.*;
 import com.djc.springbootinit.model.entity.QuestionSubmit;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +21,16 @@ public class JudgeManager {
         QuestionSubmit questionSubmit = judgeContext.getQuestionSubmit();
         String language = questionSubmit.getLanguage();
         JudgeStrategy judgeStrategy = new DefaultJudgeStrategy();
-        if ("java".equals(language)) {
-            judgeStrategy = new JavaLanguageJudgeStrategy();
+        switch (language){
+            case "java":
+                judgeStrategy = new JavaLanguageJudgeStrategy();
+                break;
+            case "cpp":
+                judgeStrategy = new CppLanguageJudgeStrategy();
+                break;
+            case "python":
+                judgeStrategy = new PythonLanguageJudgeStrategy();
+                break;
         }
         return judgeStrategy.doJudge(judgeContext);
     }
