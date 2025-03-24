@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type UserUpdateMyRequest = {
+    adminCode?: string;
     userAvatar?: string;
     userName?: string;
     userPassword?: string;

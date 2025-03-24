@@ -13,6 +13,9 @@ import com.djc.springbootinit.exception.BusinessException;
 import com.djc.springbootinit.exception.ThrowUtils;
 import com.djc.springbootinit.mapper.QuestionMapper;
 import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitAddRequest;
+import com.djc.springbootinit.model.vo.TeacherVo;
+import com.djc.springbootinit.service.QuestionSubmitService;
+import com.djc.springbootinit.service.TasService;
 import org.apache.commons.collections4.CollectionUtils;
 import com.djc.springbootinit.model.dto.question.QuestionQueryRequest;
 import com.djc.springbootinit.model.entity.*;
@@ -23,6 +26,8 @@ import com.djc.springbootinit.service.UserService;
 import com.djc.springbootinit.utils.SqlUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -31,9 +36,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.alibaba.dashscope.app.*;
-import com.alibaba.dashscope.exception.ApiException;
-import com.alibaba.dashscope.exception.InputRequiredException;
-import com.alibaba.dashscope.exception.NoApiKeyException;
 
 /**
 * @author djc
@@ -46,6 +48,13 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private TasService tasService;
+
+    @Autowired
+    @Lazy
+    private QuestionSubmitService questionSubmitService;
 
     /**
      * 校验题目是否合法
@@ -92,7 +101,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
      * @return
      */
     @Override
-    public QueryWrapper<Question> getQueryWrapper(QuestionQueryRequest questionQueryRequest) {
+    public QueryWrapper<Question> getQueryWrapper(QuestionQueryRequest questionQueryRequest , User loginUser) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         if (questionQueryRequest == null) {
             return queryWrapper;
@@ -102,10 +111,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         String content = questionQueryRequest.getContent();
         List<String> tags = questionQueryRequest.getTags();
         String answer = questionQueryRequest.getAnswer();
-        Long userId = questionQueryRequest.getUserId();
         String sortField = questionQueryRequest.getSortField();
         String sortOrder = questionQueryRequest.getSortOrder();
-
         // 拼接查询条件
         queryWrapper.like(StringUtils.isNotBlank(title), "title", title);
         queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
@@ -115,8 +122,19 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
                 queryWrapper.like("tags", "\"" + tag + "\"");
             }
         }
+        if (loginUser.getUserRole().equals("admin")){
+            queryWrapper.eq("userId", loginUser.getId());
+        }else {
+            //获取loginUser的教师/管理员id
+            TeacherVo teacher = tasService.getTeacherByStudentId(loginUser.getId());
+            if (teacher != null) {
+                Long teacherId = teacher.getId();
+                queryWrapper.eq("userId", teacherId);
+            }else{
+                queryWrapper.eq("userId", loginUser.getId());   //学生是没有创建题目的，所以，这里的条件只是限制查出来的数据一定是空的
+            }
+        }
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
-        queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
         queryWrapper.eq("isDelete", false);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
@@ -160,6 +178,42 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
                 user = userIdUserListMap.get(userId).get(0);
             }
             questionVO.setUserVO(userService.getUserVO(user));
+            return questionVO;
+        }).collect(Collectors.toList());
+        questionVOPage.setRecords(questionVOList);
+        return questionVOPage;
+    }
+
+    @Override
+    public Page<QuestionVO> getStudentProgressVOPage(Page<Question> questionPage, HttpServletRequest request) {
+        List<Question> questionList = questionPage.getRecords();
+        Page<QuestionVO> questionVOPage = new Page<>(questionPage.getCurrent(), questionPage.getSize(), questionPage.getTotal());
+        if (CollUtil.isEmpty(questionList)) {
+            return questionVOPage;
+        }
+        // 1. 关联查询用户信息
+        Set<Long> userIdSet = questionList.stream().map(Question::getUserId).collect(Collectors.toSet());
+        Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
+                .collect(Collectors.groupingBy(User::getId));
+        User loginUser = userService.getLoginUser(request); //教师信息
+        Long teacherId = loginUser.getId();
+        // 填充信息
+        List<QuestionVO> questionVOList = questionList.stream().map(question -> {
+            QuestionVO questionVO = QuestionVO.objToVo(question);
+            Long questionId = questionVO.getId();
+            // 获取教师旗下的学生的通过数
+            Double acceptedNum = questionSubmitService.getPassPercentByTeacherId(teacherId,questionId);
+            //获取提交数
+            int submitNum = questionSubmitService.getSubmitNumByTeacherId(teacherId,questionId);
+            Long userId = question.getUserId();
+            User user = null;
+            if (userIdUserListMap.containsKey(userId)) {
+                user = userIdUserListMap.get(userId).get(0);
+            }
+            questionVO.setUserVO(userService.getUserVO(user));
+            questionVO.setAcceptedPercent(acceptedNum);
+            questionVO.setSubmitNum(submitNum);
+            questionVO.setStudentNum(tasService.getStudentIdsByTeacherId(teacherId).size());
             return questionVO;
         }).collect(Collectors.toList());
         questionVOPage.setRecords(questionVOList);

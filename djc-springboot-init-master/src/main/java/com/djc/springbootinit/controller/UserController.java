@@ -19,6 +19,7 @@ import com.djc.springbootinit.model.dto.user.UserUpdateRequest;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.LoginUserVO;
 import com.djc.springbootinit.model.vo.UserVO;
+import com.djc.springbootinit.service.TasService;
 import com.djc.springbootinit.service.UserService;
 
 import java.util.List;
@@ -58,6 +59,9 @@ public class UserController {
     @Resource
     private WxOpenConfig wxOpenConfig;
 
+    @Resource
+    private TasService tasService;
+
     // region 登录相关
 
     /**
@@ -74,10 +78,12 @@ public class UserController {
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
+        String userRole = userRegisterRequest.getUserRole();
+        String adminCode = userRegisterRequest.getAdminCode();
+        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword,userRole)) {
             return null;
         }
-        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        long result = userService.userRegister(userAccount, userPassword, checkPassword,userRole, adminCode);
         return ResultUtils.success(result);
     }
 
@@ -318,6 +324,14 @@ public class UserController {
         user.setId(loginUser.getId());
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        if (user.getAdminCode() != null) {
+            boolean b = tasService.setTAS(user.getId());
+            ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
+        }
         return ResultUtils.success(true);
     }
+
+    /**
+     *
+     */
 }

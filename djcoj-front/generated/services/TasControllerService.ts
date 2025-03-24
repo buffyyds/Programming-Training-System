@@ -2,21 +2,21 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { BaseResponse_boolean_ } from "../models/BaseResponse_boolean_";
-import type { BaseResponse_List_ReplyVO_ } from "../models/BaseResponse_List_ReplyVO_";
+import type { BaseResponse_List_StudentsVo_ } from "../models/BaseResponse_List_StudentsVo_";
+import type { BaseResponse_TeacherVo_ } from "../models/BaseResponse_TeacherVo_";
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
 import { request as __request } from "../core/request";
-export class ReplyControllerService {
+export class TasControllerService {
   /**
-   * getMyReply
-   * @returns BaseResponse_List_ReplyVO_ OK
+   * getStudents
+   * @returns BaseResponse_List_StudentsVo_ OK
    * @throws ApiError
    */
-  public static getMyReplyUsingGet(): CancelablePromise<BaseResponse_List_ReplyVO_> {
+  public static getStudentsUsingGet(): CancelablePromise<BaseResponse_List_StudentsVo_> {
     return __request(OpenAPI, {
       method: "GET",
-      url: "/api/reply/getMyReply",
+      url: "/api/TAS/getStudents",
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,
@@ -25,21 +25,14 @@ export class ReplyControllerService {
     });
   }
   /**
-   * markAsRead
-   * @param id id
-   * @returns BaseResponse_boolean_ OK
-   * @returns any Created
+   * getTeacher
+   * @returns BaseResponse_TeacherVo_ OK
    * @throws ApiError
    */
-  public static markAsReadUsingPut(
-    id: number
-  ): CancelablePromise<BaseResponse_boolean_ | any> {
+  public static getTeacherUsingGet(): CancelablePromise<BaseResponse_TeacherVo_> {
     return __request(OpenAPI, {
-      method: "PUT",
-      url: "/api/reply/markAsRead/{id}",
-      path: {
-        id: id,
-      },
+      method: "GET",
+      url: "/api/TAS/getTeacher",
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,

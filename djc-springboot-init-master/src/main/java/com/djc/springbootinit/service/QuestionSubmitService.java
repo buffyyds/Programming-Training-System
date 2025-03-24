@@ -5,9 +5,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitQueryRequest;
+import com.djc.springbootinit.model.entity.Question;
 import com.djc.springbootinit.model.entity.QuestionSubmit;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.QuestionSubmitVO;
+import com.djc.springbootinit.model.vo.StudentCompletionVO;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 
 /**
@@ -52,4 +57,12 @@ public interface QuestionSubmitService extends IService<QuestionSubmit> {
     Page<QuestionSubmitVO> getQuestionSubmitVOPage(Page<QuestionSubmit> questionSubmitPage, User loginUser);
 
     Boolean getQuestionSubmitPass(Long questionId, Long userId);
+
+    QueryWrapper<QuestionSubmit> getQueryWrapperTeacher(QuestionSubmitQueryRequest questionSubmitQueryRequest);
+
+    Double getPassPercentByTeacherId(Long teacherId, Long questionId);
+
+    int getSubmitNumByTeacherId(Long teacherId, Long questionId);
+
+    List<StudentCompletionVO> getStudentCompletion(Long questionId, HttpServletRequest request);
 }

@@ -23,6 +23,19 @@
           placeholder="请再次输入密码"
         />
       </a-form-item>
+      <a-form-item field="userRole" label="用户角色">
+        <a-radio-group v-model="registerForm.userRole">
+          <a-radio value="user">学生</a-radio>
+          <a-radio value="admin">教师</a-radio>
+        </a-radio-group>
+      </a-form-item>
+      <a-form-item
+        v-if="registerForm.userRole === 'admin'"
+        field="adminCode"
+        label="教师码"
+      >
+        <a-input v-model="registerForm.adminCode" readonly />
+      </a-form-item>
       <a-form-item>
         <a-space>
           <a-button type="primary" html-type="submit" style="width: 120px">
@@ -42,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { reactive, watch } from "vue";
 import {
   UserControllerService,
   UserRegisterRequest,
@@ -53,12 +66,26 @@ import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 
 /**
+ * 生成随机教师码
+ */
+const generateAdminCode = () => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
+
+/**
  * 表单信息
  */
 const registerForm = reactive({
   userAccount: "",
   userPassword: "",
   checkPassword: "",
+  userRole: "user", // 默认为学生
+  adminCode: "", // 教师码
 } as UserRegisterRequest);
 
 const loginForm = reactive({
@@ -68,6 +95,18 @@ const loginForm = reactive({
 
 const router = useRouter();
 const store = useStore();
+
+// 监听用户角色变化
+watch(
+  () => registerForm.userRole,
+  (newRole) => {
+    if (newRole === "admin") {
+      registerForm.adminCode = generateAdminCode();
+    } else {
+      registerForm.adminCode = "";
+    }
+  }
+);
 
 /**
  * 提交表单
@@ -96,3 +135,14 @@ const handleSubmit = async () => {
   }
 };
 </script>
+
+<style scoped>
+:deep(.arco-radio-group) {
+  display: flex;
+  gap: 24px;
+}
+
+:deep(.arco-radio) {
+  margin-right: 0;
+}
+</style>

@@ -7,6 +7,10 @@ interface UserState {
     id?: number;
     userName: string;
     userRole?: string;
+    adminCode?: string;
+    userProfile?: string;
+    userPhone?: string;
+    userPassword?: string;
   } | null;
   aiMessages: {
     [key: number]: Array<{

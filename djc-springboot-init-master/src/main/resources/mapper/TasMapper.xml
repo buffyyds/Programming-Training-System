@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.djc.springbootinit.mapper.TasMapper">
+
+    <resultMap id="BaseResultMap" type="com.djc.springbootinit.model.entity.Tas">
+            <id property="id" column="id" />
+            <result property="teacherId" column="teacherId" />
+            <result property="studentId" column="studentId" />
+            <result property="createTime" column="createTime" />
+            <result property="isDelete" column="isDelete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,teacherId,studentId,createTime,isDelete
+    </sql>
+</mapper>

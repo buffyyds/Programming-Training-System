@@ -13,12 +13,12 @@ import com.djc.springbootinit.exception.ThrowUtils;
 import com.djc.springbootinit.model.dto.question.*;
 import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitQueryRequest;
-import com.djc.springbootinit.model.entity.Post;
 import com.djc.springbootinit.model.entity.Question;
 import com.djc.springbootinit.model.entity.QuestionSubmit;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.QuestionSubmitVO;
 import com.djc.springbootinit.model.vo.QuestionVO;
+import com.djc.springbootinit.model.vo.StudentCompletionVO;
 import com.djc.springbootinit.service.QuestionService;
 import com.djc.springbootinit.service.QuestionSubmitService;
 import com.djc.springbootinit.service.UserService;
@@ -218,10 +218,11 @@ public class QuestionController {
                                                                HttpServletRequest request) {
         long current = questionQueryRequest.getCurrent();
         long size = questionQueryRequest.getPageSize();
+        User loginUser = userService.getLoginUser(request);
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         Page<Question> questionPage = questionService.page(new Page<>(current, size),
-                questionService.getQueryWrapper(questionQueryRequest));
+                questionService.getQueryWrapper(questionQueryRequest,loginUser));
         return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
     }
 
@@ -245,7 +246,7 @@ public class QuestionController {
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         Page<Question> questionPage = questionService.page(new Page<>(current, size),
-                questionService.getQueryWrapper(questionQueryRequest));
+                questionService.getQueryWrapper(questionQueryRequest,loginUser));
         return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
     }
 
@@ -262,8 +263,9 @@ public class QuestionController {
                                                            HttpServletRequest request) {
         long current = questionQueryRequest.getCurrent();
         long size = questionQueryRequest.getPageSize();
+        User loginUser = userService.getLoginUser(request);
         Page<Question> questionPage = questionService.page(new Page<>(current, size),
-                questionService.getQueryWrapper(questionQueryRequest));
+                questionService.getQueryWrapper(questionQueryRequest,loginUser));
         return ResultUtils.success(questionPage);
     }
 
@@ -329,7 +331,7 @@ public class QuestionController {
 
     /**
      * 分页获取题目提交列表（除了管理员外，普通用户只能看到非答案、提交代码等公开信息）
-     *
+     * 针对学生只能看到自己的提交记录
      * @param questionSubmitQueryRequest
      * @param request
      * @return
@@ -346,6 +348,27 @@ public class QuestionController {
         // 返回脱敏信息
         return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage, loginUser));
     }
+
+    /**
+     * 分页获取题目提交列表（除了管理员外，普通用户只能看到非答案、提交代码等公开信息）
+     * 针对教师可以看到自己所有的学生的提交记录
+     * @param questionSubmitQueryRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/question_submit/list/page/teacher")
+    public BaseResponse<Page<QuestionSubmitVO>> listQuestionSubmitByPageTeacher(@RequestBody QuestionSubmitQueryRequest questionSubmitQueryRequest,
+                                                                         HttpServletRequest request) {
+        long current = questionSubmitQueryRequest.getCurrent();
+        long size = questionSubmitQueryRequest.getPageSize();
+        // 从数据库中查询原始的题目提交分页信息
+        Page<QuestionSubmit> questionSubmitPage = questionSubmitService.page(new Page<>(current, size),
+                questionSubmitService.getQueryWrapperTeacher(questionSubmitQueryRequest));
+        final User loginUser = userService.getLoginUser(request);
+        // 返回脱敏信息
+        return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage, loginUser));
+    }
+
 
     /**
      * 获取用户是否通过题目
@@ -391,6 +414,43 @@ public class QuestionController {
         }
         String aiScore = questionService.getAIScore(questionSubmitAddRequest);
         return ResultUtils.success(aiScore);
+    }
+
+
+    /**
+     * 分页获取学生完成情况列表（封装类）
+     * 只有管理员能够查看
+     * @param questionQueryRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/list/studentProgress/page/vo")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Page<QuestionVO>> listStudentProgressVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
+                                                                             HttpServletRequest request) {
+        long current = questionQueryRequest.getCurrent();
+        long size = questionQueryRequest.getPageSize();
+        User loginUser = userService.getLoginUser(request); //教师信息
+        //获取题目列表
+        Page<Question> questionPage = questionService.page(new Page<>(current, size),
+                questionService.getQueryWrapper(questionQueryRequest,loginUser));
+        return ResultUtils.success(questionService.getStudentProgressVOPage(questionPage, request));
+    }
+
+    /**
+     * 获取单题学生完成情况列表（封装类）
+     * 只有管理员能够查看
+     * @param questionId
+     * @param request
+     * @return
+     */
+    @GetMapping("/get/studentProgress/vo")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<List<StudentCompletionVO>> getStudentCompletionVOByQuestionId(long questionId, HttpServletRequest request) {
+        if (questionId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        return ResultUtils.success(questionSubmitService.getStudentCompletion(questionId, request));
     }
 
 }

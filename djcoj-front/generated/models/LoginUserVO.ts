@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type LoginUserVO = {
+    adminCode?: string;
     createTime?: string;
     id?: number;
     updateTime?: string;

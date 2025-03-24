@@ -40,5 +40,10 @@ public class UserUpdateRequest implements Serializable {
      */
     private String userPhone;
 
+    /**
+     * 管理员号（用于确认学生在哪个教师/管理员下）
+     */
+    private String adminCode;
+
     private static final long serialVersionUID = 1L;
 }

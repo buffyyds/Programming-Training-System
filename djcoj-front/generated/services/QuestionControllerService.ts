@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BaseResponse_boolean_ } from "../models/BaseResponse_boolean_";
+import type { BaseResponse_List_StudentCompletionVO_ } from "../models/BaseResponse_List_StudentCompletionVO_";
 import type { BaseResponse_long_ } from "../models/BaseResponse_long_";
 import type { BaseResponse_Page_Question_ } from "../models/BaseResponse_Page_Question_";
 import type { BaseResponse_Page_QuestionSubmitVO_ } from "../models/BaseResponse_Page_QuestionSubmitVO_";
@@ -20,7 +21,6 @@ import type { QuestionUpdateRequest } from "../models/QuestionUpdateRequest";
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
 import { request as __request } from "../core/request";
-
 export class QuestionControllerService {
   /**
    * addQuestion
@@ -43,7 +43,6 @@ export class QuestionControllerService {
       },
     });
   }
-
   /**
    * deleteQuestion
    * @param deleteRequest deleteRequest
@@ -65,7 +64,6 @@ export class QuestionControllerService {
       },
     });
   }
-
   /**
    * editQuestion
    * @param questionEditRequest questionEditRequest
@@ -87,7 +85,6 @@ export class QuestionControllerService {
       },
     });
   }
-
   /**
    * getQuestionById
    * @param id id
@@ -110,7 +107,28 @@ export class QuestionControllerService {
       },
     });
   }
-
+  /**
+   * getStudentCompletionVOByQuestionId
+   * @param questionId questionId
+   * @returns BaseResponse_List_StudentCompletionVO_ OK
+   * @throws ApiError
+   */
+  public static getStudentCompletionVoByQuestionIdUsingGet(
+    questionId?: number
+  ): CancelablePromise<BaseResponse_List_StudentCompletionVO_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/question/get/studentProgress/vo",
+      query: {
+        questionId: questionId,
+      },
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
   /**
    * getQuestionVOById
    * @param id id
@@ -133,7 +151,6 @@ export class QuestionControllerService {
       },
     });
   }
-
   /**
    * getAnswerById
    * @param id id
@@ -156,7 +173,6 @@ export class QuestionControllerService {
       },
     });
   }
-
   /**
    * listQuestionByPage
    * @param questionQueryRequest questionQueryRequest
@@ -178,7 +194,6 @@ export class QuestionControllerService {
       },
     });
   }
-
   /**
    * listQuestionVOByPage
    * @param questionQueryRequest questionQueryRequest
@@ -200,7 +215,27 @@ export class QuestionControllerService {
       },
     });
   }
-
+  /**
+   * listStudentProgressVOByPage
+   * @param questionQueryRequest questionQueryRequest
+   * @returns BaseResponse_Page_QuestionVO_ OK
+   * @returns any Created
+   * @throws ApiError
+   */
+  public static listStudentProgressVoByPageUsingPost(
+    questionQueryRequest: QuestionQueryRequest
+  ): CancelablePromise<BaseResponse_Page_QuestionVO_ | any> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/question/list/studentProgress/page/vo",
+      body: questionQueryRequest,
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
   /**
    * listMyQuestionVOByPage
    * @param questionQueryRequest questionQueryRequest
@@ -222,7 +257,6 @@ export class QuestionControllerService {
       },
     });
   }
-
   /**
    * getAIScore
    * @param questionSubmitAddRequest questionSubmitAddRequest
@@ -244,7 +278,6 @@ export class QuestionControllerService {
       },
     });
   }
-
   /**
    * doQuestionSubmit
    * @param questionSubmitAddRequest questionSubmitAddRequest
@@ -266,7 +299,6 @@ export class QuestionControllerService {
       },
     });
   }
-
   /**
    * getQuestionSubmitJudgeInfoById
    * @param id id
@@ -289,7 +321,6 @@ export class QuestionControllerService {
       },
     });
   }
-
   /**
    * listQuestionSubmitByPage
    * @param questionSubmitQueryRequest questionSubmitQueryRequest
@@ -311,7 +342,27 @@ export class QuestionControllerService {
       },
     });
   }
-
+  /**
+   * listQuestionSubmitByPageTeacher
+   * @param questionSubmitQueryRequest questionSubmitQueryRequest
+   * @returns BaseResponse_Page_QuestionSubmitVO_ OK
+   * @returns any Created
+   * @throws ApiError
+   */
+  public static listQuestionSubmitByPageTeacherUsingPost(
+    questionSubmitQueryRequest: QuestionSubmitQueryRequest
+  ): CancelablePromise<BaseResponse_Page_QuestionSubmitVO_ | any> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/question/question_submit/list/page/teacher",
+      body: questionSubmitQueryRequest,
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
   /**
    * getQuestionSubmitPass
    * @param questionSubmitQueryRequest questionSubmitQueryRequest
@@ -333,7 +384,6 @@ export class QuestionControllerService {
       },
     });
   }
-
   /**
    * updateQuestion
    * @param questionUpdateRequest questionUpdateRequest

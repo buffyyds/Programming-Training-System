@@ -2,13 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type UserUpdateRequest = {
-    adminCode?: string;
+export type TeacherVo = {
     id?: number;
-    userAvatar?: string;
     userName?: string;
-    userPhone?: string;
-    userProfile?: string;
-    userRole?: string;
 };
 

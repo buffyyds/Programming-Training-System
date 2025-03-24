@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.djc.springbootinit.model.dto.question.QuestionQueryRequest;
 import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.djc.springbootinit.model.entity.Question;
+import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.QuestionVO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,7 +32,7 @@ public interface QuestionService extends IService<Question> {
      * @param questionQueryRequest
      * @return
      */
-    QueryWrapper<Question> getQueryWrapper(QuestionQueryRequest questionQueryRequest);
+    QueryWrapper<Question> getQueryWrapper(QuestionQueryRequest questionQueryRequest, User loginUser);
 
     /**
      * 获取题目封装
@@ -50,6 +51,8 @@ public interface QuestionService extends IService<Question> {
      * @return
      */
     Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request);
+
+    Page<QuestionVO> getStudentProgressVOPage(Page<Question> questionPage, HttpServletRequest request);
 
     String getQuestionAnswerById(long questionId);
 

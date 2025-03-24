@@ -11,6 +11,8 @@ import ManageQuestionView from "@/views/question/ManageQuestionView.vue";
 import QuestionsView from "@/views/question/QuestionsView.vue";
 import QuestionSubmitView from "@/views/question/QuestionSubmitView.vue";
 import ViewQuestionView from "@/views/question/ViewQuestionView.vue";
+import StudentProgressView from "@/views/question/StudentProgressView.vue";
+import StudentProgressDetailView from "@/views/question/StudentProgressDetailView.vue";
 
 export const routes: Array<RouteRecordRaw> = [
   {
@@ -106,6 +108,24 @@ export const routes: Array<RouteRecordRaw> = [
     component: () => import("../views/user/UserMessagesView.vue"),
     meta: {
       access: ACCESS_ENUM.USER,
+      hideInMenu: true,
+    },
+  },
+  {
+    path: "/student_progress",
+    name: "学生完成情况",
+    component: StudentProgressView,
+    meta: {
+      access: ACCESS_ENUM.ADMIN,
+    },
+  },
+  {
+    path: "/student_progress/:id",
+    name: "学生完成详情",
+    component: StudentProgressDetailView,
+    props: true,
+    meta: {
+      access: ACCESS_ENUM.ADMIN,
       hideInMenu: true,
     },
   },

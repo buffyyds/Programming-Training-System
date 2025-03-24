@@ -21,6 +21,13 @@
       <template #createTime="{ record }">
         {{ moment(record.createTime).format("YYYY-MM-DD HH:mm:ss") }}
       </template>
+      <template #tags="{ record }">
+        <a-space wrap>
+          <a-tag v-for="tag in record.tags" :key="tag" color="blue">
+            {{ tag }}
+          </a-tag>
+        </a-space>
+      </template>
     </a-table>
   </div>
 </template>
@@ -82,15 +89,7 @@ const columns = [
   },
   {
     title: "标签",
-    dataIndex: "tags",
-  },
-  {
-    title: "提交数",
-    dataIndex: "submitNum",
-  },
-  {
-    title: "通过数",
-    dataIndex: "acceptedNum",
+    slotName: "tags",
   },
   {
     title: "创建用户",

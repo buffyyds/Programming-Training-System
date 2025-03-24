@@ -5,7 +5,9 @@
         <div class="card-title">
           <a-space>
             <a-button type="text" @click="goBack">
-              <template #icon><icon-arrow-left /></template>
+              <template #icon>
+                <icon-arrow-left />
+              </template>
             </a-button>
             <icon-user class="title-icon" />
             个人信息
@@ -59,27 +61,27 @@
           </a-form-item>
         </div>
 
-        <a-form-item field="userRole" label="权限">
-          <div class="role-field">
-            <a-tag :color="userForm.userRole === 'admin' ? 'blue' : 'green'">
-              {{ userForm.userRole === "admin" ? "管理员" : "普通用户" }}
-            </a-tag>
-            <a-button
-              type="text"
-              @click="showAdminCodeInput = !showAdminCodeInput"
-            >
-              申请管理员权限
-            </a-button>
-          </div>
-        </a-form-item>
-
-        <a-form-item v-if="showAdminCodeInput" field="adminCode" label="管理码">
-          <a-input-password
-            v-model="adminCode"
-            placeholder="请输入管理码"
-            allow-clear
-          />
-        </a-form-item>
+        <template v-if="userForm.userRole === 'admin'">
+          <a-form-item label="教师身份">
+            <a-tag color="blue">已认证教师</a-tag>
+          </a-form-item>
+        </template>
+        <template v-else>
+          <template v-if="userForm.adminCode">
+            <a-form-item label="绑定教师">
+              <a-tag color="green">已绑定教师：{{ teacherName }}</a-tag>
+            </a-form-item>
+          </template>
+          <template v-else>
+            <a-form-item field="adminCode" label="绑定教师">
+              <a-input
+                v-model="userForm.adminCode"
+                placeholder="请输入教师注册码"
+                allow-clear
+              />
+            </a-form-item>
+          </template>
+        </template>
 
         <a-form-item>
           <a-button type="primary" html-type="submit" long> 保存修改</a-button>
@@ -90,31 +92,52 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { Message } from "@arco-design/web-vue";
 import { useStore } from "vuex";
 import { IconUser, IconArrowLeft } from "@arco-design/web-vue/es/icon";
-import { UserControllerService } from "../../../generated";
+import {
+  UserControllerService,
+  TasControllerService,
+} from "../../../generated";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 const store = useStore();
 const showChangePassword = ref(false);
-const showAdminCodeInput = ref(false);
-const adminCode = ref("");
+const teacherName = ref("");
 
 const userForm = ref({
   userName: "",
   userProfile: "",
   userPhone: "",
-  userRole: "",
+  adminCode: "", // 存储教师注册码
   userPassword: "",
+  userRole: "", // 添加用户角色字段
 });
 
 const passwordForm = ref({
   newPassword: "",
   confirmPassword: "",
 });
+
+// 计算属性：是否显示绑定教师
+const showBindTeacher = computed(() => {
+  return userForm.value.userRole === "user" && !userForm.value.adminCode;
+});
+
+// 获取教师信息
+const getTeacherInfo = async (adminCode: string | undefined) => {
+  if (!adminCode) return;
+  try {
+    const res = await TasControllerService.getTeacherUsingGet();
+    if (res.code === 0 && res.data) {
+      teacherName.value = res.data.userName;
+    }
+  } catch (error) {
+    console.error("获取教师信息失败:", error);
+  }
+};
 
 onMounted(async () => {
   const currentUser = store.state.user.loginUser;
@@ -124,9 +147,15 @@ onMounted(async () => {
       userName: currentUser.userName || "",
       userProfile: currentUser.userProfile || "",
       userPhone: currentUser.userPhone || "",
-      userRole: currentUser.userRole || "user",
-      //userPassword: currentUser.userPassword || "",
+      adminCode: currentUser.adminCode || "",
+      userPassword: currentUser.userPassword || "",
+      userRole: currentUser.userRole || "",
     };
+
+    // 如果有adminCode，获取教师信息
+    if (userForm.value.adminCode && userForm.value.adminCode !== "") {
+      await getTeacherInfo(userForm.value.adminCode);
+    }
   }
 });
 
@@ -138,16 +167,6 @@ const handleSubmit = async () => {
       ) {
         Message.error("两次输入的密码不一致");
         return;
-      }
-    }
-
-    if (showAdminCodeInput.value) {
-      // todo 这里可以有更好的逻辑，但是这个管理员申请不是很重要，所以就这样了，有时间再完善
-      if (adminCode.value !== "djcyyds") {
-        Message.error("管理码错误");
-        return;
-      } else {
-        userForm.value.userRole = "admin";
       }
     }
 
@@ -171,10 +190,8 @@ const handleSubmit = async () => {
 
     // 重置密码相关状态
     showChangePassword.value = false;
-    showAdminCodeInput.value = false;
     passwordForm.value.newPassword = "";
     passwordForm.value.confirmPassword = "";
-    adminCode.value = "";
   } catch (error) {
     Message.error("更新失败");
   }
@@ -217,13 +234,12 @@ const goBack = () => {
   border-radius: 4px;
 }
 
-.role-field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .change-password-btn {
   width: 120px;
+}
+
+:deep(.arco-tag) {
+  font-size: 14px;
+  padding: 4px 8px;
 }
 </style>

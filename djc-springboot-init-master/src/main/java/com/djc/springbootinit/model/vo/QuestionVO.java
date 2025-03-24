@@ -43,9 +43,9 @@ public class QuestionVO implements Serializable {
     private Integer submitNum;
 
     /**
-     * 题目通过数
+     * 题目通过率
      */
-    private Integer acceptedNum;
+    private Double acceptedPercent;
 
     /**
      * 判题配置
@@ -86,6 +86,11 @@ public class QuestionVO implements Serializable {
      * 判题用例（json 数组）
      */
     private String judgeCase;
+
+    /**
+     * 该题目下的学生人数
+     */
+    private Integer studentNum;
 
     /**
      * 包装类转对象

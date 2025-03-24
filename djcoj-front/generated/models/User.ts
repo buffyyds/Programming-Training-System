@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type User = {
+    adminCode?: string;
     createTime?: string;
     id?: number;
     isDelete?: number;

@@ -19,9 +19,11 @@ import com.djc.springbootinit.model.enums.JudgeInfoMessageEnum;
 import com.djc.springbootinit.model.enums.QuestionSubmitStatusEnum;
 import com.djc.springbootinit.model.vo.QuestionSubmitVO;
 import com.djc.springbootinit.model.vo.QuestionVO;
+import com.djc.springbootinit.model.vo.StudentCompletionVO;
 import com.djc.springbootinit.model.vo.UserVO;
 import com.djc.springbootinit.service.QuestionService;
 import com.djc.springbootinit.service.QuestionSubmitService;
+import com.djc.springbootinit.service.TasService;
 import com.djc.springbootinit.service.UserService;
 import com.djc.springbootinit.utils.SqlUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -32,7 +34,11 @@ import org.springframework.stereotype.Service;
 import com.djc.springbootinit.model.enums.QuestionSubmitLanguageEnum;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -52,6 +58,9 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
     @Resource
     @Lazy
     private JudgeService judgeService;
+
+    @Resource
+    private TasService tasService;
 
     /**
      * 题目提交
@@ -186,6 +195,121 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             return true;
         }
         return false;
+    }
+
+    @Override
+    public QueryWrapper<QuestionSubmit> getQueryWrapperTeacher(QuestionSubmitQueryRequest questionSubmitQueryRequest) {
+        QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
+        if (questionSubmitQueryRequest == null) {
+            return queryWrapper;
+        }
+        String language = questionSubmitQueryRequest.getLanguage();
+        Integer status = questionSubmitQueryRequest.getStatus();
+        Long userId = questionSubmitQueryRequest.getUserId();
+        String title = questionSubmitQueryRequest.getTitle();
+        String sortField = questionSubmitQueryRequest.getSortField();
+        String sortOrder = questionSubmitQueryRequest.getSortOrder();
+        //通过userId（即teacherid）获取旗下所有学生的id
+        List<Long> studentIds = tasService.getStudentIdsByTeacherId(userId);
+        studentIds.add(userId); //将老师自己也加入
+        //处理题目，将通过title查询到的questionId放入questionIds
+        if (StringUtils.isNotBlank(title)) {
+            QueryWrapper<Question> questionQueryWrapper = new QueryWrapper<>();
+            questionQueryWrapper.like("title", title);
+            List<Question> questionList = questionService.list(questionQueryWrapper);
+            if (CollectionUtils.isNotEmpty(questionList)) {
+                List<Long> questionIds = questionList.stream().map(Question::getId).collect(Collectors.toList());
+                queryWrapper.in("questionId", questionIds);
+            }
+        }
+
+        // 拼接查询条件
+        queryWrapper.eq(StringUtils.isNotBlank(language), "language", language);
+        queryWrapper.in(ObjectUtils.isNotEmpty(studentIds), "userId", studentIds);
+        queryWrapper.eq(QuestionSubmitStatusEnum.getEnumByValue(status) != null, "status", status);
+        queryWrapper.eq("isDelete", false);
+        queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
+                sortField);
+        return queryWrapper;
+    }
+
+    @Override
+    public Double getPassPercentByTeacherId(Long teacherId, Long questionId) {
+        //通过teacherId获取旗下所有学生的id
+        List<Long> studentIds = tasService.getStudentIdsByTeacherId(teacherId);
+        QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("questionId", questionId);
+        queryWrapper.in("userId", studentIds);
+        queryWrapper.like("judgeInfo", JudgeInfoMessageEnum.ACCEPTED.getValue());
+        List<QuestionSubmit> list = list(queryWrapper);
+        if (CollectionUtils.isEmpty(list)) {
+            return 0.0;
+        }
+        long count = list.stream().map(QuestionSubmit::getUserId).distinct().count();
+        Double passPercent = (double) count/studentIds.size();
+        return passPercent;
+    }
+
+    @Override
+    public int getSubmitNumByTeacherId(Long teacherId, Long questionId) {
+        //通过teacherId获取旗下所有学生的id
+        List<Long> studentIds = tasService.getStudentIdsByTeacherId(teacherId);
+        QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("questionId", questionId);
+        queryWrapper.in("userId", studentIds);
+        long count = this.count(queryWrapper);
+        if (count == 0) {
+            return 0;
+        }
+        return (int)count;
+    }
+
+    @Override
+    public List<StudentCompletionVO> getStudentCompletion(Long questionId, HttpServletRequest request) {
+        List<StudentCompletionVO> studentCompletionVOList = new ArrayList<>();
+        //获取当前教师旗下的学生ids
+        User loginUser = userService.getLoginUser(request);
+        List<Long> studentIds = tasService.getStudentIdsByTeacherId(loginUser.getId());
+        if (studentIds.isEmpty()) {
+            return studentCompletionVOList;
+        }
+        QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("DISTINCT userId");
+        queryWrapper.eq("questionId", questionId);
+        queryWrapper.in("userId", studentIds);
+        queryWrapper.like("judgeInfo", JudgeInfoMessageEnum.ACCEPTED.getValue());
+        // 执行查询并提取已完成的用户ID
+        Set<Long> completedStudentIds = this.listObjs(queryWrapper)
+                .stream()
+                .map(id -> (Long) id)
+                .collect(Collectors.toSet());
+        // 查询学生名字
+        List<User> studentList = userService.listByIds(studentIds);
+        // 构建学生id->名字Map
+        Map<Long, String> studentIdNameMap = studentList.stream().collect(Collectors.toMap(User::getId, User::getUserName));
+        // 构建结果列表
+        studentIds.forEach(studentId -> {
+            StudentCompletionVO vo = new StudentCompletionVO();
+            vo.setIsCompletion(completedStudentIds.contains(studentId));
+            vo.setStudentName(studentIdNameMap.get(studentId));
+            studentCompletionVOList.add(vo);
+        });
+        // 旧代码(尽量避免循环查询数据库，会导致性能问题)
+//        studentIds.forEach(studentId -> {
+//            QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
+//            queryWrapper.eq("questionId", questionId);
+//            queryWrapper.eq("userId", studentId);
+//            queryWrapper.like("judgeInfo", JudgeInfoMessageEnum.ACCEPTED.getValue());
+//            //只要查询到一条记录，即表示该学生已完成
+//            long count = this.count(queryWrapper);
+//            StudentCompletionVO studentCompletionVO = new StudentCompletionVO();
+//            if (count > 0) {
+//                studentCompletionVO.setIsCompletion(true);
+//            }
+//            studentCompletionVOList.add(studentCompletionVO);
+//        });
+
+        return studentCompletionVOList;
     }
 
 }

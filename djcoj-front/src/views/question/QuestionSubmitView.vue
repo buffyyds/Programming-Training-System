@@ -18,7 +18,8 @@
         >
           <a-option>java</a-option>
           <a-option>cpp</a-option>
-          <a-option>python</a-option>
+          <a-option>go</a-option>
+          <a-option>html</a-option>
         </a-select>
       </a-form-item>
       <a-form-item>
@@ -40,20 +41,19 @@
     >
       <template #judgeResult="{ record }">
         <a-space>
-          <div
-            class="status-dot"
-            :class="
+          <icon-check-circle-fill
+            v-if="
               record.judgeInfo.message === 'Accepted' ||
               record.judgeInfo.message === '成功'
-                ? 'success'
-                : 'error'
             "
-          ></div>
+            style="color: #52c41a"
+          />
+          <icon-close-circle-fill v-else style="color: #f5222d" />
           {{ getJudgeResultText(record.judgeInfo.message) }}
         </a-space>
       </template>
       <template #memory="{ record }">
-        {{ record.judgeInfo.memory + " B" }}
+        {{ record.judgeInfo.memory + " KB" }}
       </template>
       <template #time="{ record }">
         {{ record.judgeInfo.time + " ms" }}
@@ -75,7 +75,13 @@ import {
 import message from "@arco-design/web-vue/es/message";
 import { useRouter } from "vue-router";
 import moment from "moment";
+import { useStore } from "vuex";
+import {
+  IconCheckCircleFill,
+  IconCloseCircleFill,
+} from "@arco-design/web-vue/es/icon";
 
+const store = useStore();
 const tableRef = ref();
 
 const dataList = ref([]);
@@ -92,6 +98,7 @@ const searchParams = ref<ExtendedQuestionSubmitQueryRequest>({
   language: undefined,
   pageSize: 10,
   current: 1,
+  userId: undefined, // 添加userId字段
 });
 
 // 判题结果映射类型
@@ -129,18 +136,47 @@ const getJudgeResultText = (message: string) => {
 };
 
 const loadData = async () => {
-  const res = await QuestionControllerService.listQuestionSubmitByPageUsingPost(
-    {
-      ...searchParams.value,
-      sortField: "createTime",
-      sortOrder: "descend",
+  try {
+    // 获取当前登录用户信息
+    const currentUser = store.state.user.loginUser;
+    if (!currentUser) {
+      message.error("请先登录");
+      return;
     }
-  );
-  if (res.code === 0) {
-    dataList.value = res.data.records;
-    total.value = res.data.total;
-  } else {
-    message.error("加载失败，" + res.message);
+
+    // 设置当前用户ID
+    searchParams.value.userId = currentUser.id;
+
+    let res;
+    // 根据用户角色调用不同的接口
+    if (currentUser.userRole === "admin") {
+      // 教师调用教师接口
+      res =
+        await QuestionControllerService.listQuestionSubmitByPageTeacherUsingPost(
+          {
+            ...searchParams.value,
+            sortField: "createTime",
+            sortOrder: "descend",
+          }
+        );
+    } else {
+      // 学生调用普通接口
+      res = await QuestionControllerService.listQuestionSubmitByPageUsingPost({
+        ...searchParams.value,
+        sortField: "createTime",
+        sortOrder: "descend",
+      });
+    }
+
+    if (res.code === 0) {
+      dataList.value = res.data.records;
+      total.value = res.data.total;
+    } else {
+      message.error("加载失败，" + res.message);
+    }
+  } catch (error) {
+    message.error("加载失败，请稍后重试");
+    console.error("加载数据失败:", error);
   }
 };
 
@@ -247,20 +283,5 @@ const doSubmit = () => {
 
 :deep(.arco-select-view:hover) {
   border-color: rgb(var(--primary-6));
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.status-dot.success {
-  background-color: #52c41a;
-}
-
-.status-dot.error {
-  background-color: #ff4d4f;
 }
 </style>

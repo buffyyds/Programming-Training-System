@@ -52,5 +52,10 @@ public class LoginUserVO implements Serializable {
      */
     private String userPhone;
 
+    /**
+     * 管理码
+     */
+    private String adminCode;
+
     private static final long serialVersionUID = 1L;
 }

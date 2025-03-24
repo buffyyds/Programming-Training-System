@@ -42,13 +42,13 @@
           </a-tag>
         </a-space>
       </template>
-      <template #acceptedRate="{ record }">
-        {{
-          `${
-            record.submitNum ? record.acceptedNum / record.submitNum : "0"
-          }% (${record.acceptedNum}/${record.submitNum})`
-        }}
-      </template>
+      <!--      <template #acceptedRate="{ record }">-->
+      <!--        {{-->
+      <!--          `${-->
+      <!--            record.submitNum ? record.acceptedNum / record.submitNum : "0"-->
+      <!--          }% (${record.acceptedNum}/${record.submitNum})`-->
+      <!--        }}-->
+      <!--      </template>-->
       <template #createTime="{ record }">
         {{ moment(record.createTime).format("YYYY-MM-DD") }}
       </template>
@@ -128,10 +128,10 @@ const columns = [
     title: "标签",
     slotName: "tags",
   },
-  {
-    title: "通过率",
-    slotName: "acceptedRate",
-  },
+  // {
+  //   title: "通过率",
+  //   slotName: "acceptedRate",
+  // },
   {
     title: "创建时间",
     slotName: "createTime",
