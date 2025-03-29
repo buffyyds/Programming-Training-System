@@ -1,5 +1,6 @@
 package com.djc.springbootinit.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.djc.springbootinit.annotation.AuthCheck;
 import com.djc.springbootinit.common.BaseResponse;
@@ -16,8 +17,10 @@ import com.djc.springbootinit.model.dto.user.UserQueryRequest;
 import com.djc.springbootinit.model.dto.user.UserRegisterRequest;
 import com.djc.springbootinit.model.dto.user.UserUpdateMyRequest;
 import com.djc.springbootinit.model.dto.user.UserUpdateRequest;
+import com.djc.springbootinit.model.entity.Tas;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.LoginUserVO;
+import com.djc.springbootinit.model.vo.TeacherVo;
 import com.djc.springbootinit.model.vo.UserVO;
 import com.djc.springbootinit.service.TasService;
 import com.djc.springbootinit.service.UserService;
@@ -325,6 +328,12 @@ public class UserController {
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         if (user.getAdminCode() != null) {
+            //如果已经设置过adminCode，则不需要再设置一次
+            //查询是否已经设置过教师学生关系
+            TeacherVo teacherByStudentId = tasService.getTeacherByStudentId(loginUser.getId());
+            if (teacherByStudentId != null) {
+                return ResultUtils.success(true);
+            }
             boolean b = tasService.setTAS(user.getId());
             ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
         }
