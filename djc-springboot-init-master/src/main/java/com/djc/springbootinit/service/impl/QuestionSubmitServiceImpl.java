@@ -21,6 +21,7 @@ import com.djc.springbootinit.model.vo.QuestionSubmitVO;
 import com.djc.springbootinit.model.vo.QuestionVO;
 import com.djc.springbootinit.model.vo.StudentCompletionVO;
 import com.djc.springbootinit.model.vo.UserVO;
+import com.djc.springbootinit.rabbitmq.MyMessageProducer;
 import com.djc.springbootinit.service.QuestionService;
 import com.djc.springbootinit.service.QuestionSubmitService;
 import com.djc.springbootinit.service.TasService;
@@ -62,6 +63,9 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
     @Resource
     private TasService tasService;
 
+    @Resource
+    private MyMessageProducer myMessageProducer;
+
     /**
      * 题目提交
      *
@@ -101,10 +105,11 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "数据插入失败");
         }
         Long questionSubmitId = questionSubmit.getId();
-        CompletableFuture.runAsync(() -> {
-            // 异步判题
-             judgeService.doJudge(questionSubmitId);
-        });
+        myMessageProducer.sendMessage("code_exchange", "my_routingKey", String.valueOf(questionSubmitId));
+//        CompletableFuture.runAsync(() -> {
+//            // 异步判题
+//             judgeService.doJudge(questionSubmitId);
+//        });
         return questionSubmitId;
     }
 

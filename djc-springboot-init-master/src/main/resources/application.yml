@@ -36,6 +36,11 @@ spring:
 #    uris: http://localhost:9200
 #    username: root
 #    password: 123456
+  rabbitmq:
+    host: 192.168.189.144
+    port: 5672
+    password: admin
+    username: admin
   # 文件上传
   servlet:
     multipart:
