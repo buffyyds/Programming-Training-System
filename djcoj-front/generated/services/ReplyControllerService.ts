@@ -7,6 +7,7 @@ import type { BaseResponse_List_ReplyVO_ } from "../models/BaseResponse_List_Rep
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
 import { request as __request } from "../core/request";
+
 export class ReplyControllerService {
   /**
    * getMyReply
@@ -24,6 +25,7 @@ export class ReplyControllerService {
       },
     });
   }
+
   /**
    * markAsRead
    * @param id id

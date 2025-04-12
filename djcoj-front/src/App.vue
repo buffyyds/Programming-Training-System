@@ -6,7 +6,7 @@
     <template v-else>
       <BasicLayout />
     </template>
-    <AIAssistant />
+    <AIAssistant v-if="route.path.startsWith('/question/view')" />
   </div>
 </template>
 

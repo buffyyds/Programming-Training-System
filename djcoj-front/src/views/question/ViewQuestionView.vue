@@ -523,7 +523,7 @@ const checkCanViewAnswer = async (forceCheck = false) => {
       userId: userId,
     });
 
-  if (res.code === 0) {
+    if (res.code === 0) {
       // 如果通过了，获取答案
       if (res.data === true) {
         const answer = await QuestionControllerService.getAnswerByIdUsingGet(
@@ -688,10 +688,10 @@ const doSubmit = async () => {
       form.value
     );
     if (res.code === 0 && res.data) {
-    message.success("提交成功");
+      message.success("提交成功");
       // 开始轮询判题结果
       startPolling(res.data);
-  } else {
+    } else {
       submitting.value = false;
       message.error("提交失败，" + res.message);
     }

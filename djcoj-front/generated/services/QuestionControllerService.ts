@@ -21,6 +21,7 @@ import type { QuestionUpdateRequest } from "../models/QuestionUpdateRequest";
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
 import { request as __request } from "../core/request";
+
 export class QuestionControllerService {
   /**
    * addQuestion
@@ -43,6 +44,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * deleteQuestion
    * @param deleteRequest deleteRequest
@@ -64,6 +66,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * editQuestion
    * @param questionEditRequest questionEditRequest
@@ -85,6 +88,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * getQuestionById
    * @param id id
@@ -107,6 +111,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * getStudentCompletionVOByQuestionId
    * @param questionId questionId
@@ -129,6 +134,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * getQuestionVOById
    * @param id id
@@ -151,6 +157,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * getAnswerById
    * @param id id
@@ -173,6 +180,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * listQuestionByPage
    * @param questionQueryRequest questionQueryRequest
@@ -194,6 +202,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * listQuestionVOByPage
    * @param questionQueryRequest questionQueryRequest
@@ -215,6 +224,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * listStudentProgressVOByPage
    * @param questionQueryRequest questionQueryRequest
@@ -236,6 +246,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * listMyQuestionVOByPage
    * @param questionQueryRequest questionQueryRequest
@@ -257,6 +268,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * getAIScore
    * @param questionSubmitAddRequest questionSubmitAddRequest
@@ -278,6 +290,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * doQuestionSubmit
    * @param questionSubmitAddRequest questionSubmitAddRequest
@@ -299,6 +312,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * getQuestionSubmitJudgeInfoById
    * @param id id
@@ -321,6 +335,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * listQuestionSubmitByPage
    * @param questionSubmitQueryRequest questionSubmitQueryRequest
@@ -342,6 +357,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * listQuestionSubmitByPageTeacher
    * @param questionSubmitQueryRequest questionSubmitQueryRequest
@@ -363,6 +379,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * getQuestionSubmitPass
    * @param questionSubmitQueryRequest questionSubmitQueryRequest
@@ -384,6 +401,7 @@ export class QuestionControllerService {
       },
     });
   }
+
   /**
    * updateQuestion
    * @param questionUpdateRequest questionUpdateRequest

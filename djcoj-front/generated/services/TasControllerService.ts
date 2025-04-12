@@ -7,6 +7,7 @@ import type { BaseResponse_TeacherVo_ } from "../models/BaseResponse_TeacherVo_"
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
 import { request as __request } from "../core/request";
+
 export class TasControllerService {
   /**
    * getStudents
@@ -24,6 +25,7 @@ export class TasControllerService {
       },
     });
   }
+
   /**
    * getTeacher
    * @returns BaseResponse_TeacherVo_ OK

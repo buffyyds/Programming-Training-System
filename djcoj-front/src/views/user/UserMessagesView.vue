@@ -11,56 +11,119 @@
     </div>
 
     <!-- 消息列表 -->
-    <div class="message-list">
-      <template v-if="loading">
-        <div class="loading-container">
-          <a-spin />
-        </div>
-      </template>
-      <template v-else-if="replies.length === 0">
-        <a-empty description="暂无消息" />
-      </template>
-      <template v-else>
-        <div
-          v-for="reply in replies"
-          :key="reply.id"
-          class="message-item"
-          @click="reply.id && markAsRead(reply.id)"
-        >
-          <!-- 未读标记 -->
-          <div v-if="!reply.isRead" class="unread-dot"></div>
-          <div class="message-content">
-            <div class="message-header">
-              <a-space>
-                <a-avatar :size="32">{{ reply.user?.userName?.[0] }}</a-avatar>
-                <span class="username">{{ reply.user?.userName }}</span>
-              </a-space>
-              <span class="time">{{
-                reply.createTime && formatTime(reply.createTime)
-              }}</span>
-            </div>
-            <div class="message-body">回复了你的评论：{{ reply.content }}</div>
-            <a-button
-              type="text"
-              @click.stop="goToQuestion(reply.questionId, reply.replyId)"
-            >
-              查看详情
-            </a-button>
+    <a-tabs v-model:active-key="activeTab" class="message-tabs">
+      <a-tab-pane key="comment" title="评论回复">
+        <template #title>
+          <div class="tab-title">
+            评论回复
+            <div v-if="hasUnreadComments" class="red-dot"></div>
           </div>
-        </div>
-      </template>
-    </div>
+        </template>
+        <template v-if="loading">
+          <div class="loading-container">
+            <a-spin />
+          </div>
+        </template>
+        <template v-else-if="commentReplies.length === 0">
+          <a-empty description="暂无评论回复" />
+        </template>
+        <template v-else>
+          <div
+            v-for="reply in commentReplies"
+            :key="reply.id"
+            class="message-item"
+            @click="handleCommentClick(reply)"
+          >
+            <!-- 未读标记 -->
+            <div v-if="!reply.isRead" class="unread-dot"></div>
+            <div class="message-content">
+              <div class="message-header">
+                <a-space>
+                  <a-avatar :size="32">{{
+                    reply.user?.userName?.[0]
+                  }}</a-avatar>
+                  <span class="username">{{ reply.user?.userName }}</span>
+                </a-space>
+                <span class="time">{{
+                  reply.createTime && formatTime(reply.createTime)
+                }}</span>
+              </div>
+              <div class="message-body">
+                回复了你的评论：{{ reply.content }}
+              </div>
+              <a-button
+                type="text"
+                @click.stop="goToQuestion(reply.questionId, reply.replyId)"
+              >
+                查看详情
+              </a-button>
+            </div>
+          </div>
+        </template>
+      </a-tab-pane>
+
+      <a-tab-pane key="system" title="系统消息">
+        <template #title>
+          <div class="tab-title">
+            系统消息
+            <div v-if="hasUnreadSystemMessages" class="red-dot"></div>
+          </div>
+        </template>
+        <template v-if="loading">
+          <div class="loading-container">
+            <a-spin />
+          </div>
+        </template>
+        <template v-else-if="systemMessages.length === 0">
+          <a-empty description="暂无系统消息" />
+        </template>
+        <template v-else>
+          <div
+            v-for="message in systemMessages"
+            :key="message.id"
+            class="message-item"
+            @click="handleSystemMessageClick(message)"
+          >
+            <!-- 未读标记 -->
+            <div v-if="!message.isRead" class="unread-dot"></div>
+            <div class="message-content">
+              <div class="message-header">
+                <a-space>
+                  <icon-notification />
+                  <span class="username">系统通知</span>
+                </a-space>
+                <span class="time">{{
+                  message.createTime && formatTime(message.createTime)
+                }}</span>
+              </div>
+              <div class="message-body">{{ message.content }}</div>
+              <a-button
+                v-if="message.questionId"
+                type="text"
+                @click.stop="
+                  goToQuestion(message.questionId, undefined, 'question')
+                "
+              >
+                查看题目
+              </a-button>
+            </div>
+          </div>
+        </template>
+      </a-tab-pane>
+    </a-tabs>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
+import { useStore } from "vuex";
 import {
   ReplyControllerService,
   PostControllerService,
+  RemindControllerService,
 } from "../../../generated";
-import { IconLeft, IconUser } from "@arco-design/web-vue/es/icon";
+import { IconLeft, IconNotification } from "@arco-design/web-vue/es/icon";
 import { Message } from "@arco-design/web-vue";
 import dayjs from "dayjs";
 import type { ReplyVO } from "../../../generated";
@@ -69,9 +132,35 @@ interface ReplyWithRead extends ReplyVO {
   isRead: boolean;
 }
 
+interface SystemMessage {
+  id: number;
+  content: string;
+  createTime: string;
+  isRead: boolean;
+  questionId?: number;
+}
+
 const router = useRouter();
+const store = useStore();
 const loading = ref(true);
-const replies = ref<ReplyWithRead[]>([]);
+const activeTab = ref("comment");
+const commentReplies = ref<ReplyWithRead[]>([]);
+const systemMessages = ref<SystemMessage[]>([]);
+
+// 计算是否有未读评论
+const hasUnreadComments = computed(() => {
+  return commentReplies.value.some((reply) => !reply.isRead);
+});
+
+// 计算是否有未读系统消息
+const hasUnreadSystemMessages = computed(() => {
+  return systemMessages.value.some((message) => !message.isRead);
+});
+
+// 计算是否有任何未读消息
+const hasAnyUnread = computed(() => {
+  return hasUnreadComments.value || hasUnreadSystemMessages.value;
+});
 
 // 返回上一页
 const goBack = () => {
@@ -79,12 +168,13 @@ const goBack = () => {
 };
 
 // 跳转到问题详情页
-const goToQuestion = async (questionId?: number, replyId?: number) => {
+const goToQuestion = async (
+  questionId?: number,
+  replyId?: number,
+  tab = "comment"
+) => {
   if (questionId && replyId) {
     try {
-      // 获取评论页码
-      console.log("questionId", questionId);
-      console.log("replyId", replyId);
       const res = await PostControllerService.getCommentPagePositionUsingGet(
         questionId,
         replyId
@@ -94,9 +184,9 @@ const goToQuestion = async (questionId?: number, replyId?: number) => {
         router.push({
           path: `/view/question/${questionId}`,
           query: {
-            tab: "comment", // 默认打开评论页签
-            page: page.toString(), // 传递页码
-            replyId: replyId.toString(), // 传递评论ID
+            tab: tab,
+            page: page?.toString(),
+            replyId: replyId.toString(),
           },
         });
       } else {
@@ -109,7 +199,7 @@ const goToQuestion = async (questionId?: number, replyId?: number) => {
     router.push({
       path: `/view/question/${questionId}`,
       query: {
-        tab: "comment", // 默认打开评论页签
+        tab: tab,
       },
     });
   }
@@ -120,17 +210,92 @@ const formatTime = (time: string) => {
   return dayjs(time).format("YYYY-MM-DD HH:mm:ss");
 };
 
-// 标记消息为已读（仅前端状态）
+// 更新全局未读状态
+const updateGlobalUnreadStatus = () => {
+  store.commit("updateUnreadCount", hasAnyUnread.value);
+};
+
+// 处理评论点击
+const handleCommentClick = async (reply: ReplyWithRead) => {
+  if (!reply.isRead && reply.id) {
+    await markAsRead(reply.id);
+  }
+};
+
+// 处理系统消息点击
+const handleSystemMessageClick = async (message: SystemMessage) => {
+  if (!message.isRead && message.id) {
+    await markSystemMessageAsRead(message.id);
+  }
+};
+
+// 加载评论回复数据
+const loadCommentReplies = async () => {
+  try {
+    loading.value = true;
+    const res = await ReplyControllerService.getMyReplyUsingGet();
+    if (res.code === 0) {
+      commentReplies.value = (res.data || [])
+        .map((reply) => ({
+          ...reply,
+          isRead: reply.isRead ?? false,
+        }))
+        .sort((a, b) => {
+          const timeA = new Date(a.createTime || "").getTime();
+          const timeB = new Date(b.createTime || "").getTime();
+          return timeB - timeA;
+        });
+      updateGlobalUnreadStatus();
+    } else {
+      Message.error("获取评论回复失败：" + res.message);
+    }
+  } catch (error: any) {
+    Message.error("获取评论回复失败：" + error.message);
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 加载系统消息数据
+const loadSystemMessages = async () => {
+  try {
+    loading.value = true;
+    const res = await RemindControllerService.listRemindCompleteByPageUsingPost(
+      {
+        current: 1,
+        pageSize: 10,
+        sortField: "createTime",
+        sortOrder: "descend",
+      }
+    );
+    if (res.code === 0) {
+      systemMessages.value = (res.data.records || []).map((message: any) => ({
+        ...message,
+        isRead: message.isRead ?? false,
+      }));
+      updateGlobalUnreadStatus();
+    } else {
+      Message.error("获取系统消息失败：" + res.message);
+    }
+  } catch (error: any) {
+    Message.error("获取系统消息失败：" + error.message);
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 标记评论消息为已读
 const markAsRead = async (id: number) => {
   try {
-    // 调用后端接口标记消息为已读
+    const reply = commentReplies.value.find((r) => r.id === id);
+    if (!reply || reply.isRead) {
+      return;
+    }
+
     const res = await ReplyControllerService.markAsReadUsingPut(id);
     if (res.code === 0) {
-      // 更新前端状态
-      const reply = replies.value.find((r) => r.id === id);
-      if (reply) {
-        reply.isRead = true;
-      }
+      reply.isRead = true;
+      updateGlobalUnreadStatus();
       Message.success("已标记为已读");
     } else {
       Message.error("标记已读失败：" + res.message);
@@ -140,35 +305,29 @@ const markAsRead = async (id: number) => {
   }
 };
 
-// 加载消息数据
-const loadMessages = async () => {
+// 标记系统消息为已读
+const markSystemMessageAsRead = async (id: number) => {
   try {
-    loading.value = true;
-    const res = await ReplyControllerService.getMyReplyUsingGet();
+    const message = systemMessages.value.find((m) => m.id === id);
+    if (!message || message.isRead) {
+      return;
+    }
+
+    const res = await RemindControllerService.markAsReadUsingPut(id);
     if (res.code === 0) {
-      // 使用后端返回的已读状态,并按时间倒序排序
-      replies.value = (res.data || [])
-        .map((reply) => ({
-          ...reply,
-          isRead: reply.isRead ?? false, // 如果后端返回 null 则默认为未读
-        }))
-        .sort((a, b) => {
-          const timeA = new Date(a.createTime || "").getTime();
-          const timeB = new Date(b.createTime || "").getTime();
-          return timeB - timeA; // 倒序排序,最新的在前面
-        });
+      message.isRead = true;
+      updateGlobalUnreadStatus();
+      Message.success("已标记为已读");
     } else {
-      Message.error("获取消息失败：" + res.message);
+      Message.error("标记已读失败：" + res.message);
     }
   } catch (error: any) {
-    Message.error("获取消息失败：" + error.message);
-  } finally {
-    loading.value = false;
+    Message.error("标记已读失败：" + error.message);
   }
 };
 
-onMounted(() => {
-  loadMessages();
+onMounted(async () => {
+  await Promise.all([loadCommentReplies(), loadSystemMessages()]);
 });
 </script>
 
@@ -195,7 +354,7 @@ onMounted(() => {
   padding: 40px 0;
 }
 
-.message-list {
+.message-tabs {
   background: var(--color-bg-2);
   border-radius: 4px;
   padding: 16px;
@@ -253,15 +412,25 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.message-content {
-  margin: 8px 0;
-  color: #666;
+.tab-title {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
-.reply-content {
-  background-color: #f5f5f5;
-  padding: 12px;
-  border-radius: 4px;
-  margin-top: 8px;
+.red-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #f53f3f;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+:deep(.arco-badge-dot),
+:deep(.arco-badge-count) {
+  display: none;
 }
 </style>

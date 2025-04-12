@@ -2,9 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type StudentCompletionVO = {
-    isCompletion?: boolean;
+export type RemindCompleteAddRequest = {
+    content?: string;
+    questionId?: number;
     studentId?: number;
-    studentName?: string;
+    teacherId?: number;
 };
 

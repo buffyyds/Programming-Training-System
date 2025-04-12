@@ -20,17 +20,33 @@
         :loading="loading"
         :pagination="pagination"
         @page-change="onPageChange"
+        :bordered="false"
+        class="student-table"
       >
         <template #columns>
-          <a-table-column title="学生用户名" data-index="studentName">
-            <template #cell="{ record }">
-              {{ record.studentName }}
-            </template>
-          </a-table-column>
-          <a-table-column title="完成情况" data-index="isCompletion">
+          <a-table-column
+            title="学生用户名"
+            data-index="studentName"
+            :width="200"
+          >
             <template #cell="{ record }">
               <a-space>
-                <a-tag :color="record.isCompletion ? 'green' : 'red'">
+                <a-avatar :size="32">{{ record.studentName?.[0] }}</a-avatar>
+                <span class="student-name">{{ record.studentName }}</span>
+              </a-space>
+            </template>
+          </a-table-column>
+          <a-table-column
+            title="完成情况"
+            data-index="isCompletion"
+            :width="150"
+          >
+            <template #cell="{ record }">
+              <a-space>
+                <a-tag
+                  :color="record.isCompletion ? 'green' : 'red'"
+                  class="status-tag"
+                >
                   <template #icon>
                     <icon-check-circle-fill v-if="record.isCompletion" />
                     <icon-close-circle-fill v-else />
@@ -38,6 +54,22 @@
                   {{ record.isCompletion ? "已完成" : "未完成" }}
                 </a-tag>
               </a-space>
+            </template>
+          </a-table-column>
+          <a-table-column title="操作" :width="120">
+            <template #cell="{ record }">
+              <a-button
+                v-if="!record.isCompletion"
+                type="primary"
+                status="warning"
+                class="remind-button"
+                @click="remindStudent(record)"
+              >
+                <template #icon>
+                  <icon-notification />
+                </template>
+                提醒完成
+              </a-button>
             </template>
           </a-table-column>
         </template>
@@ -54,11 +86,15 @@ import {
   IconArrowLeft,
   IconCheckCircleFill,
   IconCloseCircleFill,
+  IconNotification,
 } from "@arco-design/web-vue/es/icon";
 import { useRouter, useRoute } from "vue-router";
 import { useStore } from "vuex";
 import ACCESS_ENUM from "@/access/accessEnum";
-import { QuestionControllerService } from "../../../generated";
+import {
+  QuestionControllerService,
+  RemindControllerService,
+} from "../../../generated";
 
 const router = useRouter();
 const route = useRoute();
@@ -101,6 +137,33 @@ const onPageChange = (current: number) => {
 // 返回上一页
 const goBack = () => {
   router.back();
+};
+
+// 提醒学生完成题目
+const remindStudent = async (record: any) => {
+  try {
+    const currentUser = store.state.user.loginUser;
+    if (!currentUser) {
+      Message.error("请先登录");
+      return;
+    }
+
+    const res = await RemindControllerService.addRemindUsingPost({
+      content: `教师（${currentUser.userName}）提醒您该完成${questionTitle.value}题目了`,
+      questionId: route.params.id,
+      studentId: record.studentId,
+      teacherId: currentUser.id,
+    });
+
+    if (res.code === 0) {
+      Message.success("提醒已发送");
+    } else {
+      Message.error("发送提醒失败：" + res.message);
+    }
+  } catch (error) {
+    console.error("发送提醒失败:", error);
+    Message.error("发送提醒失败");
+  }
 };
 
 onMounted(async () => {
@@ -148,21 +211,55 @@ onMounted(async () => {
   font-size: 20px;
 }
 
-:deep(.arco-table-th) {
-  background-color: #f5f5f5;
+.student-table {
+  margin-top: 16px;
 }
 
-:deep(.arco-table-tr) {
-  cursor: pointer;
+.student-name {
+  font-weight: 500;
+  color: var(--color-text-1);
 }
 
-:deep(.arco-table-tr:hover) {
-  background-color: #f5f5f5;
-}
-
-:deep(.arco-tag) {
+.status-tag {
   display: flex;
   align-items: center;
   gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.remind-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  background-color: #ff7d00;
+  color: white;
+  border: none;
+  transition: all 0.3s;
+}
+
+.remind-button:hover {
+  background-color: #ff9a2e;
+  transform: translateY(-1px);
+}
+
+:deep(.arco-table-th) {
+  background-color: #f5f5f5;
+  font-weight: 500;
+  color: var(--color-text-1);
+}
+
+:deep(.arco-table-tr) {
+  transition: all 0.3s;
+}
+
+:deep(.arco-table-tr:hover) {
+  background-color: var(--color-fill-2);
+}
+
+:deep(.arco-table-td) {
+  padding: 12px;
 }
 </style>

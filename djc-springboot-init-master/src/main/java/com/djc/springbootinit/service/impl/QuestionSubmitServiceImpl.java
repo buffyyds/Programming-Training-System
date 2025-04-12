@@ -105,11 +105,11 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "数据插入失败");
         }
         Long questionSubmitId = questionSubmit.getId();
-        myMessageProducer.sendMessage("code_exchange", "my_routingKey", String.valueOf(questionSubmitId));
-//        CompletableFuture.runAsync(() -> {
-//            // 异步判题
-//             judgeService.doJudge(questionSubmitId);
-//        });
+//        myMessageProducer.sendMessage("code_exchange", "my_routingKey", String.valueOf(questionSubmitId));
+        CompletableFuture.runAsync(() -> {
+            // 异步判题
+             judgeService.doJudge(questionSubmitId);
+        });
         return questionSubmitId;
     }
 
@@ -297,6 +297,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             StudentCompletionVO vo = new StudentCompletionVO();
             vo.setIsCompletion(completedStudentIds.contains(studentId));
             vo.setStudentName(studentIdNameMap.get(studentId));
+            vo.setStudentId(studentId);
             studentCompletionVOList.add(vo);
         });
         // 旧代码(尽量避免循环查询数据库，会导致性能问题)
