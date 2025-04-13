@@ -54,7 +54,10 @@
       </template>
       <template #optional="{ record }">
         <a-space>
-          <a-tag :color="record.isCompletion ? 'green' : 'red'" class="completion-tag">
+          <a-tag
+            :color="record.isCompletion ? 'green' : 'red'"
+            class="completion-tag"
+          >
             <template #icon>
               <icon-check-circle-fill v-if="record.isCompletion" />
               <icon-close-circle-fill v-else />
@@ -82,7 +85,10 @@ import message from "@arco-design/web-vue/es/message";
 import * as querystring from "querystring";
 import { useRouter } from "vue-router";
 import moment from "moment";
-import { IconCheckCircleFill, IconCloseCircleFill } from "@arco-design/web-vue/es/icon";
+import {
+  IconCheckCircleFill,
+  IconCloseCircleFill,
+} from "@arco-design/web-vue/es/icon";
 
 const tableRef = ref();
 

@@ -10,6 +10,7 @@ export type QuestionVO = {
     createTime?: string;
     favourNum?: number;
     id?: number;
+    isCompletion?: boolean;
     judgeCase?: string;
     judgeConfig?: JudgeConfig;
     studentNum?: number;
