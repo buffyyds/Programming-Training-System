@@ -54,6 +54,13 @@
       </template>
       <template #optional="{ record }">
         <a-space>
+          <a-tag :color="record.isCompletion ? 'green' : 'red'" class="completion-tag">
+            <template #icon>
+              <icon-check-circle-fill v-if="record.isCompletion" />
+              <icon-close-circle-fill v-else />
+            </template>
+            {{ record.isCompletion ? "已完成" : "未完成" }}
+          </a-tag>
           <a-button type="primary" @click="toQuestionPage(record)">
             做题
           </a-button>
@@ -75,6 +82,7 @@ import message from "@arco-design/web-vue/es/message";
 import * as querystring from "querystring";
 import { useRouter } from "vue-router";
 import moment from "moment";
+import { IconCheckCircleFill, IconCloseCircleFill } from "@arco-design/web-vue/es/icon";
 
 const tableRef = ref();
 
@@ -257,5 +265,18 @@ const allTags = [
 
 :deep(.arco-tag) {
   margin: 2px;
+}
+
+.completion-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+:deep(.arco-tag-icon) {
+  margin-right: 4px;
 }
 </style>

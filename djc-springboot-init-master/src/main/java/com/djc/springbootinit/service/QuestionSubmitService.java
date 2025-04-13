@@ -8,7 +8,9 @@ import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitQueryReques
 import com.djc.springbootinit.model.entity.Question;
 import com.djc.springbootinit.model.entity.QuestionSubmit;
 import com.djc.springbootinit.model.entity.User;
+import com.djc.springbootinit.model.vo.QuestionCompletionVO;
 import com.djc.springbootinit.model.vo.QuestionSubmitVO;
+import com.djc.springbootinit.model.vo.QuestionVO;
 import com.djc.springbootinit.model.vo.StudentCompletionVO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -65,4 +67,6 @@ public interface QuestionSubmitService extends IService<QuestionSubmit> {
     int getSubmitNumByTeacherId(Long teacherId, Long questionId);
 
     List<StudentCompletionVO> getStudentCompletion(Long questionId, HttpServletRequest request);
+
+    List<QuestionCompletionVO> getStudentCompletionByCurrentUser(User loginUser);
 }

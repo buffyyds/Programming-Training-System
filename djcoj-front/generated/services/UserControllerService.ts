@@ -7,6 +7,7 @@ import type { BaseResponse_LoginUserVO_ } from "../models/BaseResponse_LoginUser
 import type { BaseResponse_long_ } from "../models/BaseResponse_long_";
 import type { BaseResponse_Page_User_ } from "../models/BaseResponse_Page_User_";
 import type { BaseResponse_Page_UserVO_ } from "../models/BaseResponse_Page_UserVO_";
+import type { BaseResponse_string_ } from "../models/BaseResponse_string_";
 import type { BaseResponse_User_ } from "../models/BaseResponse_User_";
 import type { BaseResponse_UserVO_ } from "../models/BaseResponse_UserVO_";
 import type { DeleteRequest } from "../models/DeleteRequest";
@@ -97,6 +98,23 @@ export class UserControllerService {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/user/get/login",
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
+   * getTeacherCode
+   * @returns BaseResponse_string_ OK
+   * @throws ApiError
+   */
+  public static getTeacherCodeUsingGet(): CancelablePromise<BaseResponse_string_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/user/get/teacherCode",
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,

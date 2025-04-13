@@ -90,15 +90,15 @@ export class PostControllerService {
    * @throws ApiError
    */
   public static getCommentPagePositionUsingGet(
-    commentId: number,
-    questionId: number
+    questionId: number,
+    commentId: number
   ): CancelablePromise<BaseResponse_long_> {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/post/get/page/position",
       query: {
-        commentId: commentId,
         questionId: questionId,
+        commentId: commentId,
       },
       errors: {
         401: `Unauthorized`,

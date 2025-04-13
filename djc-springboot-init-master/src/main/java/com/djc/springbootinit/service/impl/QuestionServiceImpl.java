@@ -180,6 +180,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
             questionVO.setUserVO(userService.getUserVO(user));
             return questionVO;
         }).collect(Collectors.toList());
+        // 2. 关联查询提交信息用于判断是否完成
+        Long loginUserId = userService.getLoginUser(request).getId();
+        questionVOList = getQuestionCompleteByUserId(loginUserId, questionVOList);
         questionVOPage.setRecords(questionVOList);
         return questionVOPage;
     }
@@ -251,6 +254,31 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
             throw new RuntimeException(e);
         }
         return result.getOutput().getText();
+    }
+
+    public List<QuestionVO> getQuestionCompleteByUserId(Long userId, List<QuestionVO> questionVOList) {
+        // 1. 收集所有问题ID
+        List<Long> questionIds = questionVOList.stream()
+                .map(QuestionVO::getId)
+                .collect(Collectors.toList());
+        if (questionIds.isEmpty()) {
+            return questionVOList;
+        }
+        // 2. 批量查询该用户所有相关提交记录
+        QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("DISTINCT questionId")  // 去重，避免重复判断
+                .eq("userId", userId)
+                .in("questionId", questionIds);
+        // 3. 获取该用户已完成的题目ID集合
+        Set<Long> completedIds = questionSubmitService.list(queryWrapper)
+                .stream()
+                .map(QuestionSubmit::getQuestionId)
+                .collect(Collectors.toSet());
+        // 4. 批量设置完成状态
+        questionVOList.forEach(questionVO ->
+                questionVO.setIsCompletion(completedIds.contains(questionVO.getId()))
+        );
+        return questionVOList;
     }
 
 }

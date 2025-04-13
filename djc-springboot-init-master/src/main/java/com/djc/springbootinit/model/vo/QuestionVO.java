@@ -93,6 +93,11 @@ public class QuestionVO implements Serializable {
     private Integer studentNum;
 
     /**
+     * 当前用户是否完成该题目
+     */
+    private Boolean isCompletion;
+
+    /**
      * 包装类转对象
      *
      * @param questionVO

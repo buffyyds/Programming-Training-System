@@ -271,4 +271,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 sortField);
         return queryWrapper;
     }
+
+    @Override
+    public String getTeacherCode(Long id) {
+        if (id == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请先登录！");
+        }
+        User user = this.getById(id);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在！");
+        }
+        return user.getAdminCode();
+    }
 }

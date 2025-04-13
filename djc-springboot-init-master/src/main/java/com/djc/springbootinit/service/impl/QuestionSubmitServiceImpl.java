@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.djc.springbootinit.common.ErrorCode;
 import com.djc.springbootinit.constant.CommonConstant;
+import com.djc.springbootinit.constant.UserConstant;
 import com.djc.springbootinit.exception.BusinessException;
+import com.djc.springbootinit.exception.ThrowUtils;
 import com.djc.springbootinit.judge.JudgeService;
 import com.djc.springbootinit.judge.JudgeServiceImpl;
 import com.djc.springbootinit.mapper.QuestionSubmitMapper;
@@ -17,10 +19,7 @@ import com.djc.springbootinit.model.entity.QuestionSubmit;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.enums.JudgeInfoMessageEnum;
 import com.djc.springbootinit.model.enums.QuestionSubmitStatusEnum;
-import com.djc.springbootinit.model.vo.QuestionSubmitVO;
-import com.djc.springbootinit.model.vo.QuestionVO;
-import com.djc.springbootinit.model.vo.StudentCompletionVO;
-import com.djc.springbootinit.model.vo.UserVO;
+import com.djc.springbootinit.model.vo.*;
 import com.djc.springbootinit.rabbitmq.MyMessageProducer;
 import com.djc.springbootinit.service.QuestionService;
 import com.djc.springbootinit.service.QuestionSubmitService;
@@ -36,10 +35,7 @@ import com.djc.springbootinit.model.enums.QuestionSubmitLanguageEnum;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -316,6 +312,23 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
 //        });
 
         return studentCompletionVOList;
+    }
+
+    @Override
+    public List<QuestionCompletionVO> getStudentCompletionByCurrentUser(User loginUser) {
+//        //获取当前用户的id
+//        User user = userService.getById(loginUser.getId());
+//        //获取当前用户的角色
+//        String role = user.getUserRole();
+//        if (!role.equals(UserConstant.DEFAULT_ROLE)){
+//            ThrowUtils.throwIf(true, ErrorCode.PARAMS_ERROR, "当前用户不是学生");
+//        }
+//        //查询学生对应的教师id
+//        Long teacherId = tasService.getTeacherByStudentId(user.getId()).getId();
+//        //获取该教师发布的所有题目
+//        List<Question> questionList = questionService.list(new QueryWrapper<Question>().eq("userId", teacherId));
+
+        return Collections.emptyList();
     }
 
 }

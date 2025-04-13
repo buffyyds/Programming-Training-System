@@ -16,6 +16,7 @@ import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitQueryReques
 import com.djc.springbootinit.model.entity.Question;
 import com.djc.springbootinit.model.entity.QuestionSubmit;
 import com.djc.springbootinit.model.entity.User;
+import com.djc.springbootinit.model.vo.QuestionCompletionVO;
 import com.djc.springbootinit.model.vo.QuestionSubmitVO;
 import com.djc.springbootinit.model.vo.QuestionVO;
 import com.djc.springbootinit.model.vo.StudentCompletionVO;
@@ -451,6 +452,15 @@ public class QuestionController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         return ResultUtils.success(questionSubmitService.getStudentCompletion(questionId, request));
+    }
+
+    /**
+     * 获取当前用户的题目完成情况列表
+     */
+    @GetMapping("/get/studentProgress/vo/current")
+    public BaseResponse<List<QuestionCompletionVO>> getStudentCompletionVOByCurrentUser(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(questionSubmitService.getStudentCompletionByCurrentUser(loginUser));
     }
 
 }

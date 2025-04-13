@@ -341,6 +341,12 @@ public class UserController {
     }
 
     /**
-     *
+     * 获取教师教师码
      */
+    @GetMapping("/get/teacherCode")
+    public BaseResponse<String> getTeacherCode(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        String teacherCode = userService.getTeacherCode(loginUser.getId());
+        return ResultUtils.success(teacherCode);
+    }
 }

@@ -63,7 +63,15 @@
 
         <template v-if="userForm.userRole === 'admin'">
           <a-form-item label="教师身份">
-            <a-tag color="blue">已认证教师</a-tag>
+            <a-space>
+              <a-tag color="blue">已认证教师</a-tag>
+              <a-button type="outline" @click="showTeacherCode">
+                <template #icon>
+                  <icon-eye />
+                </template>
+                查看教师码
+              </a-button>
+            </a-space>
           </a-form-item>
         </template>
         <template v-else>
@@ -88,6 +96,27 @@
         </a-form-item>
       </a-form>
     </a-card>
+
+    <!-- 教师码弹窗 -->
+    <a-modal
+      v-model:visible="showCodeModal"
+      title="教师注册码"
+      @cancel="handleModalClose"
+      :footer="null"
+    >
+      <div class="teacher-code-container">
+        <div class="code-display">
+          <span class="code-text">{{ teacherCode }}</span>
+          <a-button type="text" @click="copyCode">
+            <template #icon>
+              <icon-copy />
+            </template>
+            复制
+          </a-button>
+        </div>
+        <div class="code-tip">此码可用于学生绑定教师身份</div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -95,7 +124,12 @@
 import { ref, onMounted, computed } from "vue";
 import { Message } from "@arco-design/web-vue";
 import { useStore } from "vuex";
-import { IconUser, IconArrowLeft } from "@arco-design/web-vue/es/icon";
+import {
+  IconUser,
+  IconArrowLeft,
+  IconEye,
+  IconCopy,
+} from "@arco-design/web-vue/es/icon";
 import {
   UserControllerService,
   TasControllerService,
@@ -138,6 +172,10 @@ const getTeacherInfo = async (adminCode: string | undefined) => {
     console.error("获取教师信息失败:", error);
   }
 };
+
+// 添加教师码相关状态
+const showCodeModal = ref(false);
+const teacherCode = ref("");
 
 onMounted(async () => {
   const currentUser = store.state.user.loginUser;
@@ -201,6 +239,34 @@ const handleSubmit = async () => {
 const goBack = () => {
   router.back();
 };
+
+// 显示教师码
+const showTeacherCode = async () => {
+  try {
+    const res = await UserControllerService.getTeacherCodeUsingGet();
+    if (res.code === 0 && res.data) {
+      teacherCode.value = res.data;
+      showCodeModal.value = true;
+    } else {
+      Message.error("获取教师码失败：" + res.message);
+    }
+  } catch (error: any) {
+    Message.error("获取教师码失败：" + error.message);
+  }
+};
+
+// 复制教师码
+const copyCode = () => {
+  if (teacherCode.value) {
+    navigator.clipboard.writeText(teacherCode.value);
+    Message.success("复制成功");
+  }
+};
+
+// 关闭弹窗
+const handleModalClose = () => {
+  teacherCode.value = "";
+};
 </script>
 
 <style scoped>
@@ -241,5 +307,34 @@ const goBack = () => {
 :deep(.arco-tag) {
   font-size: 14px;
   padding: 4px 8px;
+}
+
+.teacher-code-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.code-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.code-text {
+  font-size: 24px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: var(--color-text-1);
+  background-color: var(--color-fill-2);
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+}
+
+.code-tip {
+  color: var(--color-text-3);
+  font-size: 14px;
 }
 </style>
