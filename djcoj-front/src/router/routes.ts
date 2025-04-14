@@ -13,6 +13,8 @@ import QuestionSubmitView from "@/views/question/QuestionSubmitView.vue";
 import ViewQuestionView from "@/views/question/ViewQuestionView.vue";
 import StudentProgressView from "@/views/question/StudentProgressView.vue";
 import StudentProgressDetailView from "@/views/question/StudentProgressDetailView.vue";
+import TeacherReservationView from "@/views/reservation/TeacherReservationView.vue";
+import StudentReservationView from "@/views/reservation/StudentReservationView.vue";
 
 export const routes: Array<RouteRecordRaw> = [
   {
@@ -65,7 +67,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "创建题目",
     component: AddQuestionView,
     meta: {
-      access: ACCESS_ENUM.ADMIN,
+      access: ACCESS_ENUM.TEACHER,
     },
   },
   {
@@ -73,7 +75,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "管理题目",
     component: ManageQuestionView,
     meta: {
-      access: ACCESS_ENUM.ADMIN,
+      access: ACCESS_ENUM.TEACHER,
     },
   },
   {
@@ -81,7 +83,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "修改题目",
     component: AddQuestionView,
     meta: {
-      access: ACCESS_ENUM.ADMIN,
+      access: ACCESS_ENUM.TEACHER,
       hideInMenu: true,
     },
   },
@@ -116,7 +118,7 @@ export const routes: Array<RouteRecordRaw> = [
     name: "学生完成情况",
     component: StudentProgressView,
     meta: {
-      access: ACCESS_ENUM.ADMIN,
+      access: ACCESS_ENUM.TEACHER,
     },
   },
   {
@@ -125,8 +127,26 @@ export const routes: Array<RouteRecordRaw> = [
     component: StudentProgressDetailView,
     props: true,
     meta: {
-      access: ACCESS_ENUM.ADMIN,
+      access: ACCESS_ENUM.TEACHER,
       hideInMenu: true,
+    },
+  },
+  {
+    path: "/reservation/teacher",
+    name: "答疑预约管理",
+    component: TeacherReservationView,
+    meta: {
+      access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
+    },
+  },
+  {
+    path: "/reservation/student",
+    name: "学生答疑预约",
+    component: StudentReservationView,
+    meta: {
+      access: ACCESS_ENUM.USER,
+      exclusive: true,
     },
   },
 ];

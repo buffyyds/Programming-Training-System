@@ -37,7 +37,7 @@ public class TASController {
      * 通过教师id获取旗下所有学生信息(只有教师可以访问)
      */
     @GetMapping("getStudents")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
     public BaseResponse<List<StudentsVo>> getStudents(HttpServletRequest request) {
         Long id = userService.getLoginUser(request).getId();
         List<StudentsVo> studentsByTeacherId = tasService.getStudentsByTeacherId(id);

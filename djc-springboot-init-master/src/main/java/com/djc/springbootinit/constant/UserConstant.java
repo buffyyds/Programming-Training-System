@@ -15,9 +15,14 @@ public interface UserConstant {
     //  region 权限
 
     /**
-     * 默认角色
+     * 学生角色
      */
-    String DEFAULT_ROLE = "user";
+    String STUDENT_ROLE = "user";
+
+    /**
+     * 教师角色
+     */
+    String TEACHER_ROLE = "teacher";
 
     /**
      * 管理员角色

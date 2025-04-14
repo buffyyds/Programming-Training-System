@@ -131,7 +131,7 @@ public class PostController {
      * @return
      */
     @PostMapping("/list/page")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
     public BaseResponse<Page<Post>> listPostByPage(@RequestBody PostQueryRequest postQueryRequest) {
         long current = postQueryRequest.getCurrent();
         long size = postQueryRequest.getPageSize();

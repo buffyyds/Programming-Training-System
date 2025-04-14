@@ -73,7 +73,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             user.setUserPassword(encryptPassword);
             user.setUserName(userAccount);    //注册时默认用户名为账号
             user.setUserRole(userRole);
-            if (UserRoleEnum.ADMIN.getValue().equals(userRole)) {   //如果是管理员（教师）则记录管理员码
+            if (UserRoleEnum.TEACHER.getValue().equals(userRole)) {   //如果是管理员（教师）则记录管理员码
                user.setAdminCode(adminCode);
             }
             boolean saveResult = this.save(user);

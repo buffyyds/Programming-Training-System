@@ -26,11 +26,11 @@
       <a-form-item field="userRole" label="用户角色">
         <a-radio-group v-model="registerForm.userRole">
           <a-radio value="user">学生</a-radio>
-          <a-radio value="admin">教师</a-radio>
+          <a-radio value="teacher">教师</a-radio>
         </a-radio-group>
       </a-form-item>
       <a-form-item
-        v-if="registerForm.userRole === 'admin'"
+        v-if="registerForm.userRole === 'teacher'"
         field="adminCode"
         label="教师码"
       >
@@ -100,7 +100,7 @@ const store = useStore();
 watch(
   () => registerForm.userRole,
   (newRole) => {
-    if (newRole === "admin") {
+    if (newRole === "teacher") {
       registerForm.adminCode = generateAdminCode();
     } else {
       registerForm.adminCode = "";

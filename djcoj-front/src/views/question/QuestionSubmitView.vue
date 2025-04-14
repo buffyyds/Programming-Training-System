@@ -149,7 +149,7 @@ const loadData = async () => {
 
     let res;
     // 根据用户角色调用不同的接口
-    if (currentUser.userRole === "admin") {
+    if (currentUser.userRole === "teacher") {
       // 教师调用教师接口
       res =
         await QuestionControllerService.listQuestionSubmitByPageTeacherUsingPost(

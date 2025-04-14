@@ -122,7 +122,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
                 queryWrapper.like("tags", "\"" + tag + "\"");
             }
         }
-        if (loginUser.getUserRole().equals("admin")){
+        if (loginUser.getUserRole().equals("teacher")){
             queryWrapper.eq("userId", loginUser.getId());
         }else {
             //获取loginUser的教师/管理员id

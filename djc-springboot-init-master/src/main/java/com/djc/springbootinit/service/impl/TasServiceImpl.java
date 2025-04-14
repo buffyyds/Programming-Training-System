@@ -92,7 +92,7 @@ public class TasServiceImpl extends ServiceImpl<TasMapper, Tas>
         ThrowUtils.throwIf(adminCode == null, ErrorCode.OPERATION_ERROR);
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         userQueryWrapper.eq("adminCode", adminCode);
-        userQueryWrapper.eq("userRole", "admin");
+        userQueryWrapper.eq("userRole", "teacher");
         User teacher = userService.getOne(userQueryWrapper);
         ThrowUtils.throwIf(teacher == null, ErrorCode.PARAMS_ERROR);
         Tas tas = new Tas();

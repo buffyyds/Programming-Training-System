@@ -64,6 +64,13 @@ public class AuthInterceptor {
                 throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
             }
         }
+        //必须有教师权限
+        if (UserRoleEnum.TEACHER.equals(mustRoleEnum)) {
+            // 用户没有教师权限，拒绝
+            if (!UserRoleEnum.TEACHER.equals(userRoleEnum)) {
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+            }
+        }
         // 通过权限校验，放行
         return joinPoint.proceed();
     }

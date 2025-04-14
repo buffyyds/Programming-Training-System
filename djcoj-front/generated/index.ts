@@ -83,6 +83,7 @@ export { PostThumbControllerService } from "./services/PostThumbControllerServic
 export { QuestionControllerService } from "./services/QuestionControllerService";
 export { RemindControllerService } from "./services/RemindControllerService";
 export { ReplyControllerService } from "./services/ReplyControllerService";
+export { ReservationControllerService } from "./services/ReservationControllerService";
 export { TasControllerService } from "./services/TasControllerService";
 export { UserControllerService } from "./services/UserControllerService";
 export { WxMpControllerService } from "./services/WxMpControllerService";

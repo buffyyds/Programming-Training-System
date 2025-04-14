@@ -131,7 +131,7 @@ const goBack = () => {
 onMounted(async () => {
   // 检查用户权限
   const currentUser = store.state.user.loginUser;
-  if (!currentUser || currentUser.userRole !== ACCESS_ENUM.ADMIN) {
+  if (!currentUser || currentUser.userRole !== ACCESS_ENUM.TEACHER) {
     Message.error("无权限访问");
     router.push("/");
     return;

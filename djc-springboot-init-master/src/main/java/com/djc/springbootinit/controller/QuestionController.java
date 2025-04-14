@@ -122,7 +122,7 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
     public BaseResponse<Boolean> updateQuestion(@RequestBody QuestionUpdateRequest questionUpdateRequest) {
         if (questionUpdateRequest == null || questionUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -259,7 +259,7 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/list/page")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
     public BaseResponse<Page<Question>> listQuestionByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
                                                            HttpServletRequest request) {
         long current = questionQueryRequest.getCurrent();
@@ -426,7 +426,7 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/list/studentProgress/page/vo")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
     public BaseResponse<Page<QuestionVO>> listStudentProgressVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
                                                                              HttpServletRequest request) {
         long current = questionQueryRequest.getCurrent();
@@ -446,7 +446,7 @@ public class QuestionController {
      * @return
      */
     @GetMapping("/get/studentProgress/vo")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
     public BaseResponse<List<StudentCompletionVO>> getStudentCompletionVOByQuestionId(long questionId, HttpServletRequest request) {
         if (questionId <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

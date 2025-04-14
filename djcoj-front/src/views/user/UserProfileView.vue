@@ -61,7 +61,7 @@
           </a-form-item>
         </div>
 
-        <template v-if="userForm.userRole === 'admin'">
+        <template v-if="userForm.userRole === 'teacher'">
           <a-form-item label="教师身份">
             <a-space>
               <a-tag color="blue">已认证教师</a-tag>

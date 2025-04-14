@@ -44,7 +44,7 @@ public class ReservationController {
      * 教师添加预约时间段
      */
     @GetMapping("/add/teacher")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
     public BaseResponse<String> addReservation(HttpServletRequest request, String time_slot) {
         long teacherId = userService.getLoginUser(request).getId();
         // 添加预约时间段 time_slot格式为"2025-04-13 16:00-17:00"
@@ -56,7 +56,7 @@ public class ReservationController {
      * 教师更新预约时间段
      */
     @PostMapping("/update/teacher")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
     public BaseResponse<String> updateReservation(@RequestBody ReservationEditRequest reservationEditRequest, HttpServletRequest request) {
         // 更新预约时间段 time_slot格式为"2025-04-13 16:00-17:00"
         reservationService.updateReservation(reservationEditRequest);
@@ -67,7 +67,7 @@ public class ReservationController {
      * 教师删除预约时间段
      */
     @GetMapping("/delete/teacher")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
     public BaseResponse<String> deleteReservation(long reservationId, HttpServletRequest request) {
         // 删除预约时间段
         boolean b = reservationService.removeById(reservationId);
@@ -83,7 +83,7 @@ public class ReservationController {
         User loginUser = userService.getLoginUser(request);
         long id = loginUser.getId();
         //如果登录用户是学生，则获取其对应的教师id来查询预约信息
-        if (loginUser.getUserRole().equals(UserConstant.ADMIN_ROLE)) {
+        if (loginUser.getUserRole().equals(UserConstant.STUDENT_ROLE)) {
             id = tasService.getTeacherByStudentId(id).getId();
         }
         // 获取预约时间段
