@@ -268,6 +268,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("DISTINCT questionId")  // 去重，避免重复判断
                 .eq("userId", userId)
+                .like("judgeInfo", "成功")  // 只查询通过的提交记录
                 .in("questionId", questionIds);
         // 3. 获取该用户已完成的题目ID集合
         Set<Long> completedIds = questionSubmitService.list(queryWrapper)
