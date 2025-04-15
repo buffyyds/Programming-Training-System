@@ -7,6 +7,7 @@ export type UserVO = {
     id?: number;
     userAvatar?: string;
     userName?: string;
+    userPhone?: string;
     userProfile?: string;
     userRole?: string;
 };

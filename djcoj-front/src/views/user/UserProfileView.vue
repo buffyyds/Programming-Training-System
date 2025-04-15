@@ -81,12 +81,16 @@
             </a-form-item>
           </template>
           <template v-else>
-            <a-form-item field="adminCode" label="绑定教师">
-              <a-input
-                v-model="userForm.adminCode"
-                placeholder="请输入教师注册码"
-                allow-clear
-              />
+            <a-form-item label="绑定教师">
+              <a-space>
+                <a-tag color="red">未绑定教师</a-tag>
+                <a-button type="primary" @click="goToBindTeacher">
+                  <template #icon>
+                    <icon-user-add />
+                  </template>
+                  绑定教师
+                </a-button>
+              </a-space>
             </a-form-item>
           </template>
         </template>
@@ -129,6 +133,7 @@ import {
   IconArrowLeft,
   IconEye,
   IconCopy,
+  IconUserAdd,
 } from "@arco-design/web-vue/es/icon";
 import {
   UserControllerService,
@@ -266,6 +271,11 @@ const copyCode = () => {
 // 关闭弹窗
 const handleModalClose = () => {
   teacherCode.value = "";
+};
+
+// 跳转到绑定教师页面
+const goToBindTeacher = () => {
+  router.push("/user/bind-teacher");
 };
 </script>
 

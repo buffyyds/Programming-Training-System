@@ -2,6 +2,7 @@ package com.djc.springbootinit.service;
 
 import com.djc.springbootinit.model.entity.Tas;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.StudentsVo;
 import com.djc.springbootinit.model.vo.TeacherVo;
 
@@ -20,5 +21,7 @@ public interface TasService extends IService<Tas> {
 
     List<Long> getStudentIdsByTeacherId(Long id);
 
-    boolean setTAS(Long id);
+    boolean doBind(Long id, User loginUser);
+
+    boolean unDoBind(User loginUser);
 }

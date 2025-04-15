@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BaseResponse_boolean_ } from "../models/BaseResponse_boolean_";
+import type { BaseResponse_List_QuestionCompletionVO_ } from "../models/BaseResponse_List_QuestionCompletionVO_";
 import type { BaseResponse_List_StudentCompletionVO_ } from "../models/BaseResponse_List_StudentCompletionVO_";
 import type { BaseResponse_long_ } from "../models/BaseResponse_long_";
 import type { BaseResponse_Page_Question_ } from "../models/BaseResponse_Page_Question_";
@@ -127,6 +128,23 @@ export class QuestionControllerService {
       query: {
         questionId: questionId,
       },
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
+   * getStudentCompletionVOByCurrentUser
+   * @returns BaseResponse_List_QuestionCompletionVO_ OK
+   * @throws ApiError
+   */
+  public static getStudentCompletionVoByCurrentUserUsingGet(): CancelablePromise<BaseResponse_List_QuestionCompletionVO_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/question/get/studentProgress/vo/current",
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,

@@ -112,7 +112,7 @@
       <div class="detail-container" v-if="currentReservation">
         <div class="detail-item">
           <span class="label">时间段：</span>
-          <span class="value">{{ currentReservation.timeSlot }}</span>
+          <span class="value">{{ currentReservation.time_slot }}</span>
         </div>
         <div class="detail-item">
           <span class="label">预约学生：</span>
@@ -121,9 +121,9 @@
           }}</span>
         </div>
         <div class="detail-item">
-          <span class="label">学生简介：</span>
+          <span class="label">学生电话：</span>
           <span class="value">{{
-            currentReservation.studentUser?.userProfile || "无"
+            currentReservation.studentUser?.userPhone || "未填写"
           }}</span>
         </div>
       </div>

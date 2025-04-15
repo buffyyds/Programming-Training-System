@@ -42,10 +42,10 @@ public class UserUpdateMyRequest implements Serializable {
      */
     private String userRole;
 
-    /**
-     * 管理员号（用于确认学生在哪个教师/管理员下）
-     */
-    private String adminCode;
+//    /**
+//     * 管理员号（用于确认学生在哪个教师/管理员下）
+//     */
+//    private String adminCode;
 
     private static final long serialVersionUID = 1L;
 }

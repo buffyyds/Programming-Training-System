@@ -25,7 +25,9 @@ import com.djc.springbootinit.model.vo.UserVO;
 import com.djc.springbootinit.service.TasService;
 import com.djc.springbootinit.service.UserService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -322,21 +324,13 @@ public class UserController {
         BeanUtils.copyProperties(userUpdateMyRequest, user);
         // 密码加密
         String userPassword = user.getUserPassword();
-        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
-        user.setUserPassword(encryptPassword);
+        if (StringUtils.isNotBlank(userPassword)) {
+            String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+            user.setUserPassword(encryptPassword);
+        }
         user.setId(loginUser.getId());
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        if (user.getAdminCode() != null) {
-            //如果已经设置过adminCode，则不需要再设置一次
-            //查询是否已经设置过教师学生关系
-            TeacherVo teacherByStudentId = tasService.getTeacherByStudentId(loginUser.getId());
-            if (teacherByStudentId != null) {
-                return ResultUtils.success(true);
-            }
-            boolean b = tasService.setTAS(user.getId());
-            ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
-        }
         return ResultUtils.success(true);
     }
 
@@ -349,4 +343,68 @@ public class UserController {
         String teacherCode = userService.getTeacherCode(loginUser.getId());
         return ResultUtils.success(teacherCode);
     }
+
+    /**
+     * 获取教师列表
+     */
+    @GetMapping("/get/teacher/list")
+    public BaseResponse<List<UserVO>> getAllTeacherList(HttpServletRequest request) {
+        List<UserVO> teacherList = userService.getAllTeacherList();
+        return ResultUtils.success(teacherList);
+    }
+
+    /**
+     * 是否当前用户是否绑定教师
+     */
+    @GetMapping("/isBindTeacher")
+    public BaseResponse<Map<Boolean,TeacherVo>> isBindTeacher(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        ThrowUtils.throwIf(!loginUser.getUserRole().equals(UserConstant.STUDENT_ROLE),ErrorCode.PARAMS_ERROR,"当前用户不是学生");
+        Map<Boolean,TeacherVo> map = new HashMap<>();
+        if (loginUser.getAdminCode().equals(StringUtils.EMPTY)) {
+            map.put(false, null);
+            return ResultUtils.success(map);
+        }
+        map.put(true,userService.getBindTeacher(loginUser));
+        return ResultUtils.success(map);
+    }
+
+    /**
+     * 绑定教师
+     */
+    @PostMapping("/bindTeacher")
+    public BaseResponse<Boolean> bindTeacher(@RequestBody TeacherVo teacherVo, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        boolean result = false;
+        ThrowUtils.throwIf(!loginUser.getUserRole().equals(UserConstant.STUDENT_ROLE),ErrorCode.PARAMS_ERROR,"当前用户不是学生");
+        if (loginUser.getAdminCode() == null|| loginUser.getAdminCode().equals(StringUtils.EMPTY)) {
+            result = tasService.doBind(teacherVo.getId(),loginUser);
+            return ResultUtils.success(result);
+        }
+        if (loginUser.getAdminCode() != null || !loginUser.getAdminCode().equals(StringUtils.EMPTY)){
+            return ResultUtils.error(ErrorCode.OPERATION_ERROR,"当前用户已绑定教师");
+        }
+        return result ? ResultUtils.success(result) : ResultUtils.error(ErrorCode.OPERATION_ERROR,"绑定失败");
+    }
+
+    /**
+     * 解绑教师
+     */
+    @GetMapping("/unBindTeacher")
+    public BaseResponse<Boolean> unBindTeacher(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        ThrowUtils.throwIf(!loginUser.getUserRole().equals(UserConstant.STUDENT_ROLE),ErrorCode.PARAMS_ERROR,"当前用户不是学生");
+        boolean result = tasService.unDoBind(loginUser);
+        return result ? ResultUtils.success(result) : ResultUtils.error(ErrorCode.OPERATION_ERROR,"解绑失败");
+    }
+
 }

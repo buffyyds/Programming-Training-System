@@ -5,6 +5,7 @@ import static com.djc.springbootinit.constant.UserConstant.USER_LOGIN_STATE;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.djc.springbootinit.aop.LogInterceptor;
 import com.djc.springbootinit.common.ErrorCode;
 import com.djc.springbootinit.constant.CommonConstant;
 import com.djc.springbootinit.exception.BusinessException;
@@ -13,6 +14,7 @@ import com.djc.springbootinit.model.dto.user.UserQueryRequest;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.enums.UserRoleEnum;
 import com.djc.springbootinit.model.vo.LoginUserVO;
+import com.djc.springbootinit.model.vo.TeacherVo;
 import com.djc.springbootinit.model.vo.UserVO;
 import com.djc.springbootinit.service.UserService;
 import com.djc.springbootinit.utils.SqlUtils;
@@ -40,6 +42,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * 盐值，混淆密码
      */
     public static final String SALT = "djc";
+    private final LogInterceptor logInterceptor;
+
+    public UserServiceImpl(LogInterceptor logInterceptor) {
+        this.logInterceptor = logInterceptor;
+    }
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword, String userRole,String adminCode) {
@@ -283,4 +290,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         return user.getAdminCode();
     }
+
+    @Override
+    public List<UserVO> getAllTeacherList(){
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userRole", UserRoleEnum.TEACHER.getValue());
+        queryWrapper.eq("isDelete", 0);
+        List<User> userList = this.baseMapper.selectList(queryWrapper);
+        if (CollUtil.isEmpty(userList)) {
+            return new ArrayList<>();
+        }
+        return userList.stream().map(this::getUserVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public TeacherVo getBindTeacher(User loginUser) {
+        String adminCode = loginUser.getAdminCode();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userRole", UserRoleEnum.TEACHER.getValue());
+        queryWrapper.eq("adminCode", adminCode);
+        queryWrapper.eq("isDelete", 0);
+        User teacher = this.getOne(queryWrapper);
+        if (teacher != null) {
+            TeacherVo teacherVo = new TeacherVo();
+            teacherVo.setId(teacher.getId());
+            teacherVo.setUserName(teacher.getUserName());
+            return teacherVo;
+        }
+        return null;
+    }
+
 }

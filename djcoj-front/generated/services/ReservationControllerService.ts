@@ -97,6 +97,28 @@ export class ReservationControllerService {
   }
 
   /**
+   * unDoReservation
+   * @param doReservationRequest doReservationRequest
+   * @returns BaseResponse_string_ OK
+   * @returns any Created
+   * @throws ApiError
+   */
+  public static unDoReservationUsingPost(
+    doReservationRequest: DoReservationRequest
+  ): CancelablePromise<BaseResponse_string_ | any> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/reservation/unDoReservation",
+      body: doReservationRequest,
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
    * updateReservation
    * @param reservationEditRequest reservationEditRequest
    * @returns BaseResponse_string_ OK
@@ -117,27 +139,4 @@ export class ReservationControllerService {
       },
     });
   }
-
-  /**
-   * unDoReservationUsingPost
-   * @param doReservationRequest doReservationRequest
-   * @returns BaseResponse_string_ OK
-   * @returns any Created
-   * @throws ApiError
-   */
-  public static unDoReservationUsingPost(
-      doReservationRequest: DoReservationRequest
-  ): CancelablePromise<BaseResponse_string_ | any> {
-    return __request(OpenAPI, {
-      method: "POST",
-      url: "/api/reservation/unDoReservation",
-      body: doReservationRequest,
-      errors: {
-        401: `Unauthorized`,
-        403: `Forbidden`,
-        404: `Not Found`,
-      },
-    });
-  }
-
 }

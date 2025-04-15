@@ -3,14 +3,17 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BaseResponse_boolean_ } from "../models/BaseResponse_boolean_";
+import type { BaseResponse_List_UserVO_ } from "../models/BaseResponse_List_UserVO_";
 import type { BaseResponse_LoginUserVO_ } from "../models/BaseResponse_LoginUserVO_";
 import type { BaseResponse_long_ } from "../models/BaseResponse_long_";
+import type { BaseResponse_Map_boolean_TeacherVo_ } from "../models/BaseResponse_Map_boolean_TeacherVo_";
 import type { BaseResponse_Page_User_ } from "../models/BaseResponse_Page_User_";
 import type { BaseResponse_Page_UserVO_ } from "../models/BaseResponse_Page_UserVO_";
 import type { BaseResponse_string_ } from "../models/BaseResponse_string_";
 import type { BaseResponse_User_ } from "../models/BaseResponse_User_";
 import type { BaseResponse_UserVO_ } from "../models/BaseResponse_UserVO_";
 import type { DeleteRequest } from "../models/DeleteRequest";
+import type { TeacherVo } from "../models/TeacherVo";
 import type { UserAddRequest } from "../models/UserAddRequest";
 import type { UserLoginRequest } from "../models/UserLoginRequest";
 import type { UserQueryRequest } from "../models/UserQueryRequest";
@@ -36,6 +39,28 @@ export class UserControllerService {
       method: "POST",
       url: "/api/user/add",
       body: userAddRequest,
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
+   * bindTeacher
+   * @param teacherVo teacherVo
+   * @returns BaseResponse_boolean_ OK
+   * @returns any Created
+   * @throws ApiError
+   */
+  public static bindTeacherUsingPost(
+    teacherVo: TeacherVo
+  ): CancelablePromise<BaseResponse_boolean_ | any> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/user/bindTeacher",
+      body: teacherVo,
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,
@@ -107,6 +132,23 @@ export class UserControllerService {
   }
 
   /**
+   * getAllTeacherList
+   * @returns BaseResponse_List_UserVO_ OK
+   * @throws ApiError
+   */
+  public static getAllTeacherListUsingGet(): CancelablePromise<BaseResponse_List_UserVO_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/user/get/teacher/list",
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
    * getTeacherCode
    * @returns BaseResponse_string_ OK
    * @throws ApiError
@@ -138,6 +180,23 @@ export class UserControllerService {
       query: {
         id: id,
       },
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
+   * isBindTeacher
+   * @returns BaseResponse_Map_boolean_TeacherVo_ OK
+   * @throws ApiError
+   */
+  public static isBindTeacherUsingGet(): CancelablePromise<BaseResponse_Map_boolean_TeacherVo_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/user/isBindTeacher",
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,
@@ -269,6 +328,23 @@ export class UserControllerService {
       method: "POST",
       url: "/api/user/register",
       body: userRegisterRequest,
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
+   * unBindTeacher
+   * @returns BaseResponse_boolean_ OK
+   * @throws ApiError
+   */
+  public static unBindTeacherUsingGet(): CancelablePromise<BaseResponse_boolean_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/user/unBindTeacher",
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,

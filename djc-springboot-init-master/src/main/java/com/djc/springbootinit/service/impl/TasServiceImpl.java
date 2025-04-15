@@ -1,8 +1,10 @@
 package com.djc.springbootinit.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.djc.springbootinit.exception.ThrowUtils;
+import com.djc.springbootinit.model.entity.Reservation;
 import com.djc.springbootinit.model.entity.Tas;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.StudentsVo;
@@ -81,26 +83,45 @@ public class TasServiceImpl extends ServiceImpl<TasMapper, Tas>
 
     /**
      * 记录教师学生关系
-     * @param id
+     * @param teacherId
      * @return
      */
     @Override
-    public boolean setTAS(Long id) {
-        //设置教师学生关系 id为学生id，先查询到学生的adminCode，再通过adminCode查询到教师id
-        User user = userService.getById(id);
-        String adminCode = user.getAdminCode();
+    public boolean doBind(Long teacherId,User loginUser) {
+        //设置教师学生关系 id为教师id
+        User teacher = userService.getById(teacherId);
+        String adminCode = teacher.getAdminCode();
         ThrowUtils.throwIf(adminCode == null, ErrorCode.OPERATION_ERROR);
-        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
-        userQueryWrapper.eq("adminCode", adminCode);
-        userQueryWrapper.eq("userRole", "teacher");
-        User teacher = userService.getOne(userQueryWrapper);
-        ThrowUtils.throwIf(teacher == null, ErrorCode.PARAMS_ERROR);
+        loginUser.setAdminCode(adminCode);
+        userService.updateById(loginUser);  //用户表记录学生adminCode
         Tas tas = new Tas();
         tas.setTeacherId(teacher.getId());
-        tas.setStudentId(id);
+        tas.setStudentId(loginUser.getId());
         return save(tas);
     }
 
+    @Override
+    public boolean unDoBind(User loginUser) {
+        QueryWrapper<Tas> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("studentId", loginUser.getId());
+        queryWrapper.eq("isDelete", 0);
+        Tas tas = getOne(queryWrapper);
+        if (tas != null) {
+            UpdateWrapper<Tas> updateWrapperTas = new UpdateWrapper<>();
+            updateWrapperTas
+                    .eq("id", tas.getId())  // 指定更新条件
+                    .set("isDelete", 1);       // 强制设置 studentId 为 null
+            update(updateWrapperTas);
+            //删除用户表中的adminCode
+            UpdateWrapper<User> updateWrapperUser = new UpdateWrapper<>();
+            updateWrapperUser
+                    .eq("id", loginUser.getId())  // 指定更新条件
+                    .set("adminCode", null);       // 强制设置 studentId 为 null
+            userService.update(updateWrapperUser);
+            return true;
+        }
+        return false;
+    }
 
 }
 

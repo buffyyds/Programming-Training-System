@@ -38,6 +38,7 @@ public class Tas {
     /**
      * 是否删除
      */
+
     private Integer isDelete;
 
     @TableField(exist = false)

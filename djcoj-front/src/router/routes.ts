@@ -114,6 +114,15 @@ export const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: "/user/bind-teacher",
+    name: "绑定教师",
+    component: () => import("../views/user/BindTeacherView.vue"),
+    meta: {
+      access: ACCESS_ENUM.USER,
+      exclusive: true,
+    },
+  },
+  {
     path: "/student_progress",
     name: "学生完成情况",
     component: StudentProgressView,

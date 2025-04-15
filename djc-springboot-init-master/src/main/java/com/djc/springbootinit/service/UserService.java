@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.djc.springbootinit.model.dto.user.UserQueryRequest;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.LoginUserVO;
+import com.djc.springbootinit.model.vo.TeacherVo;
 import com.djc.springbootinit.model.vo.UserVO;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
@@ -118,4 +119,8 @@ public interface UserService extends IService<User> {
     QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
 
     String getTeacherCode(Long id);
+
+    List<UserVO> getAllTeacherList();
+
+    TeacherVo getBindTeacher(User loginUser);
 }
