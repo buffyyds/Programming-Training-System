@@ -99,7 +99,12 @@ import {
   LoginOutlined,
   UserAddOutlined,
 } from "@ant-design/icons-vue";
-import { UserControllerService, PostControllerService } from "../../generated";
+import {
+  UserControllerService,
+  PostControllerService,
+  ReservationControllerService,
+  RemindControllerService,
+} from "../../generated";
 import { Message } from "@arco-design/web-vue";
 
 const router = useRouter();
@@ -167,11 +172,13 @@ const checkUnreadMessages = async () => {
 
   try {
     const res = await PostControllerService.getUnreadUsingGet();
-    if (res.code === 0 && res.data) {
-      const count = parseInt(res.data);
-      if (!isNaN(count)) {
-        unreadCount.value = res.data;
-        hasUnreadMessages.value = count > 0;
+    const res2 = await RemindControllerService.getUnreadUsingGet();
+    if (res.code === 0 && res.data && res2.code === 0 && res2.data) {
+      const count1 = parseInt(res.data);
+      const count2 = parseInt(res2.data);
+      if (!isNaN(count1) || !isNaN(count2)) {
+        unreadCount.value = res.data + res2.data;
+        hasUnreadMessages.value = count1 + count2 > 0;
       }
     }
   } catch (error) {

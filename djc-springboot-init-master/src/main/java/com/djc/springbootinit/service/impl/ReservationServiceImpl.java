@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.djc.springbootinit.model.dto.Reservation.DoReservationRequest;
 import com.djc.springbootinit.model.dto.Reservation.ReservationEditRequest;
+import com.djc.springbootinit.model.entity.RemindComplete;
 import com.djc.springbootinit.model.entity.Reservation;
 import com.djc.springbootinit.model.vo.ReservationVO;
 import com.djc.springbootinit.model.vo.UserVO;
+import com.djc.springbootinit.service.RemindCompleteService;
 import com.djc.springbootinit.service.ReservationService;
 import com.djc.springbootinit.mapper.ReservationMapper;
 import com.djc.springbootinit.service.UserService;
@@ -32,6 +34,9 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
     @Resource
     private UserService userService;
 
+    @Resource
+    private RemindCompleteService remindCompleteService;
+
     @Override
     public void addReservation(long teacherId, String time_slot) {
         //记录预约信息
@@ -44,16 +49,31 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
     @Override
     public void updateReservation(ReservationEditRequest reservationEditRequest) {
         Long reservationId = reservationEditRequest.getId();
-        String time_slot = reservationEditRequest.getTime_slot();
+        String newTime_slot = reservationEditRequest.getTime_slot();
         //查询原有预约信息
         Reservation reservation = this.getById(reservationId);
         if (reservation == null) {
             throw new RuntimeException("预约信息不存在");
         }
-        reservation.setTime_slot(time_slot);
+        String oldTime_slot = reservation.getTime_slot();
+        reservation.setTime_slot(newTime_slot);
         //更新时间记录
         reservation.setUpdateTime(Date.from(Instant.now()));
         this.updateById(reservation);
+        //如果已经有学生预约了该时间段，则需要提醒学生
+        if (reservation.getStudentId() != null) {
+            //查询学生信息
+            Long studentId = reservation.getStudentId();
+            Long teacherId = reservation.getTeacherId();
+            UserVO teacherUser = UserVO.objToVo(userService.getById(teacherId));
+            //创建提醒信息
+            RemindComplete remindComplete = new RemindComplete();
+            remindComplete.setTeacherId(teacherId);
+            remindComplete.setStudentId(studentId);
+            remindComplete.setIsRead(false);
+            remindComplete.setContent("您预约的教师："+teacherUser.getUserName()+"的答疑时间段："+oldTime_slot +"已更新为"+newTime_slot+"，请及时查看");
+            remindCompleteService.save(remindComplete);
+        }
     }
 
     @Override
@@ -98,6 +118,32 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
                 .eq("id", doReservationRequest.getId())  // 指定更新条件
                 .set("studentId", null);       // 强制设置 studentId 为 null
         return this.update(updateWrapper);
+    }
+
+    @Override
+    public boolean removeAndRemindStudent(long reservationId) {
+        // 查询预约信息
+        Reservation reservation = this.getById(reservationId);
+        if (reservation != null) {
+            // 删除预约信息
+            this.removeById(reservationId);
+            // 如果有学生预约了该时间段，则需要提醒学生
+            if (reservation.getStudentId() != null) {
+                // 查询学生信息
+                Long studentId = reservation.getStudentId();
+                Long teacherId = reservation.getTeacherId();
+                UserVO teacherUser = UserVO.objToVo(userService.getById(teacherId));
+                // 创建提醒信息
+                RemindComplete remindComplete = new RemindComplete();
+                remindComplete.setTeacherId(teacherId);
+                remindComplete.setStudentId(studentId);
+                remindComplete.setIsRead(false);
+                remindComplete.setContent("您预约的教师："+teacherUser.getUserName()+"的答疑时间段："+reservation.getTime_slot() +"已被删除，请及时查看");
+                return remindCompleteService.save(remindComplete);
+            }
+            return true;
+        }
+        return false;
     }
 }
 

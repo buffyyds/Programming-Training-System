@@ -65,6 +65,7 @@ public class RemindCompleteServiceImpl extends ServiceImpl<RemindCompleteMapper,
         remindComplete.setIsRead(true);
         return this.updateById(remindComplete);
     }
+
 }
 
 

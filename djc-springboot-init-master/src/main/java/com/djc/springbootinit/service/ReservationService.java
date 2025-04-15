@@ -27,4 +27,5 @@ public interface ReservationService extends IService<Reservation> {
 
     boolean unDoReservation(DoReservationRequest doReservationRequest);
 
+    boolean removeAndRemindStudent(long reservationId);
 }

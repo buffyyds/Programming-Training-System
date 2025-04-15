@@ -81,19 +81,25 @@
             <template #cell="{ record }">
               <a-space>
                 <a-button
-                  v-if="record.isReservation"
-                  type="primary"
-                  @click="viewReservationDetail(record)"
+                  type="outline"
+                  status="warning"
+                  @click="showUpdateModal(record)"
                 >
-                  查看预约信息
+                  修改
                 </a-button>
                 <a-button
-                  v-else
                   type="text"
                   status="danger"
                   @click="deleteTimeSlot(record.id)"
                 >
                   删除
+                </a-button>
+                <a-button
+                  v-if="record.isReservation"
+                  type="primary"
+                  @click="viewReservationDetail(record)"
+                >
+                  查看预约信息
                 </a-button>
               </a-space>
             </template>
@@ -126,6 +132,38 @@
             currentReservation.studentUser?.userPhone || "未填写"
           }}</span>
         </div>
+      </div>
+    </a-modal>
+
+    <!-- 修改时间弹窗 -->
+    <a-modal
+      v-model:visible="showUpdateTimeModal"
+      title="修改时间段"
+      @ok="updateTimeSlot"
+      @cancel="handleUpdateModalClose"
+    >
+      <div class="time-picker-section">
+        <a-space>
+          <a-date-picker
+            v-model="selectedDate"
+            :disabled-date="disabledDate"
+            @change="handleDateChange"
+            style="width: 200px"
+          />
+          <a-time-picker
+            v-model="startTime"
+            format="HH:mm"
+            placeholder="开始时间"
+            style="width: 120px"
+          />
+          <span class="time-separator">至</span>
+          <a-time-picker
+            v-model="endTime"
+            format="HH:mm"
+            placeholder="结束时间"
+            style="width: 120px"
+          />
+        </a-space>
       </div>
     </a-modal>
   </div>
@@ -242,6 +280,59 @@ const goBack = () => {
   router.back();
 };
 
+// 修改时间相关
+const showUpdateModal = (record: any) => {
+  currentReservation.value = record;
+  // 解析当前时间段
+  const [date, timeRange] = record.time_slot.split(" ");
+  const [start, end] = timeRange.split("-");
+  selectedDate.value = new Date(date);
+  startTime.value = start;
+  endTime.value = end;
+  showUpdateTimeModal.value = true;
+};
+
+const showUpdateTimeModal = ref(false);
+
+// 关闭修改时间弹窗
+const handleUpdateModalClose = () => {
+  showUpdateTimeModal.value = false;
+  // 清空时间选择
+  selectedDate.value = undefined;
+  startTime.value = undefined;
+  endTime.value = undefined;
+};
+
+const updateTimeSlot = async () => {
+  if (!selectedDate.value || !startTime.value || !endTime.value) {
+    Message.warning("请选择完整的时间段");
+    return;
+  }
+
+  const date = dayjs(selectedDate.value).format("YYYY-MM-DD");
+  const timeSlot = `${date} ${startTime.value}-${endTime.value}`;
+
+  try {
+    const res = await ReservationControllerService.updateReservationUsingPost({
+      id: currentReservation.value.id,
+      time_slot: timeSlot,
+    });
+    if (res.code === 0) {
+      Message.success("修改成功");
+      loadReservations();
+      showUpdateTimeModal.value = false;
+      // 清空时间选择
+      selectedDate.value = undefined;
+      startTime.value = undefined;
+      endTime.value = undefined;
+    } else {
+      Message.error("修改失败：" + res.message);
+    }
+  } catch (error: any) {
+    Message.error("修改失败：" + error.message);
+  }
+};
+
 onMounted(() => {
   loadReservations();
 });
@@ -272,7 +363,7 @@ onMounted(() => {
 }
 
 .time-picker-section {
-  margin-bottom: 24px;
+  margin-bottom: 0;
   padding: 16px;
   background-color: var(--color-fill-2);
   border-radius: 4px;

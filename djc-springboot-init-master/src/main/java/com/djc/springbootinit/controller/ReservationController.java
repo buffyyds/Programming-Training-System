@@ -13,6 +13,7 @@ import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.ReservationVO;
 import com.djc.springbootinit.model.vo.StudentsVo;
 import com.djc.springbootinit.model.vo.TeacherVo;
+import com.djc.springbootinit.service.RemindCompleteService;
 import com.djc.springbootinit.service.ReservationService;
 import com.djc.springbootinit.service.TasService;
 import com.djc.springbootinit.service.UserService;
@@ -39,6 +40,9 @@ public class ReservationController {
 
     @Resource
     private TasService tasService;
+
+    @Resource
+    private RemindCompleteService remindCompleteService;
 
     /**
      * 教师添加预约时间段
@@ -70,7 +74,7 @@ public class ReservationController {
     @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
     public BaseResponse<String> deleteReservation(long reservationId, HttpServletRequest request) {
         // 删除预约时间段
-        boolean b = reservationService.removeById(reservationId);
+        boolean b = reservationService.removeAndRemindStudent(reservationId);
         return b ? ResultUtils.success("删除预约时间段成功") : ResultUtils.error(ErrorCode.SYSTEM_ERROR, "删除预约时间段失败");
     }
 
