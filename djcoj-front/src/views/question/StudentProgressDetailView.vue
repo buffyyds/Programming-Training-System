@@ -87,6 +87,7 @@ import {
   IconCheckCircleFill,
   IconCloseCircleFill,
   IconNotification,
+  IconCode,
 } from "@arco-design/web-vue/es/icon";
 import { useRouter, useRoute } from "vue-router";
 import { useStore } from "vuex";

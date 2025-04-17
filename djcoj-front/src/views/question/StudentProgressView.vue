@@ -4,11 +4,6 @@
       <template #title>
         <div class="card-title">
           <a-space>
-            <a-button type="text" @click="goBack">
-              <template #icon>
-                <icon-arrow-left />
-              </template>
-            </a-button>
             <icon-book class="title-icon" />
             学生完成情况
           </a-space>

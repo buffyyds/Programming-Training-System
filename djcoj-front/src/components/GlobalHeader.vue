@@ -64,6 +64,15 @@
               </template>
               退出登录
             </a-doption>
+            <a-doption
+              class="delete-account-option"
+              @click="handleDeleteAccount"
+            >
+              <template #icon>
+                <delete-outlined />
+              </template>
+              <span class="delete-account-text">注销账号</span>
+            </a-doption>
           </template>
           <template v-else>
             <a-doption @click="router.push('/user/login')">
@@ -98,6 +107,7 @@ import {
   LogoutOutlined,
   LoginOutlined,
   UserAddOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons-vue";
 import {
   UserControllerService,
@@ -105,7 +115,7 @@ import {
   ReservationControllerService,
   RemindControllerService,
 } from "../../generated";
-import { Message } from "@arco-design/web-vue";
+import { Message, Modal } from "@arco-design/web-vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -216,6 +226,48 @@ watch(
   }
 );
 
+// 注销账号
+const handleDeleteAccount = async () => {
+  if (!loginUser.value?.id) {
+    Message.error("无法获取用户信息");
+    return;
+  }
+
+  try {
+    // 显示确认对话框
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Modal.confirm({
+        title: "确认注销",
+        content: "确定要注销账号吗？此操作不可恢复，所有数据将被永久删除。",
+        okText: "确认注销",
+        cancelText: "取消",
+        okButtonProps: {
+          status: "danger",
+        },
+        onOk: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+
+    if (!confirmed) return;
+
+    const res = await UserControllerService.deleteUserUsingPost({
+      id: loginUser.value.id,
+    });
+    if (res.code === 0) {
+      Message.success("账号已注销");
+      // 清除用户信息
+      store.commit("user/updateUser", null);
+      // 跳转到登录页
+      router.push("/user/login");
+    } else {
+      Message.error("注销失败：" + res.message);
+    }
+  } catch (error: any) {
+    Message.error("注销失败：" + error.message);
+  }
+};
+
 // setTimeout(() => {
 //   store.dispatch("user/getLoginUser", {
 //     userName: "djc管理员",
@@ -284,5 +336,18 @@ watch(
   border-radius: 50%;
   background-color: #f53f3f;
   box-shadow: 0 0 0 2px #fff;
+}
+
+.delete-account-option {
+  color: var(--color-danger-light-4);
+}
+
+.delete-account-option:hover {
+  background-color: var(--color-danger-light-1);
+  color: var(--color-danger-6);
+}
+
+.delete-account-text {
+  color: var(--color-danger-6);
 }
 </style>

@@ -15,6 +15,7 @@ import com.djc.springbootinit.service.UserService;
 import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import org.springframework.stereotype.Service;
 import com.djc.springbootinit.common.ErrorCode;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collections;
@@ -46,6 +47,7 @@ public class TasServiceImpl extends ServiceImpl<TasMapper, Tas>
                 StudentsVo studentsVo = new StudentsVo();
                 studentsVo.setId(user.getId());
                 studentsVo.setUserName(user.getUserName());
+                studentsVo.setCreateTime(user.getCreateTime());
                 return studentsVo;
             }).collect(Collectors.toList());
         }
@@ -121,6 +123,26 @@ public class TasServiceImpl extends ServiceImpl<TasMapper, Tas>
             return true;
         }
         return false;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean kickStudent(Long teacherId, List<Long> studentIds) {
+        //教师踢出学生
+        //先删除user表中的adminCode
+        UpdateWrapper<User> updateWrapperUser = new UpdateWrapper<>();
+        updateWrapperUser
+                .in("id", studentIds)  // 指定更新条件
+                .set("adminCode", null);       // 强制设置 studentId 为 null
+        boolean update = userService.update(updateWrapperUser);
+        if (!update) {
+            return false;
+        }
+        QueryWrapper<Tas> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("teacherId", teacherId);
+        queryWrapper.eq("isDelete", 0);
+        queryWrapper.in("studentId", studentIds);
+        return this.remove(queryWrapper);
     }
 
 }

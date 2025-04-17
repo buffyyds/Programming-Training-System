@@ -158,4 +158,13 @@ export const routes: Array<RouteRecordRaw> = [
       exclusive: true,
     },
   },
+  {
+    path: "/teacher/students",
+    name: "学生列表",
+    component: () => import("../views/teacher/StudentListView.vue"),
+    meta: {
+      access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
+    },
+  },
 ];

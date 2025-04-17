@@ -199,16 +199,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @return
      */
     @Override
-    public boolean isAdmin(HttpServletRequest request) {
+    public boolean isTeacher(HttpServletRequest request) {
         // 仅管理员可查询
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User user = (User) userObj;
-        return isAdmin(user);
+        return isTeacher(user);
     }
 
     @Override
-    public boolean isAdmin(User user) {
-        return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
+    public boolean isTeacher(User user) {
+        return user != null && UserRoleEnum.TEACHER.getValue().equals(user.getUserRole());
     }
 
     /**

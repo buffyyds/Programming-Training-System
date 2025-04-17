@@ -69,7 +69,7 @@ public interface UserService extends IService<User> {
      * @param request
      * @return
      */
-    boolean isAdmin(HttpServletRequest request);
+    boolean isTeacher(HttpServletRequest request);
 
     /**
      * 是否为管理员
@@ -77,7 +77,7 @@ public interface UserService extends IService<User> {
      * @param user
      * @return
      */
-    boolean isAdmin(User user);
+    boolean isTeacher(User user);
 
     /**
      * 用户注销

@@ -4,11 +4,6 @@
       <template #title>
         <div class="card-title">
           <a-space>
-            <a-button type="text" @click="goBack">
-              <template #icon>
-                <icon-arrow-left />
-              </template>
-            </a-button>
             <icon-calendar class="title-icon" />
             答疑预约管理
           </a-space>
@@ -141,29 +136,42 @@
       title="修改时间段"
       @ok="updateTimeSlot"
       @cancel="handleUpdateModalClose"
+      :width="600"
     >
-      <div class="time-picker-section">
-        <a-space>
-          <a-date-picker
-            v-model="selectedDate"
-            :disabled-date="disabledDate"
-            @change="handleDateChange"
-            style="width: 200px"
-          />
-          <a-time-picker
-            v-model="startTime"
-            format="HH:mm"
-            placeholder="开始时间"
-            style="width: 120px"
-          />
-          <span class="time-separator">至</span>
-          <a-time-picker
-            v-model="endTime"
-            format="HH:mm"
-            placeholder="结束时间"
-            style="width: 120px"
-          />
-        </a-space>
+      <div class="update-time-container">
+        <div class="time-picker-title">请选择新的时间段</div>
+        <div class="time-picker-section">
+          <div class="date-picker-wrapper">
+            <div class="picker-label">日期</div>
+            <a-date-picker
+              v-model="selectedDate"
+              :disabled-date="disabledDate"
+              @change="handleDateChange"
+              style="width: 200px"
+              class="custom-date-picker"
+            />
+          </div>
+          <div class="time-picker-wrapper">
+            <div class="picker-label">时间</div>
+            <div class="time-range-picker">
+              <a-time-picker
+                v-model="startTime"
+                format="HH:mm"
+                placeholder="开始时间"
+                style="width: 120px"
+                class="custom-time-picker"
+              />
+              <span class="time-separator">至</span>
+              <a-time-picker
+                v-model="endTime"
+                format="HH:mm"
+                placeholder="结束时间"
+                style="width: 120px"
+                class="custom-time-picker"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </a-modal>
   </div>
@@ -403,5 +411,60 @@ onMounted(() => {
 .detail-item .value {
   flex: 1;
   color: var(--color-text-1);
+}
+
+.update-time-container {
+  padding: 20px;
+}
+
+.time-picker-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text-1);
+  margin-bottom: 20px;
+}
+
+.time-picker-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 0;
+  padding: 20px;
+  background-color: var(--color-fill-2);
+  border-radius: 8px;
+}
+
+.date-picker-wrapper,
+.time-picker-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.picker-label {
+  font-size: 14px;
+  color: var(--color-text-2);
+}
+
+.time-range-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.custom-date-picker,
+.custom-time-picker {
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.custom-date-picker:hover,
+.custom-time-picker:hover {
+  border-color: var(--color-primary-light-4);
+}
+
+.time-separator {
+  color: var(--color-text-3);
+  font-size: 14px;
 }
 </style>

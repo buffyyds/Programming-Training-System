@@ -199,11 +199,11 @@ public class UserController {
      * @return
      */
     @PostMapping("/delete")
-    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
     public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        //TODO 要把用户的所有信息都删除，包括其他表的连带数据
         boolean b = userService.removeById(deleteRequest.getId());
         return ResultUtils.success(b);
     }

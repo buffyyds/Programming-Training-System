@@ -4,6 +4,7 @@ package com.djc.springbootinit.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.djc.springbootinit.annotation.AuthCheck;
 import com.djc.springbootinit.common.BaseResponse;
+import com.djc.springbootinit.common.ErrorCode;
 import com.djc.springbootinit.common.ResultUtils;
 import com.djc.springbootinit.constant.UserConstant;
 import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitQueryRequest;
@@ -68,5 +69,16 @@ public class TASController {
 //
 //        return ResultUtils.success();
 //    }
+
+    /**
+     * 教师踢出学生
+     */
+    @PostMapping("kickStudent")
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+    public BaseResponse<String> kickStudent(@RequestBody List<Long> studentIds, HttpServletRequest request) {
+        Long teacherId = userService.getLoginUser(request).getId();
+        boolean b = tasService.kickStudent(teacherId, studentIds);
+        return b ? ResultUtils.success("踢出学生成功") : ResultUtils.error(ErrorCode.OPERATION_ERROR,"踢出学生失败");
+    }
 
 }

@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BaseResponse_List_StudentsVo_ } from "../models/BaseResponse_List_StudentsVo_";
+import type { BaseResponse_string_ } from "../models/BaseResponse_string_";
 import type { BaseResponse_TeacherVo_ } from "../models/BaseResponse_TeacherVo_";
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
@@ -35,6 +36,28 @@ export class TasControllerService {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/TAS/getTeacher",
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
+   * kickStudent
+   * @param studentIds studentIds
+   * @returns BaseResponse_string_ OK
+   * @returns any Created
+   * @throws ApiError
+   */
+  public static kickStudentUsingPost(
+    studentIds: Array<number>
+  ): CancelablePromise<BaseResponse_string_ | any> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/TAS/kickStudent",
+      body: studentIds,
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,
