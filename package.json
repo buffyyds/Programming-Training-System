@@ -4,5 +4,8 @@
     "@types/marked": "^5.0.2",
     "dompurify": "^3.2.4",
     "marked": "^15.0.7"
+  },
+  "devDependencies": {
+    "@types/echarts": "^4.9.22"
   }
 }

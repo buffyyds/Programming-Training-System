@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { BaseResponse_List_ReservationPerformanceVO_ } from "../models/BaseResponse_List_ReservationPerformanceVO_";
 import type { BaseResponse_List_ReservationVO_ } from "../models/BaseResponse_List_ReservationVO_";
 import type { BaseResponse_string_ } from "../models/BaseResponse_string_";
 import type { DoReservationRequest } from "../models/DoReservationRequest";
@@ -88,6 +89,40 @@ export class ReservationControllerService {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/reservation/get",
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
+   * getTOPTenStudentReservationByCount
+   * @returns BaseResponse_List_ReservationPerformanceVO_ OK
+   * @throws ApiError
+   */
+  public static getTopTenStudentReservationByCountUsingGet(): CancelablePromise<BaseResponse_List_ReservationPerformanceVO_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/reservation/getTOPTenStudentReservationByCount",
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
+   * getTOPTenStudentReservationByTotleTime
+   * @returns BaseResponse_List_ReservationPerformanceVO_ OK
+   * @throws ApiError
+   */
+  public static getTopTenStudentReservationByTotleTimeUsingGet(): CancelablePromise<BaseResponse_List_ReservationPerformanceVO_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/reservation/getTOPTenStudentReservationByTotleTime",
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,

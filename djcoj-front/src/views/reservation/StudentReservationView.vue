@@ -4,11 +4,6 @@
       <template #title>
         <div class="card-title">
           <a-space>
-            <a-button type="text" @click="goBack">
-              <template #icon>
-                <icon-arrow-left />
-              </template>
-            </a-button>
             <icon-calendar class="title-icon" />
             答疑预约
           </a-space>

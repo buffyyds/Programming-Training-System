@@ -7,6 +7,16 @@
             <icon-calendar class="title-icon" />
             答疑预约管理
           </a-space>
+          <a-button
+            type="primary"
+            @click="goToStatistics"
+            style="margin-left: auto"
+          >
+            <template #icon>
+              <icon-bar-chart />
+            </template>
+            查看学生预约情况图表
+          </a-button>
         </div>
       </template>
 
@@ -45,7 +55,8 @@
       <a-table
         :data="reservationList"
         :loading="loading"
-        :pagination="false"
+        :pagination="pagination"
+        @page-change="onPageChange"
         class="reservation-table"
       >
         <template #columns>
@@ -186,6 +197,7 @@ import {
   IconCalendar,
   IconPlus,
   IconClockCircle,
+  IconBarChart,
 } from "@arco-design/web-vue/es/icon";
 import { ReservationControllerService } from "../../../generated";
 import dayjs from "dayjs";
@@ -196,14 +208,22 @@ const reservationList = ref<any[]>([]);
 const showDetailModal = ref(false);
 const currentReservation = ref<any>(null);
 
+// 分页相关
+const pagination = ref({
+  total: 0,
+  current: 1,
+  pageSize: 10,
+});
+
 // 时间选择相关
 const selectedDate = ref<Date>();
 const startTime = ref<string>();
 const endTime = ref<string>();
 
 // 禁用过去的日期
-const disabledDate = (current: Date) => {
-  return current && current < dayjs().startOf("day").toDate();
+const disabledDate = (current?: Date) => {
+  if (!current) return false;
+  return current < dayjs().startOf("day").toDate();
 };
 
 // 处理日期变化
@@ -216,6 +236,35 @@ const handleDateChange = () => {
 const addTimeSlot = async () => {
   if (!selectedDate.value || !startTime.value || !endTime.value) {
     Message.warning("请选择完整的时间段");
+    return;
+  }
+
+  // 时间校验
+  const now = dayjs();
+  const selectedDateTime = dayjs(selectedDate.value);
+  const startDateTime = dayjs(
+    `${selectedDateTime.format("YYYY-MM-DD")} ${startTime.value}`
+  );
+  const endDateTime = dayjs(
+    `${selectedDateTime.format("YYYY-MM-DD")} ${endTime.value}`
+  );
+
+  // 校验规则：
+  // 1. 预约日期不能小于今天
+  // 2. 如果选择今天，开始时间不能小于当前时间
+  // 3. 结束时间必须大于开始时间
+  if (selectedDateTime.isBefore(now, "day")) {
+    Message.warning("预约日期不能小于今天");
+    return;
+  }
+
+  if (selectedDateTime.isSame(now, "day") && startDateTime.isBefore(now)) {
+    Message.warning("开始时间不能小于当前时间");
+    return;
+  }
+
+  if (endDateTime.isBefore(startDateTime)) {
+    Message.warning("结束时间必须大于开始时间");
     return;
   }
 
@@ -273,6 +322,7 @@ const loadReservations = async () => {
     const res = await ReservationControllerService.getReservationUsingGet();
     if (res.code === 0) {
       reservationList.value = res.data || [];
+      pagination.value.total = res.data?.length || 0;
     } else {
       Message.error("获取预约列表失败：" + res.message);
     }
@@ -283,9 +333,15 @@ const loadReservations = async () => {
   }
 };
 
-// 返回上一页
-const goBack = () => {
-  router.back();
+// 分页变化
+const onPageChange = (page: number) => {
+  pagination.value.current = page;
+  loadReservations();
+};
+
+// 跳转到统计页面
+const goToStatistics = () => {
+  router.push("/reservation/statistics");
 };
 
 // 修改时间相关

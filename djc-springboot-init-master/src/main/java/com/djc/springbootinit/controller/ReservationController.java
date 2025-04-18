@@ -10,6 +10,7 @@ import com.djc.springbootinit.model.dto.Reservation.DoReservationRequest;
 import com.djc.springbootinit.model.dto.Reservation.ReservationEditRequest;
 import com.djc.springbootinit.model.entity.Reservation;
 import com.djc.springbootinit.model.entity.User;
+import com.djc.springbootinit.model.vo.ReservationPerformanceVO;
 import com.djc.springbootinit.model.vo.ReservationVO;
 import com.djc.springbootinit.model.vo.StudentsVo;
 import com.djc.springbootinit.model.vo.TeacherVo;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 教师学生
@@ -115,4 +117,52 @@ public class ReservationController {
         boolean b = reservationService.unDoReservation(doReservationRequest);
         return b ? ResultUtils.success("取消预约成功") : ResultUtils.error(ErrorCode.SYSTEM_ERROR, "取消预约失败");
     }
+
+    /**
+     * 获取前十名学生的预约表现情况：预约次数
+     */
+    @GetMapping("/getTOPTenStudentReservationByCount")
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+    public BaseResponse<List<ReservationPerformanceVO>> getTOPTenStudentReservationByCount(HttpServletRequest request) {
+        long teacherId = userService.getLoginUser(request).getId();
+        List<ReservationPerformanceVO> reservationPerformanceVOS = reservationService.getAllStudentReservation(teacherId);
+        // 过滤出前十名学生
+        reservationPerformanceVOS.sort((o1, o2) -> Integer.compare(o2.getReservationCount(), o1.getReservationCount()));
+        if (reservationPerformanceVOS.size() > 10) {
+            reservationPerformanceVOS = reservationPerformanceVOS.subList(0, 10);
+        }
+        return ResultUtils.success(reservationPerformanceVOS);
+    }
+
+    /**
+     * 获取学生的预约表现情况：预约时间总和
+     */
+    @GetMapping("/getTOPTenStudentReservationByTotleTime")
+    @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
+    public BaseResponse<List<ReservationPerformanceVO>> getTOPTenStudentReservationByTotleTime(HttpServletRequest request) {
+        long teacherId = userService.getLoginUser(request).getId();
+        List<ReservationPerformanceVO> reservationPerformanceVOS = reservationService.getAllStudentReservation(teacherId);
+        // 过滤出前十名学生
+        reservationPerformanceVOS.sort((o1, o2) -> {
+            // 将 "HH:mm" 时间转换为分钟总数进行比较
+            int minutes1 = convertTimeToMinutes(o1.getTotalTime());
+            int minutes2 = convertTimeToMinutes(o2.getTotalTime());
+            return Integer.compare(minutes2, minutes1); // 降序排列
+        });
+        if (reservationPerformanceVOS.size() > 10) {
+            reservationPerformanceVOS = reservationPerformanceVOS.stream()
+                    .limit(10)
+                    .collect(Collectors.toList());
+        }
+        return ResultUtils.success(reservationPerformanceVOS);
+    }
+
+    // 时间转换工具方法
+    private static int convertTimeToMinutes(String timeStr) {
+        String[] parts = timeStr.split(":");
+        int hours = Integer.parseInt(parts[0]);
+        int minutes = Integer.parseInt(parts[1]);
+        return hours * 60 + minutes; // 总分钟数 = 小时*60 + 分钟
+    }
+
 }

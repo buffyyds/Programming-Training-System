@@ -7,12 +7,15 @@ import com.djc.springbootinit.model.dto.Reservation.DoReservationRequest;
 import com.djc.springbootinit.model.dto.Reservation.ReservationEditRequest;
 import com.djc.springbootinit.model.entity.RemindComplete;
 import com.djc.springbootinit.model.entity.Reservation;
+import com.djc.springbootinit.model.vo.ReservationPerformanceVO;
 import com.djc.springbootinit.model.vo.ReservationVO;
 import com.djc.springbootinit.model.vo.UserVO;
 import com.djc.springbootinit.service.RemindCompleteService;
 import com.djc.springbootinit.service.ReservationService;
 import com.djc.springbootinit.mapper.ReservationMapper;
+import com.djc.springbootinit.service.TasService;
 import com.djc.springbootinit.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -23,19 +26,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
-* @author djc
-* @description 针对表【reservation】的数据库操作Service实现
-* @createDate 2025-04-13 16:29:55
-*/
+ * @author djc
+ * @description 针对表【reservation】的数据库操作Service实现
+ * @createDate 2025-04-13 16:29:55
+ */
 @Service
 public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reservation>
-    implements ReservationService{
+        implements ReservationService {
 
     @Resource
     private UserService userService;
 
     @Resource
     private RemindCompleteService remindCompleteService;
+    @Autowired
+    private TasService tasService;
 
     @Override
     public void addReservation(long teacherId, String time_slot) {
@@ -71,7 +76,7 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
             remindComplete.setTeacherId(teacherId);
             remindComplete.setStudentId(studentId);
             remindComplete.setIsRead(false);
-            remindComplete.setContent("您预约的教师："+teacherUser.getUserName()+"的答疑时间段："+oldTime_slot +"已更新为"+newTime_slot+"，请及时查看");
+            remindComplete.setContent("您预约的教师：" + teacherUser.getUserName() + "的答疑时间段：" + oldTime_slot + "已更新为" + newTime_slot + "，请及时查看");
             remindCompleteService.save(remindComplete);
         }
     }
@@ -94,7 +99,7 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
                         ReservationVO reservationVO = new ReservationVO();
                         reservationVO.setId(reservation.getId());
                         reservationVO.setTeacherUser(UserVO.objToVo(userService.getById(reservation.getTeacherId())));
-                        reservationVO.setStudentUser(UserVO.objToVo(reservation.getStudentId() == null? null : userService.getById(reservation.getStudentId())));
+                        reservationVO.setStudentUser(UserVO.objToVo(reservation.getStudentId() == null ? null : userService.getById(reservation.getStudentId())));
                         reservationVO.setTime_slot(reservation.getTime_slot());
                         reservationVO.setIsReservation(reservation.getStudentId() != null);
                         return reservationVO;
@@ -138,12 +143,71 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
                 remindComplete.setTeacherId(teacherId);
                 remindComplete.setStudentId(studentId);
                 remindComplete.setIsRead(false);
-                remindComplete.setContent("您预约的教师："+teacherUser.getUserName()+"的答疑时间段："+reservation.getTime_slot() +"已被删除，请及时查看");
+                remindComplete.setContent("您预约的教师：" + teacherUser.getUserName() + "的答疑时间段：" + reservation.getTime_slot() + "已被删除，请及时查看");
                 return remindCompleteService.save(remindComplete);
             }
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<ReservationPerformanceVO> getAllStudentReservation(long teacherId) {
+        List<Long> studentIds = tasService.getStudentIdsByTeacherId(teacherId);
+        QueryWrapper<Reservation> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("teacherId", teacherId);
+        queryWrapper.in("studentId", studentIds);
+        List<Reservation> reservationList = this.list(queryWrapper);
+        if (reservationList != null && !reservationList.isEmpty()) {
+            List<ReservationPerformanceVO> TOPTen = reservationList.stream()
+                .collect(Collectors.groupingBy(Reservation::getStudentId))
+                .entrySet().stream()
+                .map(entry -> {
+                    Long studentId = entry.getKey();
+                    List<Reservation> reservations = entry.getValue();
+                    ReservationPerformanceVO reservationPerformanceVO = new ReservationPerformanceVO();
+                    reservationPerformanceVO.setStudentUser(UserVO.objToVo(userService.getById(studentId)));
+                    reservationPerformanceVO.setTotalTime(calculateTotalTime(reservations));
+                    reservationPerformanceVO.setReservationCount(reservations.size());
+                    return reservationPerformanceVO;
+                }).collect(Collectors.toList());
+
+            return TOPTen;
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * 计算预约时间段的总和
+     */
+    private String calculateTotalTime(List<Reservation> reservations) {
+        int totalTime = 0;
+        for (Reservation reservation : reservations) {
+            String timeSlot = reservation.getTime_slot();
+            // 时间段格式为 "2025-04-14 16:00-17:00"
+            String[] timeParts = timeSlot.split(" ");
+            String[] timeRange = timeParts[1].split("-");
+            String startTime = timeRange[0];
+            String endTime = timeRange[1];
+            String[] startParts = startTime.split(":");
+            String[] endParts = endTime.split(":");
+            int startHour = Integer.parseInt(startParts[0]);
+            int startMinute = Integer.parseInt(startParts[1]);
+            int endHour = Integer.parseInt(endParts[0]);
+            int endMinute = Integer.parseInt(endParts[1]);
+            // 计算时间差
+            int hourDifference = endHour - startHour;
+            int minuteDifference = endMinute - startMinute;
+            if (minuteDifference < 0) {
+                hourDifference--;
+                minuteDifference += 60;
+            }
+            totalTime += hourDifference * 60 + minuteDifference;
+        }
+        // 将总时间转换为小时和分钟的格式
+        int hours = totalTime / 60;
+        int minutes = totalTime % 60;
+        return String.format("%02d:%02d", hours, minutes);
     }
 }
 

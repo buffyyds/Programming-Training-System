@@ -11,6 +11,7 @@ export type { BaseResponse_boolean_ } from './models/BaseResponse_boolean_';
 export type { BaseResponse_int_ } from './models/BaseResponse_int_';
 export type { BaseResponse_List_QuestionCompletionVO_ } from './models/BaseResponse_List_QuestionCompletionVO_';
 export type { BaseResponse_List_ReplyVO_ } from './models/BaseResponse_List_ReplyVO_';
+export type { BaseResponse_List_ReservationPerformanceVO_ } from './models/BaseResponse_List_ReservationPerformanceVO_';
 export type { BaseResponse_List_ReservationVO_ } from './models/BaseResponse_List_ReservationVO_';
 export type { BaseResponse_List_StudentCompletionVO_ } from './models/BaseResponse_List_StudentCompletionVO_';
 export type { BaseResponse_List_StudentsVo_ } from './models/BaseResponse_List_StudentsVo_';
@@ -72,6 +73,7 @@ export type { RemindCompleteAddRequest } from './models/RemindCompleteAddRequest
 export type { RemindCompleteQueryRequest } from './models/RemindCompleteQueryRequest';
 export type { ReplyVO } from './models/ReplyVO';
 export type { ReservationEditRequest } from './models/ReservationEditRequest';
+export type { ReservationPerformanceVO } from './models/ReservationPerformanceVO';
 export type { ReservationVO } from './models/ReservationVO';
 export type { StudentCompletionVO } from './models/StudentCompletionVO';
 export type { StudentsVo } from './models/StudentsVo';

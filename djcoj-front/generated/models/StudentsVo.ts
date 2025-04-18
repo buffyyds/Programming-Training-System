@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type StudentsVo = {
+    createTime?: string;
     id?: number;
     userName?: string;
 };

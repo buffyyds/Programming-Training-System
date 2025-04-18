@@ -167,4 +167,14 @@ export const routes: Array<RouteRecordRaw> = [
       exclusive: true,
     },
   },
+  {
+    path: "/reservation/statistics",
+    name: "预约情况统计",
+    component: () => import("../views/teacher/ReservationStatisticsView.vue"),
+    meta: {
+      access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
+      hideInMenu: true,
+    },
+  },
 ];
