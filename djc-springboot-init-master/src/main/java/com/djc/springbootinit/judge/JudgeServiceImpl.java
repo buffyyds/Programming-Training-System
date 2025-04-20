@@ -13,8 +13,10 @@ import com.djc.springbootinit.judge.strategy.JudgeContext;
 import com.djc.springbootinit.model.dto.question.JudgeCase;
 import com.djc.springbootinit.model.entity.Question;
 import com.djc.springbootinit.model.entity.QuestionSubmit;
+import com.djc.springbootinit.model.enums.JudgeInfoMessageEnum;
 import com.djc.springbootinit.model.enums.QuestionSubmitLanguageEnum;
 import com.djc.springbootinit.model.enums.QuestionSubmitStatusEnum;
+import com.djc.springbootinit.service.CompleteService;
 import com.djc.springbootinit.service.QuestionService;
 import com.djc.springbootinit.service.QuestionSubmitService;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +38,9 @@ public class JudgeServiceImpl implements JudgeService {
     private QuestionSubmitService questionSubmitService;
     @Resource
     private JudgeManager judgeManager;
+
+    @Resource
+    private CompleteService completeService;
 
     @Value("${codesandbox.type:example}")  //读取配置文件中的codesandbox.type的值，如果没有则默认为example
     private String type;
@@ -94,7 +99,14 @@ public class JudgeServiceImpl implements JudgeService {
         judgeContext.setQuestion(question);
         judgeContext.setQuestionSubmit(questionSubmit);
         JudgeInfo judgeInfo = judgeManager.doJudge(judgeContext);
-        // 6）修改数据库中的判题结果
+        if (judgeInfo.getMessage().equals(JudgeInfoMessageEnum.ACCEPTED.getValue())) {
+            //记录complete表的题目完成数据
+            completeService.completeQuestion(questionSubmit.getUserId(), question.getId());
+        }else {
+            //判断是否是第三次的错误提交，如果是则标记为错题，记录错题表
+            questionSubmitService.isThirdErrorSubmission(question, questionSubmit.getUserId());
+        }
+        // 6）修改数据库提交表中的判题结果
         questionSubmitUpdate = new QuestionSubmit();
         questionSubmitUpdate.setId(questionSubmitId);
         questionSubmitUpdate.setStatus(QuestionSubmitStatusEnum.SUCCEED.getValue());

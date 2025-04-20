@@ -69,4 +69,6 @@ public interface QuestionSubmitService extends IService<QuestionSubmit> {
     List<StudentCompletionVO> getStudentCompletion(Long questionId, HttpServletRequest request);
 
     List<QuestionCompletionVO> getStudentCompletionByCurrentUser(User loginUser);
+
+    void isThirdErrorSubmission(Question question, long userId);
 }

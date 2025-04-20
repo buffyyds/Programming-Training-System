@@ -68,8 +68,8 @@
             <option name="tableUIInfoList">
               <list>
                 <TableUIInfo>
-                  <option name="className" value="RemindComplete" />
-                  <option name="tableName" value="remind_complete" />
+                  <option name="className" value="Complete" />
+                  <option name="tableName" value="complete" />
                 </TableUIInfo>
               </list>
             </option>
