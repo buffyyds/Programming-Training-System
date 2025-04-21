@@ -17,6 +17,7 @@ import com.djc.springbootinit.service.TasService;
 import com.djc.springbootinit.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.Instant;
@@ -52,6 +53,7 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateReservation(ReservationEditRequest reservationEditRequest) {
         Long reservationId = reservationEditRequest.getId();
         String newTime_slot = reservationEditRequest.getTime_slot();
@@ -126,6 +128,7 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean removeAndRemindStudent(long reservationId) {
         // 查询预约信息
         Reservation reservation = this.getById(reservationId);

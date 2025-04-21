@@ -177,4 +177,33 @@ export const routes: Array<RouteRecordRaw> = [
       hideInMenu: true,
     },
   },
+  {
+    path: "/wrongQuestion/list",
+    name: "学生错题",
+    component: () => import("../views/teacher/WrongQuestionListView.vue"),
+    meta: {
+      access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
+    },
+  },
+  {
+    path: "/wrongQuestion/Detail/:id",
+    name: "错题详情",
+    component: () => import("../views/teacher/WrongQuestionListView.vue"),
+    meta: {
+      access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
+      hideInMenu: true,
+    },
+  },
+  {
+    path: "/wrongQuestion/statistics",
+    name: "错题统计",
+    component: () => import("../views/teacher/WrongQuestionAnalysisView.vue"),
+    meta: {
+      access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
+      hideInMenu: true,
+    },
+  },
 ];

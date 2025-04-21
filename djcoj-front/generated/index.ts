@@ -16,6 +16,10 @@ export type { BaseResponse_List_ReservationVO_ } from './models/BaseResponse_Lis
 export type { BaseResponse_List_StudentCompletionVO_ } from './models/BaseResponse_List_StudentCompletionVO_';
 export type { BaseResponse_List_StudentsVo_ } from './models/BaseResponse_List_StudentsVo_';
 export type { BaseResponse_List_UserVO_ } from './models/BaseResponse_List_UserVO_';
+export type { BaseResponse_List_Wrongquestion_ } from './models/BaseResponse_List_Wrongquestion_';
+export type { BaseResponse_List_WrongquestionDetailVO_ } from './models/BaseResponse_List_WrongquestionDetailVO_';
+export type { BaseResponse_List_WrongquestionPerformanceVO_ } from './models/BaseResponse_List_WrongquestionPerformanceVO_';
+export type { BaseResponse_List_WrongquestionVO_ } from './models/BaseResponse_List_WrongquestionVO_';
 export type { BaseResponse_LoginUserVO_ } from './models/BaseResponse_LoginUserVO_';
 export type { BaseResponse_long_ } from './models/BaseResponse_long_';
 export type { BaseResponse_Map_boolean_TeacherVo_ } from './models/BaseResponse_Map_boolean_TeacherVo_';
@@ -86,6 +90,10 @@ export type { UserRegisterRequest } from './models/UserRegisterRequest';
 export type { UserUpdateMyRequest } from './models/UserUpdateMyRequest';
 export type { UserUpdateRequest } from './models/UserUpdateRequest';
 export type { UserVO } from './models/UserVO';
+export type { Wrongquestion } from './models/Wrongquestion';
+export type { WrongquestionDetailVO } from './models/WrongquestionDetailVO';
+export type { WrongquestionPerformanceVO } from './models/WrongquestionPerformanceVO';
+export type { WrongquestionVO } from './models/WrongquestionVO';
 
 export { FileControllerService } from './services/FileControllerService';
 export { PostControllerService } from './services/PostControllerService';
@@ -97,4 +105,5 @@ export { ReplyControllerService } from './services/ReplyControllerService';
 export { ReservationControllerService } from './services/ReservationControllerService';
 export { TasControllerService } from './services/TasControllerService';
 export { UserControllerService } from './services/UserControllerService';
+export { WrongQuestionControllerService } from './services/WrongQuestionControllerService';
 export { WxMpControllerService } from './services/WxMpControllerService';

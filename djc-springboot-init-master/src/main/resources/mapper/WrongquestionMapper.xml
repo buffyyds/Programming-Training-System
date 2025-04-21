@@ -8,12 +8,13 @@
             <id property="id" column="id" />
             <result property="questionId" column="questionId" />
             <result property="studentId" column="studentId" />
+            <result property="teacherId" column="teacherId" />
             <result property="wrongSubmitNum" column="wrongSubmitNum" />
             <result property="createTime" column="createTime" />
-            <result property="isDelete" column="isDelete" />
+            <result property="is_Delete" column="is_Delete" />
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,questionId,studentId,wrongSubmitNum,createTime,isDelete
+        id,questionId,studentId,teacherId,wrongSubmitNum,createTime,is_Delete
     </sql>
 </mapper>

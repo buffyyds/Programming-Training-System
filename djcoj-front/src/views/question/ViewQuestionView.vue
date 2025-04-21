@@ -62,109 +62,116 @@
               <!-- 评论列表 -->
               <div class="comment-list">
                 <a-spin :loading="commentLoading">
-                  <a-comment
-                    v-for="comment in comments"
-                    :key="comment.id"
-                    :id="'comment-' + comment.id"
-                    :author="comment.user.userName"
-                    :content="comment.content"
-                    :datetime="formatTime(comment.createTime)"
-                  >
-                    <template #avatar>
-                      <a-avatar>{{ comment.user.userName[0] }}</a-avatar>
-                    </template>
-                    <template #actions>
-                      <span class="action-item" @click="handleLike(comment)">
-                        <icon-heart-fill
-                          v-if="comment.hasThumb"
-                          style="color: #ff4757"
-                        />
-                        <icon-heart v-else />
-                        {{ comment.thumbNum }}
-                      </span>
-                      <span class="action-item" @click="toggleReply(comment)">
-                        <icon-message />
-                        {{
-                          comment.showReplyInput
-                            ? "收起"
-                            : comment.reply?.length
-                            ? `${comment.reply.length}条回复`
-                            : "回复"
-                        }}
-                      </span>
-                      <span
-                        v-if="isCurrentUser(comment.userId)"
-                        class="action-item"
-                        @click="deleteComment(comment)"
-                      >
-                        <icon-delete /> 删除
-                      </span>
-                    </template>
-                    <!-- 回复输入框 -->
-                    <div v-if="comment.showReplyInput" class="reply-input">
-                      <a-textarea
-                        v-model="comment.replyContent"
-                        :max-length="500"
-                        placeholder="写下你的回复..."
-                        allow-clear
-                      />
-                      <div class="reply-actions">
-                        <a-space>
-                          <a-button @click="toggleReply(comment)"
-                            >取消
-                          </a-button>
-                          <a-button type="primary" @click="submitReply(comment)"
-                            >回复
-                          </a-button>
-                        </a-space>
-                      </div>
-                    </div>
-                    <!-- 回复列表 -->
-                    <template
-                      v-if="comment.showReplyInput && comment.reply?.length"
+                  <div class="comment-scroll-container">
+                    <a-comment
+                      v-for="comment in comments"
+                      :key="comment.id"
+                      :id="'comment-' + comment.id"
+                      :author="comment.user.userName"
+                      :content="comment.content"
+                      :datetime="formatTime(comment.createTime)"
                     >
-                      <a-divider style="margin: 12px 0" />
-                      <a-comment
-                        v-for="reply in comment.reply"
-                        :key="reply.id"
-                        :author="reply.user.userName"
-                        :content="reply.content"
-                        :datetime="formatTime(reply.createTime)"
+                      <template #avatar>
+                        <a-avatar>{{ comment.user.userName[0] }}</a-avatar>
+                      </template>
+                      <template #actions>
+                        <span class="action-item" @click="handleLike(comment)">
+                          <icon-heart-fill
+                            v-if="comment.hasThumb"
+                            style="color: #ff4757"
+                          />
+                          <icon-heart v-else />
+                          {{ comment.thumbNum }}
+                        </span>
+                        <span class="action-item" @click="toggleReply(comment)">
+                          <icon-message />
+                          {{
+                            comment.showReplyInput
+                              ? "收起"
+                              : comment.reply?.length
+                              ? `${comment.reply.length}条回复`
+                              : "回复"
+                          }}
+                        </span>
+                        <span
+                          v-if="isCurrentUser(comment.userId)"
+                          class="action-item"
+                          @click="deleteComment(comment)"
+                        >
+                          <icon-delete /> 删除
+                        </span>
+                      </template>
+                      <!-- 回复输入框 -->
+                      <div v-if="comment.showReplyInput" class="reply-input">
+                        <a-textarea
+                          v-model="comment.replyContent"
+                          :max-length="500"
+                          placeholder="写下你的回复..."
+                          allow-clear
+                        />
+                        <div class="reply-actions">
+                          <a-space>
+                            <a-button @click="toggleReply(comment)"
+                              >取消
+                            </a-button>
+                            <a-button
+                              type="primary"
+                              @click="submitReply(comment)"
+                              >回复
+                            </a-button>
+                          </a-space>
+                        </div>
+                      </div>
+                      <!-- 回复列表 -->
+                      <template
+                        v-if="comment.showReplyInput && comment.reply?.length"
                       >
-                        <template #avatar>
-                          <a-avatar>{{ reply.user.userName[0] }}</a-avatar>
-                        </template>
-                        <template #actions>
-                          <span class="action-item" @click="handleLike(reply)">
-                            <icon-heart-fill
-                              v-if="reply.hasThumb"
-                              style="color: #ff4757"
-                            />
-                            <icon-heart v-else />
-                            {{ reply.thumbNum }}
-                          </span>
-                          <span
-                            v-if="isCurrentUser(reply.userId)"
-                            class="action-item"
-                            @click="deleteComment(reply)"
-                          >
-                            <icon-delete /> 删除
-                          </span>
-                        </template>
-                      </a-comment>
-                    </template>
-                  </a-comment>
+                        <a-divider style="margin: 12px 0" />
+                        <a-comment
+                          v-for="reply in comment.reply"
+                          :key="reply.id"
+                          :author="reply.user.userName"
+                          :content="reply.content"
+                          :datetime="formatTime(reply.createTime)"
+                        >
+                          <template #avatar>
+                            <a-avatar>{{ reply.user.userName[0] }}</a-avatar>
+                          </template>
+                          <template #actions>
+                            <span
+                              class="action-item"
+                              @click="handleLike(reply)"
+                            >
+                              <icon-heart-fill
+                                v-if="reply.hasThumb"
+                                style="color: #ff4757"
+                              />
+                              <icon-heart v-else />
+                              {{ reply.thumbNum }}
+                            </span>
+                            <span
+                              v-if="isCurrentUser(reply.userId)"
+                              class="action-item"
+                              @click="deleteComment(reply)"
+                            >
+                              <icon-delete /> 删除
+                            </span>
+                          </template>
+                        </a-comment>
+                      </template>
+                    </a-comment>
+                  </div>
+                  <!-- 分页 -->
+                  <div class="pagination" v-if="commentPagination.total > 0">
+                    <a-pagination
+                      v-model:current="commentPagination.current"
+                      v-model:pageSize="commentPagination.pageSize"
+                      :total="commentPagination.total"
+                      show-total
+                      show-jumper
+                    />
+                  </div>
                 </a-spin>
-                <!-- 分页 -->
-                <div class="pagination" v-if="commentPagination.total > 0">
-                  <a-pagination
-                    v-model:current="commentPagination.current"
-                    v-model:pageSize="commentPagination.pageSize"
-                    :total="commentPagination.total"
-                    show-total
-                    show-jumper
-                  />
-                </div>
               </div>
             </div>
           </a-tab-pane>
@@ -203,14 +210,16 @@
                     </a-button>
                   </a-tooltip>
                 </div>
-                <div v-if="aiScoreResult" class="ai-score-result">
-                  <div
-                    v-html="formatMarkdown(aiScoreResult)"
-                    class="markdown-content"
-                  ></div>
-                </div>
-                <div v-else class="empty-content">
-                  <a-empty description="暂无评分结果" />
+                <div class="ai-score-scroll-container">
+                  <div v-if="aiScoreResult" class="ai-score-result">
+                    <div
+                      v-html="formatMarkdown(aiScoreResult)"
+                      class="markdown-content"
+                    ></div>
+                  </div>
+                  <div v-else class="empty-content">
+                    <a-empty description="暂无评分结果" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -636,7 +645,7 @@ const pollJudgeResult = async () => {
   }
 };
 
-// 修改开始轮询的逻辑
+// 开始轮询
 const startPolling = (id: number) => {
   submitId.value = id;
   judgeResult.value = null; // 清空之前的判题结果
@@ -1137,9 +1146,36 @@ watch(
 
 .comment-list {
   margin-top: 24px;
+  display: flex;
+  flex-direction: column;
 }
 
-.comment-list :deep(.arco-comment) {
+.comment-scroll-container {
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 16px;
+  margin-bottom: 24px;
+}
+
+.comment-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comment-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.comment-scroll-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.comment-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.comment-scroll-container :deep(.arco-comment) {
   background-color: #f8f9fa;
   padding: 16px;
   border-radius: 8px;
@@ -1147,18 +1183,18 @@ watch(
   transition: all 0.3s;
 }
 
-.comment-list :deep(.arco-comment:hover) {
+.comment-scroll-container :deep(.arco-comment:hover) {
   background-color: #f0f1f2;
 }
 
-.comment-list :deep(.arco-comment .arco-comment) {
+.comment-scroll-container :deep(.arco-comment .arco-comment) {
   background-color: #fff;
   margin-top: 16px;
   margin-bottom: 0;
   border: 1px solid #e5e6eb;
 }
 
-.comment-list :deep(.arco-comment .arco-comment:hover) {
+.comment-scroll-container :deep(.arco-comment .arco-comment:hover) {
   background-color: #f8f9fa;
 }
 
@@ -1373,6 +1409,8 @@ watch(
 .ai-score-content {
   position: relative;
   min-height: 200px;
+  display: flex;
+  flex-direction: column;
 }
 
 .ai-score-header {
@@ -1383,12 +1421,49 @@ watch(
   z-index: 1;
 }
 
-.ai-score-result {
+.ai-score-scroll-container {
+  max-height: 500px;
+  overflow-y: auto;
   padding: 24px;
+  margin-top: 60px;
   background-color: #1d2129;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   border: 1px solid #2b2f3a;
+}
+
+.ai-score-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ai-score-scroll-container::-webkit-scrollbar-track {
+  background: #2a2d35;
+  border-radius: 3px;
+}
+
+.ai-score-scroll-container::-webkit-scrollbar-thumb {
+  background: #4a4d55;
+  border-radius: 3px;
+}
+
+.ai-score-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #5a5d65;
+}
+
+.ai-score-result {
+  padding: 0;
+  background-color: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+.empty-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  background-color: transparent;
+  border-radius: 4px;
 }
 
 .markdown-content {

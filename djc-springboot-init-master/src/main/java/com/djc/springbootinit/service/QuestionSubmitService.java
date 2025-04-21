@@ -12,6 +12,7 @@ import com.djc.springbootinit.model.vo.QuestionCompletionVO;
 import com.djc.springbootinit.model.vo.QuestionSubmitVO;
 import com.djc.springbootinit.model.vo.QuestionVO;
 import com.djc.springbootinit.model.vo.StudentCompletionVO;
+import io.swagger.models.auth.In;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -71,4 +72,8 @@ public interface QuestionSubmitService extends IService<QuestionSubmit> {
     List<QuestionCompletionVO> getStudentCompletionByCurrentUser(User loginUser);
 
     void isThirdErrorSubmission(Question question, long userId);
+
+    Integer getUserWrongSubmitNumByQuestionId(long questionId, long userId);
+
+    Integer getTotalWrongSubmitNumByTeacherId(long questionId, long teacherId);
 }

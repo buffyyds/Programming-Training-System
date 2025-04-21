@@ -24,6 +24,7 @@ import com.djc.springbootinit.model.vo.*;
 import com.djc.springbootinit.rabbitmq.MyMessageProducer;
 import com.djc.springbootinit.service.*;
 import com.djc.springbootinit.utils.SqlUtils;
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -334,6 +335,11 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
 
     @Override
     public void isThirdErrorSubmission(Question question, long userId) {
+        //先判断当前用户是否是学生，如果不是的话则之间返回
+        User user = userService.getById(userId);
+        if (!user.getUserRole().equals(UserConstant.STUDENT_ROLE)){
+            return;
+        }
         //获取当前用户的提交记录
         QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("questionId", question.getId());
@@ -347,17 +353,17 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             QueryWrapper<Wrongquestion> wrongquestionQueryWrapper = new QueryWrapper<>();
             wrongquestionQueryWrapper.eq("questionId", question.getId());
             wrongquestionQueryWrapper.eq("studentId", userId);
-            wrongquestionQueryWrapper.eq("isDelete", 0);
+            wrongquestionQueryWrapper.eq("is_Delete", 0);
             Wrongquestion wrongquestion = wrongquestionService.getOne(wrongquestionQueryWrapper);
             //如果没有错题记录，则表明该用户已经将错题标记取消
             if (wrongquestion == null){
                 QueryWrapper<Wrongquestion> wrongquestionQueryWrapper2 = new QueryWrapper<>();
-                wrongquestionQueryWrapper.eq("questionId", question.getId());
-                wrongquestionQueryWrapper.eq("studentId", userId);
-                wrongquestionQueryWrapper.eq("isDelete", 1);
+                wrongquestionQueryWrapper2.eq("questionId", question.getId());
+                wrongquestionQueryWrapper2.eq("studentId", userId);
+                wrongquestionQueryWrapper2.eq("is_Delete", 1);
                 wrongquestion = wrongquestionService.getOne(wrongquestionQueryWrapper2);
                 ThrowUtils.throwIf(wrongquestion == null, ErrorCode.NOT_FOUND_ERROR, "数据查询错误");
-                wrongquestion.setIsDelete(0);
+                wrongquestion.setIs_Delete(0);
             }
             //考虑多线程问题，这里由于前端设置了提交代码在获取到结果前是置灰的，所以后端就先不处理了
             wrongquestion.setWrongSubmitNum(wrongquestion.getWrongSubmitNum() + 1);
@@ -378,6 +384,26 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         }else {
             //表明此次提交不是第三次错误提交，不需要任何操作
         }
+    }
+
+    @Override
+    public Integer getUserWrongSubmitNumByQuestionId(long questionId, long userId) {
+        QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("questionId", questionId);
+        queryWrapper.eq("userId", userId);
+        queryWrapper.notLike("judgeInfo", JudgeInfoMessageEnum.ACCEPTED.getValue());
+        return Math.toIntExact(this.count(queryWrapper));
+    }
+
+    @Override
+    public Integer getTotalWrongSubmitNumByTeacherId(long questionId, long teacherId) {
+        //通过teacherId获取旗下所有学生的id
+        List<Long> studentIds = tasService.getStudentIdsByTeacherId(teacherId);
+        QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("questionId", questionId);
+        queryWrapper.in("userId", studentIds);
+        queryWrapper.notLike("judgeInfo", JudgeInfoMessageEnum.ACCEPTED.getValue());
+        return Math.toIntExact(this.count(queryWrapper));
     }
 
 }
