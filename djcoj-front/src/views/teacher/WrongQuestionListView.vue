@@ -144,12 +144,12 @@
         :stripe="true"
       >
         <template #columns>
-          <a-table-column
-            title="学生ID"
-            data-index="studentUser.id"
-            width="100"
-          />
           <a-table-column title="学生姓名" data-index="studentUser.userName" />
+          <a-table-column title="手机号">
+            <template #cell="{ record }">
+              {{ record.studentUser.userPhone || "未填写" }}
+            </template>
+          </a-table-column>
           <a-table-column title="错误提交数" data-index="wrongSubmitNum">
             <template #cell="{ record }">
               <a-tag color="orange">{{ record.wrongSubmitNum }}</a-tag>
@@ -173,11 +173,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { WrongQuestionControllerService } from "../../../generated";
 import { Message } from "@arco-design/web-vue";
-import {
-  IconChartLine,
-  IconQuestionCircle,
-  IconEye,
-} from "@arco-design/web-vue/es/icon";
+import { IconQuestionCircle, IconEye } from "@arco-design/web-vue/es/icon";
 
 const router = useRouter();
 const loading = ref(false);
@@ -279,6 +275,8 @@ onMounted(() => {
 
 <style scoped>
 .wrong-question-list {
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 20px;
 }
 

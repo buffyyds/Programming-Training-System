@@ -372,16 +372,43 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新错题失败");
             }
         }else if (list.size() == 2){
-            //表明此次提交是第三次错误提交，直接标记为错题
-            Wrongquestion wrongquestion = new Wrongquestion();
-            wrongquestion.setQuestionId(question.getId());
-            wrongquestion.setStudentId(userId);
-            wrongquestion.setWrongSubmitNum(3);
-            boolean save = wrongquestionService.save(wrongquestion);
-            if (!save){
-                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "标记错题失败");
+            //表明此次提交是第三次错误提交，标记为错题
+            QueryWrapper<Wrongquestion> wrongquestionQueryWrapper = new QueryWrapper<>();
+            wrongquestionQueryWrapper.eq("questionId", question.getId());
+            wrongquestionQueryWrapper.eq("studentId", userId);
+            wrongquestionQueryWrapper.eq("is_Delete", 0);
+            Wrongquestion wrongquestion = wrongquestionService.getOne(wrongquestionQueryWrapper);
+            if (wrongquestion != null){
+                //有错题记录则更新错误提交数，没有则不需要操作
+                wrongquestion.setWrongSubmitNum(3);
+                boolean update = wrongquestionService.updateById(wrongquestion);
+                if (!update){
+                    throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新错题失败");
+                }
+            }else{
+                Wrongquestion wrongquestion2 = new Wrongquestion();
+                wrongquestion2.setQuestionId(question.getId());
+                wrongquestion2.setStudentId(userId);
+                wrongquestion2.setWrongSubmitNum(3);
+                boolean save = wrongquestionService.save(wrongquestion2);
+                if (!save){
+                    throw new BusinessException(ErrorCode.SYSTEM_ERROR, "标记错题失败");
+                }
             }
-        }else {
+
+        } else if (list.size() == 1) {
+            //表明此次提交是第二次错误提交，有可能在第一次错误提交的时候，用户已经手动标记为错题
+            QueryWrapper<Wrongquestion> wrongquestionQueryWrapper = new QueryWrapper<>();
+            wrongquestionQueryWrapper.eq("questionId", question.getId());
+            wrongquestionQueryWrapper.eq("studentId", userId);
+            wrongquestionQueryWrapper.eq("is_Delete", 0);
+            Wrongquestion wrongquestion = wrongquestionService.getOne(wrongquestionQueryWrapper);
+            if (wrongquestion != null){
+                //有错题记录则更新错误提交数，没有则不需要操作
+                wrongquestion.setWrongSubmitNum(wrongquestion.getWrongSubmitNum() + 1);
+                wrongquestionService.updateById(wrongquestion);
+            }
+        } else {
             //表明此次提交不是第三次错误提交，不需要任何操作
         }
     }

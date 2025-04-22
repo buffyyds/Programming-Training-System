@@ -84,7 +84,6 @@ public class WrongquestionServiceImpl extends ServiceImpl<WrongquestionMapper, W
         questionSubmit.eq("questionId",questionId);
         questionSubmit.eq("userId",userId);
         questionSubmit.eq("status",2);
-        questionSubmit.notLike("judgeInfo", JudgeInfoMessageEnum.ACCEPTED.getValue());
         List<QuestionSubmit> list = questionSubmitService.list(questionSubmit);
         ThrowUtils.throwIf(list.isEmpty(), ErrorCode.OPERATION_ERROR, "请先提交代码");
         //如果提交表中有该学生的提交数据，则可以标记

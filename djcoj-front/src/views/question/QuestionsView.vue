@@ -35,6 +35,20 @@
       }"
       @page-change="onPageChange"
     >
+      <template #status="{ record }">
+        <a-tooltip
+          :content="record.isWrongQuestion ? '已标记为错题' : '未标记为错题'"
+          position="right"
+        >
+          <div
+            class="wrong-question-indicator"
+            :class="{ 'is-wrong': record.isWrongQuestion }"
+          >
+            <icon-exclamation-circle-fill v-if="record.isWrongQuestion" />
+            <icon-check-circle-fill v-else />
+          </div>
+        </a-tooltip>
+      </template>
       <template #tags="{ record }">
         <a-space wrap>
           <a-tag v-for="(tag, index) of record.tags" :key="index" color="green"
@@ -42,13 +56,6 @@
           </a-tag>
         </a-space>
       </template>
-      <!--      <template #acceptedRate="{ record }">-->
-      <!--        {{-->
-      <!--          `${-->
-      <!--            record.submitNum ? record.acceptedNum / record.submitNum : "0"-->
-      <!--          }% (${record.acceptedNum}/${record.submitNum})`-->
-      <!--        }}-->
-      <!--      </template>-->
       <template #createTime="{ record }">
         {{ moment(record.createTime).format("YYYY-MM-DD") }}
       </template>
@@ -67,6 +74,30 @@
           <a-button type="primary" @click="toQuestionPage(record)">
             做题
           </a-button>
+          <template v-if="isStudent">
+            <a-button
+              v-if="record.isWrongQuestion && record.isCompletion"
+              type="outline"
+              status="danger"
+              @click="unDoWrongQuestion(record.id)"
+            >
+              <template #icon>
+                <icon-close />
+              </template>
+              取消错题标记
+            </a-button>
+            <a-button
+              v-else-if="!record.isWrongQuestion"
+              type="outline"
+              status="warning"
+              @click="doWrongQuestion(record.id)"
+            >
+              <template #icon>
+                <icon-exclamation />
+              </template>
+              标记错题
+            </a-button>
+          </template>
         </a-space>
       </template>
     </a-table>
@@ -74,12 +105,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watchEffect } from "vue";
+import { onMounted, ref, watchEffect, computed } from "vue";
 import {
   Page_Question_,
   Question,
   QuestionControllerService,
   QuestionQueryRequest,
+  WrongQuestionControllerService,
 } from "../../../generated";
 import message from "@arco-design/web-vue/es/message";
 import * as querystring from "querystring";
@@ -88,7 +120,16 @@ import moment from "moment";
 import {
   IconCheckCircleFill,
   IconCloseCircleFill,
+  IconExclamationCircleFill,
+  IconExclamation,
+  IconClose,
 } from "@arco-design/web-vue/es/icon";
+import { useStore } from "vuex";
+
+const store = useStore();
+const isStudent = computed(
+  () => store.state.user.loginUser?.userRole === "user"
+);
 
 const tableRef = ref();
 
@@ -130,6 +171,15 @@ onMounted(() => {
 // {id: "1", title: "A+ D", content: "新的题目内容", tags: "["二叉树"]", answer: "新的答案", submitNum: 0,…}
 
 const columns = [
+  ...(isStudent.value
+    ? [
+        {
+          title: "状态",
+          slotName: "status",
+          width: 60,
+        },
+      ]
+    : []),
   {
     title: "题号",
     dataIndex: "id",
@@ -142,15 +192,12 @@ const columns = [
     title: "标签",
     slotName: "tags",
   },
-  // {
-  //   title: "通过率",
-  //   slotName: "acceptedRate",
-  // },
   {
     title: "创建时间",
     slotName: "createTime",
   },
   {
+    title: "操作",
     slotName: "optional",
   },
 ];
@@ -246,6 +293,40 @@ const allTags = [
   "多线程",
   "分布式",
 ];
+
+// 标记错题
+const doWrongQuestion = async (questionId: string) => {
+  try {
+    const res = await WrongQuestionControllerService.doWrongQuestionUsingGet(
+      questionId
+    );
+    if (res.code === 0) {
+      message.success("标记成功");
+      loadData(); // 重新加载数据
+    } else {
+      message.error("标记失败：" + res.message);
+    }
+  } catch (error) {
+    message.error("标记失败");
+  }
+};
+
+// 取消错题标记
+const unDoWrongQuestion = async (questionId: string) => {
+  try {
+    const res = await WrongQuestionControllerService.unDoWrongQuestionUsingGet(
+      questionId
+    );
+    if (res.code === 0) {
+      message.success("取消标记成功");
+      loadData(); // 重新加载数据
+    } else {
+      message.error("取消标记失败：" + res.message);
+    }
+  } catch (error) {
+    message.error("取消标记失败");
+  }
+};
 </script>
 
 <style scoped>
@@ -282,7 +363,31 @@ const allTags = [
   font-size: 14px;
 }
 
+.wrong-question-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.wrong-question-indicator.is-wrong {
+  color: rgb(var(--red-6));
+  background-color: rgba(var(--red-1), 0.1);
+}
+
+.wrong-question-indicator:not(.is-wrong) {
+  color: rgb(var(--green-6));
+  background-color: rgba(var(--green-1), 0.1);
+}
+
 :deep(.arco-tag-icon) {
   margin-right: 4px;
+}
+
+:deep(.arco-btn) {
+  margin-left: 8px;
 }
 </style>

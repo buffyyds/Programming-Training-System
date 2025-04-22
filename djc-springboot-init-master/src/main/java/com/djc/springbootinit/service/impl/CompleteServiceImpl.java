@@ -4,10 +4,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.djc.springbootinit.common.ErrorCode;
 import com.djc.springbootinit.exception.ThrowUtils;
 import com.djc.springbootinit.model.entity.Complete;
+import com.djc.springbootinit.model.entity.User;
+import com.djc.springbootinit.model.enums.UserRoleEnum;
 import com.djc.springbootinit.model.vo.TeacherVo;
 import com.djc.springbootinit.service.CompleteService;
 import com.djc.springbootinit.mapper.CompleteMapper;
 import com.djc.springbootinit.service.TasService;
+import com.djc.springbootinit.service.UserService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -23,8 +26,16 @@ public class CompleteServiceImpl extends ServiceImpl<CompleteMapper, Complete>
     @Resource
     private TasService tasService;
 
+    @Resource
+    private UserService userService;
+
     @Override
     public void completeQuestion(Long studentId, Long questionId) {
+        //判断是否是学生
+        User user = userService.getById(studentId);
+        if (!user.getUserRole().equals(UserRoleEnum.USER.getValue())) {
+            return;
+        }
         //获取该学生的教师id
         TeacherVo teacherByStudentId = tasService.getTeacherByStudentId(studentId);
         ThrowUtils.throwIf(teacherByStudentId == null, ErrorCode.NOT_FOUND_ERROR,"该学生没有绑定教师");

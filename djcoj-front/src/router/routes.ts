@@ -88,6 +88,15 @@ export const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: "/teacher/students",
+    name: "学生列表",
+    component: () => import("../views/teacher/StudentListView.vue"),
+    meta: {
+      access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
+    },
+  },
+  {
     path: "/noAuth",
     name: "无权限",
     component: NoAuthView,
@@ -141,43 +150,6 @@ export const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: "/reservation/teacher",
-    name: "答疑预约管理",
-    component: TeacherReservationView,
-    meta: {
-      access: ACCESS_ENUM.TEACHER,
-      exclusive: true,
-    },
-  },
-  {
-    path: "/reservation/student",
-    name: "学生答疑预约",
-    component: StudentReservationView,
-    meta: {
-      access: ACCESS_ENUM.USER,
-      exclusive: true,
-    },
-  },
-  {
-    path: "/teacher/students",
-    name: "学生列表",
-    component: () => import("../views/teacher/StudentListView.vue"),
-    meta: {
-      access: ACCESS_ENUM.TEACHER,
-      exclusive: true,
-    },
-  },
-  {
-    path: "/reservation/statistics",
-    name: "预约情况统计",
-    component: () => import("../views/teacher/ReservationStatisticsView.vue"),
-    meta: {
-      access: ACCESS_ENUM.TEACHER,
-      exclusive: true,
-      hideInMenu: true,
-    },
-  },
-  {
     path: "/wrongQuestion/list",
     name: "学生错题",
     component: () => import("../views/teacher/WrongQuestionListView.vue"),
@@ -200,6 +172,34 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/wrongQuestion/statistics",
     name: "错题统计",
     component: () => import("../views/teacher/WrongQuestionAnalysisView.vue"),
+    meta: {
+      access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
+      hideInMenu: true,
+    },
+  },
+  {
+    path: "/reservation/teacher",
+    name: "答疑预约管理",
+    component: TeacherReservationView,
+    meta: {
+      access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
+    },
+  },
+  {
+    path: "/reservation/student",
+    name: "学生答疑预约",
+    component: StudentReservationView,
+    meta: {
+      access: ACCESS_ENUM.USER,
+      exclusive: true,
+    },
+  },
+  {
+    path: "/reservation/statistics",
+    name: "预约情况统计",
+    component: () => import("../views/teacher/ReservationStatisticsView.vue"),
     meta: {
       access: ACCESS_ENUM.TEACHER,
       exclusive: true,

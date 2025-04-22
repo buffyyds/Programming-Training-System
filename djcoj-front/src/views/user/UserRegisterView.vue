@@ -121,6 +121,7 @@ const handleSubmit = async () => {
   const loginRes = await UserControllerService.userLoginUsingPost(loginForm);
   // 注册成功，自动登录刚刚注册成功的用户，并跳转到主页
   if (registRes.code === 0) {
+    message.success("注册成功！");
     if (loginRes.code === 0) {
       await store.dispatch("user/getLoginUser");
     } else {

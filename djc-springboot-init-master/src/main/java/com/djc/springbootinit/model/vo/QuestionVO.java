@@ -98,6 +98,11 @@ public class QuestionVO implements Serializable {
     private Boolean isCompletion;
 
     /**
+     * 当前用户是否标记该题为错题
+     */
+    private Boolean isWrongQuestion;
+
+    /**
      * 包装类转对象
      *
      * @param questionVO

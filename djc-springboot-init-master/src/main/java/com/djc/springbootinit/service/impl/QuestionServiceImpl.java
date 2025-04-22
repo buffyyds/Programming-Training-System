@@ -13,16 +13,15 @@ import com.djc.springbootinit.exception.BusinessException;
 import com.djc.springbootinit.exception.ThrowUtils;
 import com.djc.springbootinit.mapper.QuestionMapper;
 import com.djc.springbootinit.model.dto.questionsubmit.QuestionSubmitAddRequest;
+import com.djc.springbootinit.model.enums.JudgeInfoMessageEnum;
+import com.djc.springbootinit.model.enums.UserRoleEnum;
 import com.djc.springbootinit.model.vo.TeacherVo;
-import com.djc.springbootinit.service.QuestionSubmitService;
-import com.djc.springbootinit.service.TasService;
+import com.djc.springbootinit.service.*;
 import org.apache.commons.collections4.CollectionUtils;
 import com.djc.springbootinit.model.dto.question.QuestionQueryRequest;
 import com.djc.springbootinit.model.entity.*;
 import com.djc.springbootinit.model.vo.QuestionVO;
 import com.djc.springbootinit.model.vo.UserVO;
-import com.djc.springbootinit.service.QuestionService;
-import com.djc.springbootinit.service.UserService;
 import com.djc.springbootinit.utils.SqlUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,6 +54,10 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
     @Autowired
     @Lazy
     private QuestionSubmitService questionSubmitService;
+
+    @Autowired
+    @Lazy
+    private WrongquestionService wrongquestionService;
 
     /**
      * 校验题目是否合法
@@ -181,8 +184,12 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
             return questionVO;
         }).collect(Collectors.toList());
         // 2. 关联查询提交信息用于判断是否完成
-        Long loginUserId = userService.getLoginUser(request).getId();
+        User loginUser = userService.getLoginUser(request);
+        Long loginUserId = loginUser.getId();
         questionVOList = getQuestionCompleteByUserId(loginUserId, questionVOList);
+        if(loginUser.getUserRole().equals(UserRoleEnum.USER.getValue())){
+            questionVOList = getIsWrongQuestionByUserId(loginUserId, questionVOList);
+        }
         questionVOPage.setRecords(questionVOList);
         return questionVOPage;
     }
@@ -268,7 +275,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("DISTINCT questionId")  // 去重，避免重复判断
                 .eq("userId", userId)
-                .like("judgeInfo", "成功")  // 只查询通过的提交记录
+                .like("judgeInfo", JudgeInfoMessageEnum.ACCEPTED.getValue())  // 只查询通过的提交记录
                 .in("questionId", questionIds);
         // 3. 获取该用户已完成的题目ID集合
         Set<Long> completedIds = questionSubmitService.list(queryWrapper)
@@ -278,6 +285,32 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         // 4. 批量设置完成状态
         questionVOList.forEach(questionVO ->
                 questionVO.setIsCompletion(completedIds.contains(questionVO.getId()))
+        );
+        return questionVOList;
+    }
+
+    public List<QuestionVO> getIsWrongQuestionByUserId(Long userId, List<QuestionVO> questionVOList) {
+        // 1. 收集所有问题ID
+        List<Long> questionIds = questionVOList.stream()
+                .map(QuestionVO::getId)
+                .collect(Collectors.toList());
+        if (questionIds.isEmpty()) {
+            return questionVOList;
+        }
+        // 2. 批量查询该用户所有相关提交记录
+        QueryWrapper<Wrongquestion> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("DISTINCT questionId")  // 去重，避免重复判断
+                .eq("studentId", userId)
+                .eq("is_Delete", 0)
+                .in("questionId", questionIds);
+        // 3. 获取该用户标记为错题的题目ID集合
+        Set<Long> wrongQuestionIds = wrongquestionService.list(queryWrapper)
+                .stream()
+                .map(Wrongquestion::getQuestionId)
+                .collect(Collectors.toSet());
+        // 4. 批量设置完成状态
+        questionVOList.forEach(questionVO ->
+                questionVO.setIsWrongQuestion(wrongQuestionIds.contains(questionVO.getId()))
         );
         return questionVOList;
     }
