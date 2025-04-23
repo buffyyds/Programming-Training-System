@@ -11,6 +11,7 @@ export type QuestionVO = {
     favourNum?: number;
     id?: number;
     isCompletion?: boolean;
+    isWrongQuestion?: boolean;
     judgeCase?: string;
     judgeConfig?: JudgeConfig;
     studentNum?: number;

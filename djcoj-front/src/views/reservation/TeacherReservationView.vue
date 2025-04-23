@@ -373,6 +373,35 @@ const updateTimeSlot = async () => {
     return;
   }
 
+  // 时间校验
+  const now = dayjs();
+  const selectedDateTime = dayjs(selectedDate.value);
+  const startDateTime = dayjs(
+    `${selectedDateTime.format("YYYY-MM-DD")} ${startTime.value}`
+  );
+  const endDateTime = dayjs(
+    `${selectedDateTime.format("YYYY-MM-DD")} ${endTime.value}`
+  );
+
+  // 校验规则：
+  // 1. 预约日期不能小于今天
+  // 2. 如果选择今天，开始时间不能小于当前时间
+  // 3. 结束时间必须大于开始时间
+  if (selectedDateTime.isBefore(now, "day")) {
+    Message.warning("预约日期不能小于今天");
+    return;
+  }
+
+  if (selectedDateTime.isSame(now, "day") && startDateTime.isBefore(now)) {
+    Message.warning("开始时间不能小于当前时间");
+    return;
+  }
+
+  if (endDateTime.isBefore(startDateTime)) {
+    Message.warning("结束时间必须大于开始时间");
+    return;
+  }
+
   const date = dayjs(selectedDate.value).format("YYYY-MM-DD");
   const timeSlot = `${date} ${startTime.value}-${endTime.value}`;
 

@@ -25,7 +25,7 @@ public interface TasService extends IService<Tas> {
 
     boolean unDoBind(User loginUser);
 
-    boolean kickStudent(Long teacherId, List<Long> studentIds);
+    boolean kickStudent(Long teacherId, Long studentId);
 
 
 }

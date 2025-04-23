@@ -95,6 +95,11 @@ public class PostController {
         // 判断是否存在
         Post oldPost = postService.getById(id);
         ThrowUtils.throwIf(oldPost == null, ErrorCode.NOT_FOUND_ERROR);
+        Boolean isReply = oldPost.getIsReply();
+        if (isReply) {
+            // 如果是回复类型的评论，则只删除此条评论
+            return ResultUtils.success(postService.removeById(id));
+        }
         // 仅本人或管理员可删除
         if (!oldPost.getUserId().equals(user.getId()) && !userService.isTeacher(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);

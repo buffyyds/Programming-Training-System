@@ -46,18 +46,19 @@ export class TasControllerService {
 
   /**
    * kickStudent
-   * @param studentIds studentIds
+   * @param studentId studentId
    * @returns BaseResponse_string_ OK
-   * @returns any Created
    * @throws ApiError
    */
-  public static kickStudentUsingPost(
-    studentIds: Array<number>
-  ): CancelablePromise<BaseResponse_string_ | any> {
+  public static kickStudentUsingGet(
+    studentId?: number
+  ): CancelablePromise<BaseResponse_string_> {
     return __request(OpenAPI, {
-      method: "POST",
+      method: "GET",
       url: "/api/TAS/kickStudent",
-      body: studentIds,
+      query: {
+        studentId: studentId,
+      },
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,

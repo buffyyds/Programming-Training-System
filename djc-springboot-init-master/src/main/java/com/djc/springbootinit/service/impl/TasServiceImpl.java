@@ -127,21 +127,20 @@ public class TasServiceImpl extends ServiceImpl<TasMapper, Tas>
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean kickStudent(Long teacherId, List<Long> studentIds) {
+    public boolean kickStudent(Long teacherId, Long studentId) {
         //教师踢出学生
         //先删除user表中的adminCode
         UpdateWrapper<User> updateWrapperUser = new UpdateWrapper<>();
         updateWrapperUser
-                .in("id", studentIds)  // 指定更新条件
-                .set("adminCode", null);       // 强制设置 studentId 为 null
+                .eq("id", studentId)  // 指定更新条件
+                .set("adminCode", null);       // 强制设置 adminCode 为 null
         boolean update = userService.update(updateWrapperUser);
         if (!update) {
             return false;
         }
         QueryWrapper<Tas> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("teacherId", teacherId);
-        queryWrapper.eq("isDelete", 0);
-        queryWrapper.in("studentId", studentIds);
+        queryWrapper.eq("studentId", studentId);
         return this.remove(queryWrapper);
     }
 

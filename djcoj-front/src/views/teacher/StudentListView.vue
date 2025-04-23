@@ -112,9 +112,9 @@ const handleKick = async (studentId: string) => {
     });
 
     if (!confirmed) return;
-    const res = await TasControllerService.kickStudentUsingPost(studentId);
+    const res = await TasControllerService.kickStudentUsingGet(studentId);
     if (res.code === 0) {
-      Message.success("操作成功");
+      Message.success("踢出成功");
       // 重新获取学生列表
       await getStudentList();
     } else {

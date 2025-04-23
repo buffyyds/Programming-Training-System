@@ -73,11 +73,11 @@ public class TASController {
     /**
      * 教师踢出学生
      */
-    @PostMapping("kickStudent")
+    @GetMapping("kickStudent")
     @AuthCheck(mustRole = UserConstant.TEACHER_ROLE)
-    public BaseResponse<String> kickStudent(@RequestBody List<Long> studentIds, HttpServletRequest request) {
+    public BaseResponse<String> kickStudent(Long studentId, HttpServletRequest request) {
         Long teacherId = userService.getLoginUser(request).getId();
-        boolean b = tasService.kickStudent(teacherId, studentIds);
+        boolean b = tasService.kickStudent(teacherId, studentId);
         return b ? ResultUtils.success("踢出学生成功") : ResultUtils.error(ErrorCode.OPERATION_ERROR,"踢出学生失败");
     }
 
