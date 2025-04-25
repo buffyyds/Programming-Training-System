@@ -134,7 +134,8 @@ const visibleRoutes = computed(() => {
       !checkAccess(
         store.state.user.loginUser,
         item?.meta?.access as string,
-        item?.meta?.exclusive as boolean
+        item?.meta?.exclusive as boolean,
+        item?.meta?.maxAccess as boolean
       )
     ) {
       return false;

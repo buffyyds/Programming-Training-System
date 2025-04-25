@@ -100,6 +100,14 @@
                         >
                           <icon-delete /> 删除
                         </span>
+                        <span
+                          v-if="comment.isContainsSensitiveWord"
+                          class="sensitive-tag"
+                        >
+                          <a-tooltip content="该评论包含敏感词">
+                            <icon-exclamation-circle />
+                          </a-tooltip>
+                        </span>
                       </template>
                       <!-- 回复输入框 -->
                       <div v-if="comment.showReplyInput" class="reply-input">
@@ -155,6 +163,14 @@
                               @click="deleteComment(reply)"
                             >
                               <icon-delete /> 删除
+                            </span>
+                            <span
+                              v-if="reply.isContainsSensitiveWord"
+                              class="sensitive-tag"
+                            >
+                              <a-tooltip content="该评论包含敏感词">
+                                <icon-exclamation-circle />
+                              </a-tooltip>
                             </span>
                           </template>
                         </a-comment>
@@ -390,6 +406,7 @@ import {
   IconDelete,
   IconHeart,
   IconHeartFill,
+  IconExclamationCircle,
 } from "@arco-design/web-vue/es/icon";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -532,7 +549,7 @@ const checkCanViewAnswer = async (forceCheck = false) => {
       userId: userId,
     });
 
-  if (res.code === 0) {
+    if (res.code === 0) {
       // 如果通过了，获取答案
       if (res.data === true) {
         const answer = await QuestionControllerService.getAnswerByIdUsingGet(
@@ -697,10 +714,10 @@ const doSubmit = async () => {
       form.value
     );
     if (res.code === 0 && res.data) {
-    message.success("提交成功");
+      message.success("提交成功");
       // 开始轮询判题结果
       startPolling(res.data);
-  } else {
+    } else {
       submitting.value = false;
       message.error("提交失败，" + res.message);
     }
@@ -778,6 +795,7 @@ interface PostVO {
   reply?: PostVO[];
   showReplyInput?: boolean;
   replyContent?: string;
+  isContainsSensitiveWord?: boolean;
 }
 
 // 评论相关的状态
@@ -1683,5 +1701,30 @@ watch(
   background-color: #2a2d35;
   border: 1px solid #424242;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.sensitive-tag {
+  display: inline-flex;
+  align-items: center;
+  color: #ff4d4f;
+  margin-left: 8px;
+  cursor: help;
+}
+
+.sensitive-tag .icon-exclamation-circle {
+  font-size: 16px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 </style>

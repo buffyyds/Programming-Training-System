@@ -74,6 +74,11 @@ public class ReplyVO {
      */
     private Boolean isRead;
 
+    /**
+     * 是否包含敏感词
+     */
+    private Boolean isContainsSensitiveWord;
+
     private static final long serialVersionUID = 1L;
 
 

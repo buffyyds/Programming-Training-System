@@ -41,6 +41,10 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/",
     name: "主页",
     component: QuestionsView,
+    meta: {
+      access: ACCESS_ENUM.ADMIN,
+      maxAccess: true,
+    },
   },
   // {
   //   path: "/questions",
@@ -51,6 +55,10 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/question_submit",
     name: "浏览题目提交",
     component: QuestionSubmitView,
+    meta: {
+      access: ACCESS_ENUM.ADMIN,
+      maxAccess: true,
+    },
   },
   {
     path: "/view/question/:id",
@@ -58,7 +66,8 @@ export const routes: Array<RouteRecordRaw> = [
     component: ViewQuestionView,
     props: true,
     meta: {
-      access: ACCESS_ENUM.USER,
+      access: ACCESS_ENUM.ADMIN,
+      maxAccess: true,
       hideInMenu: true,
     },
   },
@@ -68,6 +77,7 @@ export const routes: Array<RouteRecordRaw> = [
     component: AddQuestionView,
     meta: {
       access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
     },
   },
   {
@@ -76,6 +86,7 @@ export const routes: Array<RouteRecordRaw> = [
     component: ManageQuestionView,
     meta: {
       access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
     },
   },
   {
@@ -84,6 +95,7 @@ export const routes: Array<RouteRecordRaw> = [
     component: AddQuestionView,
     meta: {
       access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
       hideInMenu: true,
     },
   },
@@ -137,6 +149,7 @@ export const routes: Array<RouteRecordRaw> = [
     component: StudentProgressView,
     meta: {
       access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
     },
   },
   {
@@ -146,6 +159,7 @@ export const routes: Array<RouteRecordRaw> = [
     props: true,
     meta: {
       access: ACCESS_ENUM.TEACHER,
+      exclusive: true,
       hideInMenu: true,
     },
   },
@@ -204,6 +218,24 @@ export const routes: Array<RouteRecordRaw> = [
       access: ACCESS_ENUM.TEACHER,
       exclusive: true,
       hideInMenu: true,
+    },
+  },
+  {
+    path: "/user/Management/",
+    name: "用户管理",
+    component: () => import("../views/admin/UserManagementView.vue"),
+    meta: {
+      access: ACCESS_ENUM.ADMIN,
+      exclusive: true,
+    },
+  },
+  {
+    path: "/post/SensitiveWordManagement/",
+    name: "敏感评论管理",
+    component: () => import("../views/admin/CommentManagementView.vue"),
+    meta: {
+      access: ACCESS_ENUM.ADMIN,
+      exclusive: true,
     },
   },
 ];

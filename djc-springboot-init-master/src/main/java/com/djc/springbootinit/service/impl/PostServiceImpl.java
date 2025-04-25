@@ -15,10 +15,9 @@ import com.djc.springbootinit.model.entity.PostThumb;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.PostVO;
 import com.djc.springbootinit.model.vo.ReplyVO;
+import com.djc.springbootinit.model.vo.SensitiveWordPostVO;
 import com.djc.springbootinit.model.vo.UserVO;
-import com.djc.springbootinit.service.PostService;
-import com.djc.springbootinit.service.ReplyService;
-import com.djc.springbootinit.service.UserService;
+import com.djc.springbootinit.service.*;
 import com.djc.springbootinit.utils.SqlUtils;
 
 import java.util.*;
@@ -59,9 +58,6 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     private PostThumbMapper postThumbMapper;
 
     @Resource
-    private PostFavourMapper postFavourMapper;
-
-    @Resource
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
 
     @Autowired
@@ -69,6 +65,12 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     @Autowired
     private PostMapper postMapper;
+
+    @Autowired
+    private SensitiveWordService sensitiveWordService;
+
+    @Autowired
+    private QuestionService questionService;
 
     /**
      * 获取查询包装类
@@ -241,8 +243,20 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                 Map<Long, Boolean> longBooleanMap = searchThumbPost(reply, loginUser.getId());
                 replyVOList.forEach(replyVO -> {
                     replyVO.setHasThumb(longBooleanMap.get(replyVO.getId()));
+                    if (sensitiveWordService.isContainsSensitiveWord(replyVO.getContent())){
+                        replyVO.setContent(sensitiveWordService.desensitizeSensitiveWord(replyVO.getContent()));
+                        replyVO.setIsContainsSensitiveWord(true);
+                    }else{
+                        replyVO.setIsContainsSensitiveWord(false);
+                    }
                 });
                 postVO.setReply(replyVOList);
+            }
+            if (sensitiveWordService.isContainsSensitiveWord(post.getContent())){
+                postVO.setContent(sensitiveWordService.desensitizeSensitiveWord(post.getContent()));
+                postVO.setIsContainsSensitiveWord(true);
+            }else{
+                postVO.setIsContainsSensitiveWord(false);
             }
             return postVO;
         }).collect(Collectors.toList());
@@ -309,6 +323,24 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         queryWrapper1.eq("isRead", 0);
         queryWrapper1.ne("userId", id);
         return baseMapper.selectCount(queryWrapper1);
+    }
+
+    @Override
+    public List<SensitiveWordPostVO> getHasSensitiveWordPostList(List<Post> postList) {
+        // 获取包含敏感词的评论
+        return postList.stream()
+                .filter(post -> sensitiveWordService.isContainsSensitiveWord(post.getContent()))
+                .map(post -> {
+                    SensitiveWordPostVO sensitiveWordPostVO = new SensitiveWordPostVO();
+                    sensitiveWordPostVO.setId(post.getId());
+                    sensitiveWordPostVO.setUser(userService.getUserVO(userService.getById(post.getUserId())));
+                    sensitiveWordPostVO.setContent(post.getContent());
+                    sensitiveWordPostVO.setCreateTime(post.getCreateTime());
+                    sensitiveWordPostVO.setQuestionName(questionService.getById(post.getQuestionId()).getTitle());
+                    sensitiveWordPostVO.setThumbNum(post.getThumbNum());
+                    return sensitiveWordPostVO;
+                })
+                .collect(Collectors.toList());
     }
 
 }

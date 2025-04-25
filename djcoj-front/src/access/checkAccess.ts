@@ -6,15 +6,33 @@ import ACCESS_ENUM from "@/access/accessEnum";
  * @param loginUser 当前登录用户
  * @param needAccess 需要的权限
  * @param exclusive 是否需要精确匹配
+ * @param maxAccess 最大可见权限等级
  * @return boolean 有无权限
  */
 const checkAccess = (
   loginUser: any,
   needAccess = ACCESS_ENUM.NOT_LOGIN,
-  exclusive = false
+  exclusive = false,
+  maxAccess = false
 ) => {
   //获取当前登录用户具有的权限 (没有loginUser则默认为未登录)
   const loginUserAccess = loginUser?.userRole ?? ACCESS_ENUM.NOT_LOGIN;
+  // 如果设置了最大可见权限等级，则只有角色等级小于等于指定角色的用户才能看到
+  if (maxAccess) {
+    // 定义角色等级映射
+    const roleLevel = {
+      [ACCESS_ENUM.NOT_LOGIN]: 0,
+      [ACCESS_ENUM.USER]: 1,
+      [ACCESS_ENUM.TEACHER]: 2,
+      [ACCESS_ENUM.ADMIN]: 3,
+    };
+    // 如果用户角色等级大于指定角色等级，则无权限
+    if (roleLevel[loginUserAccess] >= roleLevel[needAccess]) {
+      return false;
+    } else {
+      return true;
+    }
+  }
   if (needAccess === ACCESS_ENUM.NOT_LOGIN) {
     return true;
   }

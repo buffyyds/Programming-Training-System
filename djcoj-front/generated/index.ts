@@ -9,6 +9,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { BaseResponse_boolean_ } from './models/BaseResponse_boolean_';
 export type { BaseResponse_int_ } from './models/BaseResponse_int_';
+export type { BaseResponse_List_Post_ } from './models/BaseResponse_List_Post_';
 export type { BaseResponse_List_QuestionCompletionVO_ } from './models/BaseResponse_List_QuestionCompletionVO_';
 export type { BaseResponse_List_ReplyVO_ } from './models/BaseResponse_List_ReplyVO_';
 export type { BaseResponse_List_ReservationPerformanceVO_ } from './models/BaseResponse_List_ReservationPerformanceVO_';

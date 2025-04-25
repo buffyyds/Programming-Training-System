@@ -8,6 +8,7 @@ export type ReplyVO = {
     createTime?: string;
     hasThumb?: boolean;
     id?: number;
+    isContainsSensitiveWord?: boolean;
     isRead?: boolean;
     isReply?: boolean;
     questionId?: number;

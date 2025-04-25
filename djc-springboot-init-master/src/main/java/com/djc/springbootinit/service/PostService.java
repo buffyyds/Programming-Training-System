@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.djc.springbootinit.model.dto.post.PostQueryRequest;
 import com.djc.springbootinit.model.entity.Post;
 import com.djc.springbootinit.model.vo.PostVO;
+import com.djc.springbootinit.model.vo.SensitiveWordPostVO;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
@@ -73,4 +75,6 @@ public interface PostService extends IService<Post> {
     long getCommentPagePosition(long questionId, long commentId);
 
     Long getUnread(Long id);
+
+    List<SensitiveWordPostVO> getHasSensitiveWordPostList(List<Post> postList);
 }

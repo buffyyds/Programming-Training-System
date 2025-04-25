@@ -79,6 +79,7 @@ public interface UserService extends IService<User> {
      */
     boolean isTeacher(User user);
 
+    boolean isAdmin(User user);
     /**
      * 用户注销
      *

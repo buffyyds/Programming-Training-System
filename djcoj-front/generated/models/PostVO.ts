@@ -9,6 +9,7 @@ export type PostVO = {
     createTime?: string;
     hasThumb?: boolean;
     id?: number;
+    isContainsSensitiveWord?: boolean;
     isReply?: boolean;
     questionId?: number;
     reply?: Array<ReplyVO>;

@@ -18,6 +18,7 @@ router.beforeEach(async (to, from, next) => {
   }
   const needAccess = (to.meta?.access as string) ?? ACCESS_ENUM.NOT_LOGIN;
   const exclusive = (to.meta?.exclusive as boolean) ?? false;
+  const maxAccess = (to.meta?.maxAccess as boolean) ?? false;
   // 要跳转的页面必须要的权限
   if (needAccess !== ACCESS_ENUM.NOT_LOGIN) {
     // 如果没登录，跳转到登录页
@@ -26,7 +27,7 @@ router.beforeEach(async (to, from, next) => {
       return;
     }
     // 如果已经登录了，但是权限不足，那么跳转到无权限页面
-    if (!checkAccess(loginUser, needAccess, exclusive)) {
+    if (!checkAccess(loginUser, needAccess, exclusive, maxAccess)) {
       next("/noAuth");
       return;
     }

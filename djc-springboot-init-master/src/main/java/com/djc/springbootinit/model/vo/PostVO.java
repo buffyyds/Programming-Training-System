@@ -76,6 +76,11 @@ public class PostVO implements Serializable {
     private List<ReplyVO> reply;
 
     /**
+     * 是否包含敏感词
+     */
+    private Boolean isContainsSensitiveWord;
+
+    /**
      * 包装类转对象
      *
      * @param postVO

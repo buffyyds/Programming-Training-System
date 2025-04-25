@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BaseResponse_boolean_ } from "../models/BaseResponse_boolean_";
+import type { BaseResponse_List_Post_ } from "../models/BaseResponse_List_Post_";
 import type { BaseResponse_long_ } from "../models/BaseResponse_long_";
 import type { BaseResponse_Page_Post_ } from "../models/BaseResponse_Page_Post_";
 import type { BaseResponse_Page_PostVO_ } from "../models/BaseResponse_Page_PostVO_";
@@ -74,6 +75,23 @@ export class PostControllerService {
       method: "POST",
       url: "/api/post/edit",
       body: postEditRequest,
+      errors: {
+        401: `Unauthorized`,
+        403: `Forbidden`,
+        404: `Not Found`,
+      },
+    });
+  }
+
+  /**
+   * getHasSensitiveWordPostList
+   * @returns BaseResponse_List_Post_ OK
+   * @throws ApiError
+   */
+  public static getHasSensitiveWordPostListUsingGet(): CancelablePromise<BaseResponse_List_Post_> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/post/get/hasSensitiveWordPostList",
       errors: {
         401: `Unauthorized`,
         403: `Forbidden`,

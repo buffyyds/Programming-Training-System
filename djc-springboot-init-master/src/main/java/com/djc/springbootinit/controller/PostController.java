@@ -14,6 +14,7 @@ import com.djc.springbootinit.model.dto.post.*;
 import com.djc.springbootinit.model.entity.Post;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.PostVO;
+import com.djc.springbootinit.model.vo.SensitiveWordPostVO;
 import com.djc.springbootinit.service.PostService;
 import com.djc.springbootinit.service.ReplyService;
 import com.djc.springbootinit.service.UserService;
@@ -101,7 +102,7 @@ public class PostController {
             return ResultUtils.success(postService.removeById(id));
         }
         // 仅本人或管理员可删除
-        if (!oldPost.getUserId().equals(user.getId()) && !userService.isTeacher(request)) {
+        if (!oldPost.getUserId().equals(user.getId()) && !userService.isAdmin(user)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         //删除该评论下的所有回复（这里好像和上面的校验又有一点矛盾，但是我也不知道咋说）
@@ -254,6 +255,17 @@ public class PostController {
     public BaseResponse<Long> getUnread(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         return ResultUtils.success(postService.getUnread(loginUser.getId()));
+    }
+
+    /**
+     * 管理员获取包含敏感词的评论
+     */
+    @GetMapping("/get/hasSensitiveWordPostList")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<List<SensitiveWordPostVO>> getHasSensitiveWordPostList() {
+        List<Post> postList = postService.list();
+        List<SensitiveWordPostVO> postVOList = postService.getHasSensitiveWordPostList(postList);
+        return ResultUtils.success(postVOList);
     }
 
 }
