@@ -20,6 +20,20 @@
         </div>
       </template>
 
+      <!-- 状态过滤 -->
+      <div class="filter-section">
+        <a-radio-group
+          v-model="currentStatus"
+          type="button"
+          @change="handleStatusChange"
+        >
+          <a-radio value="all">全部</a-radio>
+          <a-radio value="available">未预约</a-radio>
+          <a-radio value="reserved">已预约</a-radio>
+          <a-radio value="expired">已过期</a-radio>
+        </a-radio-group>
+      </div>
+
       <!-- 时间选择器 -->
       <div class="time-picker-section">
         <a-space>
@@ -53,10 +67,20 @@
 
       <!-- 预约列表 -->
       <a-table
-        :data="reservationList"
+        :data="filteredAndPaginatedReservations"
         :loading="loading"
-        :pagination="pagination"
+        :pagination="{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: filteredReservations.length,
+          showTotal: true,
+          showJumper: true,
+          showPageSize: true,
+          pageSizeOptions: [10, 20, 30, 50],
+          size: 'small',
+        }"
         @page-change="onPageChange"
+        @page-size-change="onPageSizeChange"
         class="reservation-table"
       >
         <template #columns>
@@ -70,8 +94,8 @@
           </a-table-column>
           <a-table-column title="预约状态" data-index="isReservation">
             <template #cell="{ record }">
-              <a-tag :color="record.isReservation ? 'green' : 'red'">
-                {{ record.isReservation ? "已预约" : "未预约" }}
+              <a-tag :color="getStatusColor(record)">
+                {{ getStatusText(record) }}
               </a-tag>
             </template>
           </a-table-column>
@@ -87,6 +111,7 @@
             <template #cell="{ record }">
               <a-space>
                 <a-button
+                  v-if="!isExpired(record)"
                   type="outline"
                   status="warning"
                   @click="showUpdateModal(record)"
@@ -94,6 +119,7 @@
                   修改
                 </a-button>
                 <a-button
+                  v-if="!isExpired(record)"
                   type="text"
                   status="danger"
                   @click="deleteTimeSlot(record.id)"
@@ -119,7 +145,7 @@
       v-model:visible="showDetailModal"
       title="预约详情"
       @cancel="handleModalClose"
-      :footer="null"
+      :footer="false"
     >
       <div class="detail-container" v-if="currentReservation">
         <div class="detail-item">
@@ -189,7 +215,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import {
@@ -207,6 +233,7 @@ const loading = ref(false);
 const reservationList = ref<any[]>([]);
 const showDetailModal = ref(false);
 const currentReservation = ref<any>(null);
+const currentStatus = ref("all");
 
 // 分页相关
 const pagination = ref({
@@ -214,6 +241,64 @@ const pagination = ref({
   current: 1,
   pageSize: 10,
 });
+
+// 判断是否过期
+const isExpired = (record: any) => {
+  const timeSlot = dayjs(record.time_slot);
+  return timeSlot.isBefore(dayjs());
+};
+
+// 获取状态颜色
+const getStatusColor = (record: any) => {
+  if (isExpired(record)) {
+    return "gray";
+  }
+  return record.isReservation ? "green" : "red";
+};
+
+// 获取状态文本
+const getStatusText = (record: any) => {
+  if (isExpired(record)) {
+    return "已过期";
+  }
+  return record.isReservation ? "已预约" : "未预约";
+};
+
+// 过滤后的预约列表
+const filteredReservations = computed(() => {
+  return reservationList.value.filter((record) => {
+    if (currentStatus.value === "all") return true;
+    if (currentStatus.value === "expired") return isExpired(record);
+    if (currentStatus.value === "reserved")
+      return record.isReservation && !isExpired(record);
+    if (currentStatus.value === "available")
+      return !record.isReservation && !isExpired(record);
+    return true;
+  });
+});
+
+// 分页后的数据
+const filteredAndPaginatedReservations = computed(() => {
+  const start = (pagination.value.current - 1) * pagination.value.pageSize;
+  const end = start + pagination.value.pageSize;
+  return filteredReservations.value.slice(start, end);
+});
+
+// 状态变化处理
+const handleStatusChange = () => {
+  pagination.value.current = 1; // 切换状态时重置到第一页
+};
+
+// 分页变化处理
+const onPageChange = (current: number) => {
+  pagination.value.current = current;
+};
+
+// 每页条数变化处理
+const onPageSizeChange = (pageSize: number) => {
+  pagination.value.pageSize = pageSize;
+  pagination.value.current = 1;
+};
 
 // 时间选择相关
 const selectedDate = ref<Date>();
@@ -331,12 +416,6 @@ const loadReservations = async () => {
   } finally {
     loading.value = false;
   }
-};
-
-// 分页变化
-const onPageChange = (page: number) => {
-  pagination.value.current = page;
-  loadReservations();
 };
 
 // 跳转到统计页面
@@ -551,5 +630,9 @@ onMounted(() => {
 .time-separator {
   color: var(--color-text-3);
   font-size: 14px;
+}
+
+.filter-section {
+  margin-bottom: 16px;
 }
 </style>

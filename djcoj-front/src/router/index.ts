@@ -28,6 +28,10 @@ router.beforeEach(async (to, from, next) => {
     }
     // 如果已经登录了，但是权限不足，那么跳转到无权限页面
     if (!checkAccess(loginUser, needAccess, exclusive, maxAccess)) {
+      if (loginUser.userRole === ACCESS_ENUM.ADMIN) {
+        next("/admin/Management");
+        return;
+      }
       next("/noAuth");
       return;
     }

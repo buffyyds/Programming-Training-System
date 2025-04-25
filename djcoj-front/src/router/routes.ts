@@ -38,6 +38,24 @@ export const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: "/admin/Management/",
+    name: "用户管理",
+    component: () => import("../views/admin/UserManagementView.vue"),
+    meta: {
+      access: ACCESS_ENUM.ADMIN,
+      exclusive: true,
+    },
+  },
+  {
+    path: "/post/SensitiveWordManagement/",
+    name: "敏感评论管理",
+    component: () => import("../views/admin/CommentManagementView.vue"),
+    meta: {
+      access: ACCESS_ENUM.ADMIN,
+      exclusive: true,
+    },
+  },
+  {
     path: "/",
     name: "主页",
     component: QuestionsView,
@@ -135,7 +153,7 @@ export const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: "/user/bind-teacher",
+    path: "/student/bind-teacher",
     name: "绑定教师",
     component: () => import("../views/user/BindTeacherView.vue"),
     meta: {
@@ -218,24 +236,6 @@ export const routes: Array<RouteRecordRaw> = [
       access: ACCESS_ENUM.TEACHER,
       exclusive: true,
       hideInMenu: true,
-    },
-  },
-  {
-    path: "/user/Management/",
-    name: "用户管理",
-    component: () => import("../views/admin/UserManagementView.vue"),
-    meta: {
-      access: ACCESS_ENUM.ADMIN,
-      exclusive: true,
-    },
-  },
-  {
-    path: "/post/SensitiveWordManagement/",
-    name: "敏感评论管理",
-    component: () => import("../views/admin/CommentManagementView.vue"),
-    meta: {
-      access: ACCESS_ENUM.ADMIN,
-      exclusive: true,
     },
   },
 ];
