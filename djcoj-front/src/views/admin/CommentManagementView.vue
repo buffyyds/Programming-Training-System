@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { Message } from "@arco-design/web-vue";
+import { Message, Modal } from "@arco-design/web-vue";
 import { PostControllerService } from "../../../generated";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -95,7 +95,7 @@ const onPageChange = (current: number) => {
 
 // 删除评论
 const handleDelete = (record: any) => {
-  Message.warning({
+  Modal.confirm({
     content: "确定要删除该评论吗？",
     okText: "确定",
     cancelText: "取消",

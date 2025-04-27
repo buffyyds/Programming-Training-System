@@ -1,6 +1,7 @@
 package com.djc.springbootinit.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.djc.springbootinit.annotation.AuthCheck;
 import com.djc.springbootinit.common.BaseResponse;
@@ -28,6 +29,7 @@ import com.djc.springbootinit.service.UserService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -204,6 +206,20 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         //TODO 要把用户的所有信息都删除，包括其他表的连带数据
+        //获取要删除用户的角色
+        User user = userService.getById(deleteRequest.getId());
+        if (user.getUserRole().equals(UserConstant.ADMIN_ROLE)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "不能删除管理员");
+        }else {
+            //删除教师学生关系
+            tasService.deleteTeacherStudent(user);
+            //TODO 删除用户关联表信息：
+            //删除预约表信息
+            //删除评论信息
+            //删除错题信息
+            //删除题目信息
+            //删除提示表信息
+        }
         boolean b = userService.removeById(deleteRequest.getId());
         return ResultUtils.success(b);
     }

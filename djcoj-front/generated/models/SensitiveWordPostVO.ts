@@ -3,10 +3,12 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { UserVO } from './UserVO';
-export type StudentsVo = {
+export type SensitiveWordPostVO = {
+    content?: string;
     createTime?: string;
     id?: number;
-    teacher?: UserVO;
-    userName?: string;
+    questionName?: string;
+    thumbNum?: number;
+    user?: UserVO;
 };
 

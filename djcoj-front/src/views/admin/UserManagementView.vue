@@ -8,21 +8,69 @@
               v-model="teacherSearchText"
               placeholder="请输入教师账号名或手机号"
               style="width: 300px"
-              @search="handleTeacherSearch"
-            />
+              @input="handleTeacherSearch"
+            >
+              <template #prefix>
+                <icon-search />
+              </template>
+            </a-input-search>
           </div>
           <a-table
-            :data="teacherList"
+            :data="filteredTeacherList"
             :loading="teacherLoading"
             :pagination="teacherPagination"
             @page-change="onTeacherPageChange"
+            :bordered="false"
+            :stripe="true"
+            size="small"
           >
             <template #columns>
-              <a-table-column title="账号名" data-index="userName" />
-              <a-table-column title="手机号" data-index="userPhone" />
-              <a-table-column title="创建时间" data-index="createTime">
+              <a-table-column
+                title="账号名"
+                data-index="userName"
+                align="center"
+              >
                 <template #cell="{ record }">
-                  {{ formatTime(record.createTime) }}
+                  <div class="user-info">
+                    <icon-user />
+                    <span>{{ record.userName }}</span>
+                  </div>
+                </template>
+              </a-table-column>
+              <a-table-column
+                title="手机号"
+                data-index="userPhone"
+                align="center"
+              >
+                <template #cell="{ record }">
+                  <div class="user-info">
+                    <icon-phone />
+                    <span>{{ record.userPhone || "未填写" }}</span>
+                  </div>
+                </template>
+              </a-table-column>
+              <a-table-column
+                title="学生人数"
+                data-index="studentCount"
+                align="center"
+              >
+                <template #cell="{ record }">
+                  <div class="user-info">
+                    <icon-user-group />
+                    <span>{{ record.studentCount }}</span>
+                  </div>
+                </template>
+              </a-table-column>
+              <a-table-column
+                title="创建时间"
+                data-index="createTime"
+                align="center"
+              >
+                <template #cell="{ record }">
+                  <div class="user-info">
+                    <icon-clock-circle />
+                    <span>{{ formatTime(record.createTime) }}</span>
+                  </div>
                 </template>
               </a-table-column>
               <a-table-column title="操作" align="center">
@@ -30,8 +78,11 @@
                   <a-button
                     type="text"
                     status="danger"
-                    @click="handleDeleteTeacher(record)"
+                    @click="handleDisableTeacher(record)"
                   >
+                    <template #icon>
+                      <icon-delete />
+                    </template>
                     删除
                   </a-button>
                 </template>
@@ -45,22 +96,69 @@
               v-model="studentSearchText"
               placeholder="请输入学生账号名或手机号"
               style="width: 300px"
-              @search="handleStudentSearch"
-            />
+              @input="handleStudentSearch"
+            >
+              <template #prefix>
+                <icon-search />
+              </template>
+            </a-input-search>
           </div>
           <a-table
-            :data="studentList"
+            :data="filteredStudentList"
             :loading="studentLoading"
             :pagination="studentPagination"
             @page-change="onStudentPageChange"
+            :bordered="false"
+            :stripe="true"
+            size="small"
           >
             <template #columns>
-              <a-table-column title="账号名" data-index="userName" />
-              <a-table-column title="手机号" data-index="userPhone" />
-              <a-table-column title="所属教师" data-index="teacherName" />
-              <a-table-column title="创建时间" data-index="createTime">
+              <a-table-column
+                title="账号名"
+                data-index="userName"
+                align="center"
+              >
                 <template #cell="{ record }">
-                  {{ formatTime(record.createTime) }}
+                  <div class="user-info">
+                    <icon-user />
+                    <span>{{ record.userName }}</span>
+                  </div>
+                </template>
+              </a-table-column>
+              <a-table-column
+                title="所属教师"
+                data-index="teacher"
+                align="center"
+              >
+                <template #cell="{ record }">
+                  <div class="user-info">
+                    <icon-user-group />
+                    <span>{{ record.teacher?.userName || "未绑定" }}</span>
+                  </div>
+                </template>
+              </a-table-column>
+              <a-table-column
+                title="手机号"
+                data-index="userPhone"
+                align="center"
+              >
+                <template #cell="{ record }">
+                  <div class="user-info">
+                    <icon-phone />
+                    <span>{{ record.userPhone || "未填写" }}</span>
+                  </div>
+                </template>
+              </a-table-column>
+              <a-table-column
+                title="创建时间"
+                data-index="createTime"
+                align="center"
+              >
+                <template #cell="{ record }">
+                  <div class="user-info">
+                    <icon-clock-circle />
+                    <span>{{ formatTime(record.createTime) }}</span>
+                  </div>
                 </template>
               </a-table-column>
               <a-table-column title="操作" align="center">
@@ -68,8 +166,11 @@
                   <a-button
                     type="text"
                     status="danger"
-                    @click="handleDeleteStudent(record)"
+                    @click="handleDisableStudent(record)"
                   >
+                    <template #icon>
+                      <icon-delete />
+                    </template>
                     删除
                   </a-button>
                 </template>
@@ -83,17 +184,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { Message } from "@arco-design/web-vue";
+import { ref, onMounted, computed } from "vue";
+import { Message, Modal } from "@arco-design/web-vue";
+import {
+  IconSearch,
+  IconUser,
+  IconPhone,
+  IconUserGroup,
+  IconClockCircle,
+  IconDelete,
+} from "@arco-design/web-vue/es/icon";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/zh-cn";
+import {
+  TasControllerService,
+  UserControllerService,
+} from "../../../generated";
 
 dayjs.extend(relativeTime);
 dayjs.locale("zh-cn");
 
 // 教师列表相关
-const teacherList = ref([]);
+const teacherList = ref<any[]>([]);
 const teacherLoading = ref(false);
 const teacherSearchText = ref("");
 const teacherPagination = ref({
@@ -103,13 +216,38 @@ const teacherPagination = ref({
 });
 
 // 学生列表相关
-const studentList = ref([]);
+const studentList = ref<any[]>([]);
 const studentLoading = ref(false);
 const studentSearchText = ref("");
 const studentPagination = ref({
   current: 1,
   pageSize: 10,
   total: 0,
+});
+
+// 添加计算属性用于前端搜索过滤
+const filteredTeacherList = computed(() => {
+  if (!teacherSearchText.value) {
+    return teacherList.value;
+  }
+  const searchText = teacherSearchText.value.toLowerCase();
+  return teacherList.value.filter(
+    (teacher) =>
+      teacher.userName.toLowerCase().includes(searchText) ||
+      (teacher.userPhone && teacher.userPhone.includes(searchText))
+  );
+});
+
+const filteredStudentList = computed(() => {
+  if (!studentSearchText.value) {
+    return studentList.value;
+  }
+  const searchText = studentSearchText.value.toLowerCase();
+  return studentList.value.filter(
+    (student) =>
+      student.userName.toLowerCase().includes(searchText) ||
+      (student.userPhone && student.userPhone.includes(searchText))
+  );
 });
 
 // 格式化时间
@@ -121,18 +259,15 @@ const formatTime = (time: string) => {
 const loadTeacherList = async () => {
   teacherLoading.value = true;
   try {
-    // TODO: 调用后端接口获取教师列表
-    // const res = await UserControllerService.listTeacherByPage({
-    //   current: teacherPagination.value.current,
-    //   pageSize: teacherPagination.value.pageSize,
-    //   searchText: teacherSearchText.value,
-    // });
-    // if (res.code === 0) {
-    //   teacherList.value = res.data.records;
-    //   teacherPagination.value.total = res.data.total;
-    // }
-  } catch (error) {
-    Message.error("加载教师列表失败");
+    const res = await TasControllerService.getTeacherListUsingGet();
+    if (res.code === 0 && res.data) {
+      teacherList.value = res.data;
+      teacherPagination.value.total = res.data.length;
+    } else {
+      Message.error("加载教师列表失败：" + res.message);
+    }
+  } catch (error: any) {
+    Message.error("加载教师列表失败：" + error.message);
   } finally {
     teacherLoading.value = false;
   }
@@ -142,18 +277,15 @@ const loadTeacherList = async () => {
 const loadStudentList = async () => {
   studentLoading.value = true;
   try {
-    // TODO: 调用后端接口获取学生列表
-    // const res = await UserControllerService.listStudentByPage({
-    //   current: studentPagination.value.current,
-    //   pageSize: studentPagination.value.pageSize,
-    //   searchText: studentSearchText.value,
-    // });
-    // if (res.code === 0) {
-    //   studentList.value = res.data.records;
-    //   studentPagination.value.total = res.data.total;
-    // }
-  } catch (error) {
-    Message.error("加载学生列表失败");
+    const res = await TasControllerService.getStudentListUsingGet();
+    if (res.code === 0 && res.data) {
+      studentList.value = res.data;
+      studentPagination.value.total = res.data.length;
+    } else {
+      Message.error("加载学生列表失败：" + res.message);
+    }
+  } catch (error: any) {
+    Message.error("加载学生列表失败：" + error.message);
   } finally {
     studentLoading.value = false;
   }
@@ -162,13 +294,11 @@ const loadStudentList = async () => {
 // 教师搜索
 const handleTeacherSearch = () => {
   teacherPagination.value.current = 1;
-  loadTeacherList();
 };
 
 // 学生搜索
 const handleStudentSearch = () => {
   studentPagination.value.current = 1;
-  loadStudentList();
 };
 
 // 教师分页变化
@@ -183,43 +313,51 @@ const onStudentPageChange = (current: number) => {
   loadStudentList();
 };
 
-// 删除教师
-const handleDeleteTeacher = (record: any) => {
-  Message.warning({
-    content: "确定要删除该教师吗？",
-    okText: "确定",
+// 禁用教师
+const handleDisableTeacher = (record: any) => {
+  Modal.warning({
+    title: "确认删除",
+    content: `确定要删除教师 ${record.userName} 吗？`,
+    okText: "确认",
     cancelText: "取消",
     onOk: async () => {
       try {
-        // TODO: 调用后端接口删除教师
-        // const res = await UserControllerService.deleteUser(record.id);
-        // if (res.code === 0) {
-        //   Message.success("删除成功");
-        //   loadTeacherList();
-        // }
-      } catch (error) {
-        Message.error("删除失败");
+        const res = await UserControllerService.deleteUserUsingPost({
+          id: record.id,
+        });
+        if (res.code === 0) {
+          Message.success("删除成功");
+          loadTeacherList();
+        } else {
+          Message.error("删除失败：" + res.message);
+        }
+      } catch (error: any) {
+        Message.error("删除失败：" + error.message);
       }
     },
   });
 };
 
-// 删除学生
-const handleDeleteStudent = (record: any) => {
-  Message.warning({
-    content: "确定要删除该学生吗？",
-    okText: "确定",
+// 禁用学生
+const handleDisableStudent = (record: any) => {
+  Modal.warning({
+    title: "确认删除",
+    content: `确定要删除学生 ${record.userName} 吗？`,
+    okText: "确认",
     cancelText: "取消",
     onOk: async () => {
       try {
-        // TODO: 调用后端接口删除学生
-        // const res = await UserControllerService.deleteUser(record.id);
-        // if (res.code === 0) {
-        //   Message.success("删除成功");
-        //   loadStudentList();
-        // }
-      } catch (error) {
-        Message.error("删除失败");
+        const res = await UserControllerService.deleteUserUsingPost({
+          id: record.id,
+        });
+        if (res.code === 0) {
+          Message.success("删除成功");
+          loadStudentList();
+        } else {
+          Message.error("删除失败：" + res.message);
+        }
+      } catch (error: any) {
+        Message.error("删除失败：" + error.message);
       }
     },
   });
@@ -245,13 +383,27 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.user-info :deep(.arco-icon) {
+  color: rgb(var(--primary-6));
+  font-size: 16px;
+}
+
 :deep(.arco-table-th) {
   background-color: #f7f8fa;
   font-weight: 500;
+  text-align: center;
 }
 
 :deep(.arco-table-td) {
-  padding: 16px;
+  padding: 12px;
+  text-align: center;
 }
 
 :deep(.arco-btn-text) {
@@ -260,5 +412,13 @@ onMounted(() => {
 
 :deep(.arco-btn-text:hover) {
   background-color: rgba(var(--red-6), 0.1);
+}
+
+:deep(.arco-table-tr) {
+  height: 48px;
+}
+
+:deep(.arco-table-pagination) {
+  margin-top: 16px;
 }
 </style>

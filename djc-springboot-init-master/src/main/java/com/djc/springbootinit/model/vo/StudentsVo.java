@@ -1,6 +1,7 @@
 package com.djc.springbootinit.model.vo;
 
 
+import com.djc.springbootinit.model.entity.User;
 import lombok.Data;
 
 import java.util.Date;
@@ -20,6 +21,16 @@ public class StudentsVo {
      * 用户昵称
      */
     private String userName;
+
+    /**
+     * 对应教师User
+     */
+    private UserVO teacher;
+
+    /**
+     * 手机号
+     */
+    private String userPhone;
 
     /**
      * 创建时间

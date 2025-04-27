@@ -2,10 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { Post } from './Post';
-export type BaseResponse_List_Post_ = {
+import type { TeacherVo } from './TeacherVo';
+export type BaseResponse_List_TeacherVo_ = {
     code?: number;
-    data?: Array<Post>;
+    data?: Array<TeacherVo>;
     message?: string;
 };
 

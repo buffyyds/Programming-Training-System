@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BaseResponse_boolean_ } from "../models/BaseResponse_boolean_";
-import type { BaseResponse_List_Post_ } from "../models/BaseResponse_List_Post_";
+import type { BaseResponse_List_SensitiveWordPostVO_ } from "../models/BaseResponse_List_SensitiveWordPostVO_";
 import type { BaseResponse_long_ } from "../models/BaseResponse_long_";
 import type { BaseResponse_Page_Post_ } from "../models/BaseResponse_Page_Post_";
 import type { BaseResponse_Page_PostVO_ } from "../models/BaseResponse_Page_PostVO_";
@@ -85,10 +85,10 @@ export class PostControllerService {
 
   /**
    * getHasSensitiveWordPostList
-   * @returns BaseResponse_List_Post_ OK
+   * @returns BaseResponse_List_SensitiveWordPostVO_ OK
    * @throws ApiError
    */
-  public static getHasSensitiveWordPostListUsingGet(): CancelablePromise<BaseResponse_List_Post_> {
+  public static getHasSensitiveWordPostListUsingGet(): CancelablePromise<BaseResponse_List_SensitiveWordPostVO_> {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/post/get/hasSensitiveWordPostList",

@@ -107,8 +107,13 @@ public class PostController {
         }
         //删除该评论下的所有回复（这里好像和上面的校验又有一点矛盾，但是我也不知道咋说）
         List<Long> ids = postService.searchAllReply(id);
-        ids.add(id);
-        boolean b = postService.removeByIds(ids);
+        boolean b = true;
+        if (ids.isEmpty()) {
+            b = postService.removeById(id);
+        }else{
+            ids.add(id);
+            b = postService.removeByIds(ids);
+        }
         return ResultUtils.success(b);
     }
 

@@ -81,4 +81,24 @@ public class TASController {
         return b ? ResultUtils.success("踢出学生成功") : ResultUtils.error(ErrorCode.OPERATION_ERROR,"踢出学生失败");
     }
 
+    /**
+     * 管理员获取教师列表
+     */
+    @GetMapping("getTeacherList")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<List<TeacherVo>> getTeacherList(HttpServletRequest request) {
+        List<TeacherVo> teacherList = tasService.getTeacherList();
+        return ResultUtils.success(teacherList);
+    }
+
+    /**
+     * 管理员获取学生列表
+     */
+    @GetMapping("getStudentList")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<List<StudentsVo>> getStudentList(HttpServletRequest request) {
+        List<StudentsVo> studentList = tasService.getStudentList();
+        return ResultUtils.success(studentList);
+    }
+
 }

@@ -28,4 +28,10 @@ public interface TasService extends IService<Tas> {
     boolean kickStudent(Long teacherId, Long studentId);
 
 
+    List<TeacherVo> getTeacherList();
+
+    List<StudentsVo> getStudentList();
+
+    //删除教师学生关系
+    boolean deleteTeacherStudent(User deleteUser);
 }

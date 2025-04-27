@@ -3,6 +3,7 @@ package com.djc.springbootinit.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.djc.springbootinit.constant.UserConstant;
 import com.djc.springbootinit.exception.ThrowUtils;
 import com.djc.springbootinit.model.entity.Reservation;
 import com.djc.springbootinit.model.entity.Tas;
@@ -144,6 +145,90 @@ public class TasServiceImpl extends ServiceImpl<TasMapper, Tas>
         return this.remove(queryWrapper);
     }
 
+    @Override
+    public List<TeacherVo> getTeacherList() {
+        //获取所有教师信息
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userRole", "teacher");
+        queryWrapper.eq("isDelete", 0);
+        List<User> userList = userService.list(queryWrapper);
+        //封装TeacherVo
+        List<TeacherVo> teacherVoList = userList.stream().map(user -> {
+            TeacherVo teacherVo = new TeacherVo();
+            teacherVo.setId(user.getId());
+            teacherVo.setUserName(user.getUserName());
+            teacherVo.setUserPhone(user.getUserPhone());
+            teacherVo.setCreateTime(user.getCreateTime());
+            //获取旗下学生人数
+            List<Long> studentIds = getStudentIdsByTeacherId(user.getId());
+            teacherVo.setStudentCount(studentIds.size());
+            return teacherVo;
+        }).collect(Collectors.toList());
+        return teacherVoList;
+    }
+
+    @Override
+    public List<StudentsVo> getStudentList() {
+        //获取所有学生信息
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userRole", "user");
+        queryWrapper.eq("isDelete", 0);
+        List<User> userList = userService.list(queryWrapper);
+        //封装StudentsVo
+        List<StudentsVo> studentsVoList = userList.stream().map(user -> {
+            StudentsVo studentsVo = new StudentsVo();
+            studentsVo.setId(user.getId());
+            studentsVo.setUserName(user.getUserName());
+            studentsVo.setCreateTime(user.getCreateTime());
+            studentsVo.setUserPhone(user.getUserPhone());
+            //获取对应教师信息
+            TeacherVo teacherVo = getTeacherByStudentId(user.getId());
+            if (teacherVo == null) {
+                studentsVo.setTeacher(null);
+            } else {
+                studentsVo.setTeacher(userService.getUserVO(userService.getById(teacherVo.getId())));
+            }
+            return studentsVo;
+        }).collect(Collectors.toList());
+        return studentsVoList;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteTeacherStudent(User deleteUser) {
+        if (deleteUser.getUserRole().equals(UserConstant.TEACHER_ROLE)){
+            //删除教师和学生的关系
+            QueryWrapper<Tas> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("teacherId", deleteUser.getId());
+            queryWrapper.eq("isDelete", 0);
+            List<Tas> list = this.list(queryWrapper);
+            //获取学生ids
+            List<Long> studentIds = list.stream().map(Tas::getStudentId).collect(Collectors.toList());
+            //同时更新用户表中的adminCode
+            UpdateWrapper<User> updateWrapperUser = new UpdateWrapper<>();
+            updateWrapperUser
+                    .in("id", studentIds)  // 指定更新条件
+                    .set("adminCode", null);       // 强制设置 studentId 为 null
+            userService.update(updateWrapperUser);
+            //删除tas表中的记录
+            UpdateWrapper<Tas> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq("teacherId", deleteUser.getId());
+            updateWrapper.in("studentId", studentIds);
+            updateWrapper.set("isDelete", 1);
+            return this.update(updateWrapper);
+        }else {
+            //学生的话则只需要删除自己的记录即可
+            QueryWrapper<Tas> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("studentId", deleteUser.getId());
+            //同时更新用户表中的adminCode
+            UpdateWrapper<User> updateWrapperUser = new UpdateWrapper<>();
+            updateWrapperUser
+                    .eq("id", deleteUser.getId())  // 指定更新条件
+                    .set("adminCode", null);       // 强制设置 studentId 为 null
+            userService.update(updateWrapperUser);
+            return this.remove(queryWrapper);
+        }
+    }
 }
 
 
