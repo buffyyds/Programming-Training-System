@@ -390,6 +390,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
                 wrongquestion2.setQuestionId(question.getId());
                 wrongquestion2.setStudentId(userId);
                 wrongquestion2.setWrongSubmitNum(3);
+                wrongquestion2.setTeacherId(question.getUserId());
                 boolean save = wrongquestionService.save(wrongquestion2);
                 if (!save){
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR, "标记错题失败");

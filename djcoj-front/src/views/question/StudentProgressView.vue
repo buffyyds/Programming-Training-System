@@ -237,11 +237,11 @@ onMounted(async () => {
 .question-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0;
 }
 
 .statistics-cards {
-  margin: 20px 0;
+  margin: 0 0;
 }
 
 .stat-card {

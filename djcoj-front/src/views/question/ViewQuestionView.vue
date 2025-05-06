@@ -451,6 +451,9 @@ const POLL_TIMEOUT = 30000; // 30秒超时
 // 添加一个标志位来标记是否已经获取到结果
 const hasGotResult = ref(false);
 
+// 添加一个标志位来标记是否在当前题目页
+const isInCurrentQuestion = ref(true);
+
 // 修改加载数据的逻辑
 const loadData = async () => {
   const res = await QuestionControllerService.getQuestionVoByIdUsingGet(
@@ -747,9 +750,9 @@ onMounted(async () => {
   // 加载评论
   await loadComments();
 
-  // 从本地存储中获取评分结果
+  // 从 sessionStorage 中获取评分结果
   const currentUser = store.state.user.loginUser;
-  const savedScore = localStorage.getItem(`aiScoreResult_${props.id}`);
+  const savedScore = sessionStorage.getItem(`aiScoreResult_${props.id}`);
   if (savedScore && currentUser) {
     try {
       const scoreData = JSON.parse(savedScore);
@@ -761,11 +764,11 @@ onMounted(async () => {
         aiScoreResult.value = scoreData.result;
       } else {
         // 如果不是当前用户的评分，清除缓存
-        localStorage.removeItem(`aiScoreResult_${props.id}`);
+        sessionStorage.removeItem(`aiScoreResult_${props.id}`);
       }
     } catch (error) {
       console.error("解析保存的评分结果失败:", error);
-      localStorage.removeItem(`aiScoreResult_${props.id}`);
+      sessionStorage.removeItem(`aiScoreResult_${props.id}`);
     }
   }
 });
@@ -1015,6 +1018,8 @@ onUnmounted(() => {
     clearInterval(pollInterval.value);
     pollInterval.value = null;
   }
+  // 清除当前题目的评分缓存
+  sessionStorage.removeItem(`aiScoreResult_${props.id}`);
 });
 
 // 添加AI评分相关的功能
@@ -1026,7 +1031,7 @@ const formatMarkdown = (markdown: string) => {
   return DOMPurify.sanitize(marked(markdown));
 };
 
-// 请求AI评分
+// 修改请求AI评分的函数
 const requestAIScore = async () => {
   if (!form.value.code) {
     message.error("请先编写代码");
@@ -1048,14 +1053,14 @@ const requestAIScore = async () => {
     });
 
     if (res.code === 0 && res.data) {
-      // 将评分结果保存到本地存储
+      // 将评分结果保存到 sessionStorage 而不是 localStorage
       const scoreData = {
         result: res.data,
         timestamp: new Date().getTime(),
         questionId: props.id,
-        userId: currentUser.id, // 添加用户ID
+        userId: currentUser.id,
       };
-      localStorage.setItem(
+      sessionStorage.setItem(
         `aiScoreResult_${props.id}`,
         JSON.stringify(scoreData)
       );
@@ -1070,16 +1075,16 @@ const requestAIScore = async () => {
   }
 };
 
-// 监听用户登录状态变化
+// 修改监听用户登录状态变化的逻辑
 watch(
   () => store.state.user.loginUser,
   (newUser) => {
     if (!newUser) {
       // 用户退出登录时，清除所有AI评分缓存
-      const keys = Object.keys(localStorage);
+      const keys = Object.keys(sessionStorage);
       keys.forEach((key) => {
         if (key.startsWith("aiScoreResult_")) {
-          localStorage.removeItem(key);
+          sessionStorage.removeItem(key);
         }
       });
       // 清空当前显示的评分结果
@@ -1088,12 +1093,19 @@ watch(
   }
 );
 
-// 监听路由变化
+// 修改路由监听逻辑
 watch(
   () => route.path,
-  () => {
-    // 当路由变化时，清空评分结果
-    aiScoreResult.value = "";
+  (newPath, oldPath) => {
+    // 当路由变化时，如果离开了当前题目页，清除评分结果
+    if (
+      oldPath &&
+      oldPath.includes("/question/view/") &&
+      !newPath.includes("/question/view/")
+    ) {
+      sessionStorage.removeItem(`aiScoreResult_${props.id}`);
+      aiScoreResult.value = "";
+    }
   }
 );
 </script>
@@ -1308,19 +1320,20 @@ watch(
   justify-content: center;
   align-items: center;
   min-height: 200px;
-  background-color: #2a2d35;
+  background-color: #f3f3f4;
   border-radius: 4px;
 }
 
 .judge-result {
   margin-top: 16px;
-  background-color: #1d2129;
+  background-color: #ffffff;
   border-radius: 4px;
   padding: 16px;
-  color: #fff;
+  color: #1d2129;
   width: 100%;
   box-sizing: border-box;
   min-height: 300px;
+  border: 1px solid #e5e6eb;
 }
 
 .tab-content {
@@ -1329,12 +1342,13 @@ watch(
 
 .test-case-content {
   padding: 16px;
-  background-color: #2a2d35;
+  background-color: #f7f8fa;
   border-radius: 4px;
+  border: 1px solid #e5e6eb;
 }
 
 .case-title {
-  color: #fff;
+  color: #1d2129;
   font-size: 15px;
   font-weight: 500;
   margin-bottom: 12px;
@@ -1354,7 +1368,7 @@ watch(
 }
 
 .case-label {
-  color: #86909c;
+  color: #4e5969;
   min-width: 80px;
   flex-shrink: 0;
   font-size: 14px;
@@ -1366,16 +1380,17 @@ watch(
   font-family: monospace;
   white-space: pre-wrap;
   word-break: break-all;
-  color: #fff;
+  color: #1d2129;
   font-size: 14px;
   line-height: 1.6;
-  background-color: #1d2129;
+  background-color: #ffffff;
   padding: 12px;
   border-radius: 4px;
+  border: 1px solid #e5e6eb;
 }
 
 .case-value.success-result {
-  color: #52c41a !important;
+  color: #00b42a !important;
 }
 
 .case-value.error-result {
@@ -1395,7 +1410,7 @@ watch(
 }
 
 .judge-result-item .label {
-  color: #86909c;
+  color: #4e5969;
   min-width: 80px;
   flex-shrink: 0;
 }
@@ -1404,10 +1419,11 @@ watch(
   font-weight: 500;
   flex: 1;
   word-break: break-all;
+  color: #1d2129;
 }
 
 .judge-result-item .value.success {
-  color: #52c41a !important;
+  color: #00b42a !important;
   font-size: 16px;
   font-weight: 600;
 }
@@ -1419,7 +1435,7 @@ watch(
 }
 
 .judge-result-item .value.warning {
-  color: #faad14 !important;
+  color: #ff7d00 !important;
   font-size: 16px;
   font-weight: 600;
 }
@@ -1444,10 +1460,9 @@ watch(
   overflow-y: auto;
   padding: 24px;
   margin-top: 60px;
-  background-color: #1d2129;
+  background-color: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  border: 1px solid #2b2f3a;
+  border: 1px solid #e5e6eb;
 }
 
 .ai-score-scroll-container::-webkit-scrollbar {
@@ -1455,17 +1470,17 @@ watch(
 }
 
 .ai-score-scroll-container::-webkit-scrollbar-track {
-  background: #2a2d35;
+  background: #f2f3f5;
   border-radius: 3px;
 }
 
 .ai-score-scroll-container::-webkit-scrollbar-thumb {
-  background: #4a4d55;
+  background: #c9cdd4;
   border-radius: 3px;
 }
 
 .ai-score-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #5a5d65;
+  background: #a9aeb8;
 }
 
 .ai-score-result {
@@ -1475,39 +1490,30 @@ watch(
   border: none;
 }
 
-.empty-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-  background-color: transparent;
-  border-radius: 4px;
-}
-
 .markdown-content {
-  color: #e5e7eb;
+  color: #1d2129;
   line-height: 1.8;
   font-size: 15px;
 }
 
 .markdown-content h1 {
-  color: #7ee787;
+  color: #00b42a;
   font-size: 28px;
   margin: 32px 0 20px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #30363d;
+  border-bottom: 2px solid #e5e6eb;
 }
 
 .markdown-content h2 {
-  color: #79c0ff;
+  color: #165dff;
   font-size: 24px;
   margin: 28px 0 16px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #30363d;
+  border-bottom: 1px solid #e5e6eb;
 }
 
 .markdown-content h3 {
-  color: #d2a8ff;
+  color: #722ed1;
   font-size: 20px;
   margin: 24px 0 16px;
 }
@@ -1515,6 +1521,7 @@ watch(
 .markdown-content p {
   margin: 16px 0;
   line-height: 1.8;
+  color: #1d2129;
 }
 
 .markdown-content ul,
@@ -1527,67 +1534,68 @@ watch(
   margin: 8px 0;
   line-height: 1.6;
   position: relative;
+  color: #1d2129;
 }
 
 .markdown-content li::before {
   content: "•";
-  color: #58a6ff;
+  color: #165dff;
   position: absolute;
   left: -18px;
   font-weight: bold;
 }
 
 .markdown-content code {
-  background-color: #2d333b;
+  background-color: #f2f3f5;
   padding: 3px 6px;
   border-radius: 4px;
   font-family: "JetBrains Mono", Consolas, monospace;
   font-size: 14px;
-  color: #ff7b72;
-  border: 1px solid #444c56;
+  color: #f53f3f;
+  border: 1px solid #e5e6eb;
 }
 
 .markdown-content pre {
-  background-color: #2d333b;
+  background-color: #f2f3f5;
   padding: 20px;
   border-radius: 8px;
   margin: 20px 0;
   overflow-x: auto;
-  border: 1px solid #444c56;
+  border: 1px solid #e5e6eb;
 }
 
 .markdown-content pre code {
   background-color: transparent;
   padding: 0;
   border: none;
-  color: #e5e7eb;
+  color: #1d2129;
   font-size: 14px;
   line-height: 1.6;
 }
 
 .markdown-content strong {
-  color: #ff7b72;
+  color: #f53f3f;
   font-weight: 600;
 }
 
 .markdown-content em {
-  color: #d2a8ff;
+  color: #722ed1;
   font-style: italic;
 }
 
 .markdown-content blockquote {
-  border-left: 4px solid #58a6ff;
+  border-left: 4px solid #165dff;
   padding: 12px 20px;
   margin: 20px 0;
-  background-color: #2d333b;
+  background-color: #f2f3f5;
   border-radius: 0 8px 8px 0;
-  color: #8b949e;
+  color: #4e5969;
 }
 
 .markdown-content hr {
   border: none;
   height: 2px;
-  background: linear-gradient(to right, #30363d, #58a6ff, #30363d);
+  background: linear-gradient(to right, #e5e6eb, #165dff, #e5e6eb);
   margin: 32px 0;
 }
 
@@ -1595,14 +1603,15 @@ watch(
   width: 100%;
   border-collapse: collapse;
   margin: 20px 0;
-  background-color: #2d333b;
+  background-color: #ffffff;
   border-radius: 8px;
   overflow: hidden;
+  border: 1px solid #e5e6eb;
 }
 
 .markdown-content th {
-  background-color: #444c56;
-  color: #e5e7eb;
+  background-color: #f2f3f5;
+  color: #1d2129;
   font-weight: 600;
   padding: 12px 16px;
   text-align: left;
@@ -1610,97 +1619,49 @@ watch(
 
 .markdown-content td {
   padding: 12px 16px;
-  border-top: 1px solid #444c56;
-  color: #e5e7eb;
+  border-top: 1px solid #e5e6eb;
+  color: #1d2129;
 }
 
 .markdown-content tr:hover {
-  background-color: #2b2f3a;
+  background-color: #f7f8fa;
 }
 
-/* 添加评分结果的特殊样式 */
 .markdown-content .score-section {
-  background-color: #2d333b;
+  background-color: #f2f3f5;
   padding: 16px 20px;
   border-radius: 8px;
   margin: 20px 0;
-  border: 1px solid #444c56;
+  border: 1px solid #e5e6eb;
 }
 
 .markdown-content .score-value {
   font-size: 24px;
   font-weight: bold;
-  color: #7ee787;
+  color: #00b42a;
   margin: 8px 0;
 }
 
 .markdown-content .improvement {
-  color: #ff7b72;
+  color: #f53f3f;
   font-weight: 500;
 }
 
 .markdown-content .success {
-  color: #7ee787;
+  color: #00b42a;
   font-weight: 500;
 }
 
 .markdown-content .warning {
-  color: #e3b341;
+  color: #ff7d00;
   font-weight: 500;
-}
-
-/* 添加动画效果 */
-.ai-score-result {
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 代码块行号样式 */
-.markdown-content pre {
-  counter-reset: line;
-}
-
-.markdown-content pre code {
-  display: block;
-  position: relative;
-  padding-left: 40px;
-}
-
-.markdown-content pre code::before {
-  counter-increment: line;
-  content: counter(line);
-  position: absolute;
-  left: -40px;
-  width: 30px;
-  text-align: right;
-  color: #484f58;
-  padding-right: 10px;
-  border-right: 1px solid #444c56;
-  user-select: none;
-}
-
-.score-tooltip {
-  color: #f53f3f;
-  font-size: 14px;
-  font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  letter-spacing: 0.5px;
 }
 
 :deep(.arco-tooltip-content) {
-  background-color: #2a2d35;
-  border: 1px solid #424242;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background-color: #ffffff;
+  border: 1px solid #e5e6eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #1d2129;
 }
 
 .sensitive-tag {
