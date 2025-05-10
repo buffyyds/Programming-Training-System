@@ -454,6 +454,9 @@ const hasGotResult = ref(false);
 // 添加一个标志位来标记是否在当前题目页
 const isInCurrentQuestion = ref(true);
 
+// 添加一个变量来记录当前正在回复的评论ID
+const currentReplyId = ref<number | null>(null);
+
 // 修改加载数据的逻辑
 const loadData = async () => {
   const res = await QuestionControllerService.getQuestionVoByIdUsingGet(
@@ -535,6 +538,7 @@ const changeCode = (value: string) => {
  */
 const checkCanViewAnswer = async (forceCheck = false) => {
   const userId = store.state.user.loginUser?.id;
+  const userRole = store.state.user.loginUser?.userRole;
 
   if (hasCheckedAnswer.value && !forceCheck) {
     return;
@@ -547,6 +551,23 @@ const checkCanViewAnswer = async (forceCheck = false) => {
   }
 
   try {
+    // 如果是教师，直接获取答案
+    if (userRole === "teacher") {
+      const answer = await QuestionControllerService.getAnswerByIdUsingGet(
+        props.id
+      );
+      if (answer.code === 0 && answer.data) {
+        answerContent.value = answer.data;
+        canViewAnswer.value = true;
+      } else {
+        canViewAnswer.value = false;
+        console.error("获取答案失败:", answer.message);
+      }
+      hasCheckedAnswer.value = true;
+      return;
+    }
+
+    // 如果是学生，保持原有逻辑
     const res = await QuestionControllerService.getQuestionSubmitPassUsingPost({
       questionId: props.id,
       userId: userId,
@@ -811,7 +832,7 @@ const commentPagination = ref({
   total: 0,
 });
 
-// 加载评论列表
+// 修改加载评论列表的函数
 const loadComments = async () => {
   if (!props.id) return;
 
@@ -826,11 +847,23 @@ const loadComments = async () => {
     });
 
     if (res.code === 0 && res.data) {
-      comments.value = res.data.records.map((comment: any) => ({
-        ...comment,
-        showReplyInput: false,
-        replyContent: "",
-      }));
+      // 处理评论数据，对二级评论进行排序
+      comments.value = res.data.records.map((comment: any) => {
+        // 如果有回复，对回复按时间倒序排序
+        if (comment.reply && comment.reply.length > 0) {
+          comment.reply.sort((a: any, b: any) => {
+            return (
+              new Date(b.createTime).getTime() -
+              new Date(a.createTime).getTime()
+            );
+          });
+        }
+        return {
+          ...comment,
+          showReplyInput: false,
+          replyContent: "",
+        };
+      });
       commentPagination.value.total = Number(res.data.total);
 
       // 检查是否有需要展开的评论
@@ -857,6 +890,30 @@ const loadComments = async () => {
             }
           }, 100);
         }
+      } else if (currentReplyId.value) {
+        // 如果有当前正在回复的评论ID，展开该评论
+        const targetComment = comments.value.find(
+          (comment) => comment.id === currentReplyId.value
+        );
+        if (targetComment) {
+          targetComment.showReplyInput = true;
+          // 滚动到目标评论
+          setTimeout(() => {
+            const element = document.getElementById(
+              `comment-${targetComment.id}`
+            );
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+              // 添加高亮效果
+              element.classList.add("comment-highlight");
+              setTimeout(() => {
+                element.classList.remove("comment-highlight");
+              }, 3000);
+            }
+          }, 100);
+        }
+        // 清除当前回复ID
+        currentReplyId.value = null;
       }
     }
   } catch (error) {
@@ -911,6 +968,8 @@ const submitReply = async (comment: PostVO) => {
 
     if (res.code === 0) {
       Message.success("回复成功");
+      // 保存当前正在回复的评论ID
+      currentReplyId.value = comment.id;
       comment.showReplyInput = false;
       // 重新加载评论列表
       await loadComments();
