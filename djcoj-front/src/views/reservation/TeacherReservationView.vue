@@ -99,11 +99,42 @@
               </a-tag>
             </template>
           </a-table-column>
-          <a-table-column title="预约学生" data-index="studentUser">
+          <a-table-column
+            title="预约学生"
+            data-index="studentUser"
+            :width="200"
+          >
             <template #cell="{ record }">
-              <span v-if="record.studentUser">
-                {{ record.studentUser.userName }}
-              </span>
+              <div
+                v-if="record.studentUser && record.studentUser.length > 0"
+                class="student-tags"
+              >
+                <template v-if="record.studentUser.length <= 2">
+                  <a-tag
+                    v-for="student in record.studentUser"
+                    :key="student.id"
+                    class="student-tag"
+                  >
+                    {{ student.userName }}
+                  </a-tag>
+                </template>
+                <template v-else>
+                  <a-tag
+                    v-for="student in record.studentUser.slice(0, 2)"
+                    :key="student.id"
+                    class="student-tag"
+                  >
+                    {{ student.userName }}
+                  </a-tag>
+                  <a-tooltip
+                    :content="getMoreStudentsTooltip(record.studentUser)"
+                  >
+                    <a-tag class="student-tag more-tag">
+                      +{{ record.studentUser.length - 2 }}
+                    </a-tag>
+                  </a-tooltip>
+                </template>
+              </div>
               <span v-else>-</span>
             </template>
           </a-table-column>
@@ -146,6 +177,7 @@
       title="预约详情"
       @cancel="handleModalClose"
       :footer="false"
+      :width="500"
     >
       <div class="detail-container" v-if="currentReservation">
         <div class="detail-item">
@@ -154,15 +186,18 @@
         </div>
         <div class="detail-item">
           <span class="label">预约学生：</span>
-          <span class="value">{{
-            currentReservation.studentUser?.userName
-          }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">学生电话：</span>
-          <span class="value">{{
-            currentReservation.studentUser?.userPhone || "未填写"
-          }}</span>
+          <div class="student-list">
+            <div
+              v-for="student in currentReservation.studentUser"
+              :key="student.id"
+              class="student-info"
+            >
+              <div class="student-name">{{ student.userName }}</div>
+              <div class="student-phone">
+                {{ student.userPhone || "未填写电话" }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </a-modal>
@@ -505,6 +540,14 @@ const updateTimeSlot = async () => {
   }
 };
 
+// 获取更多学生的提示信息
+const getMoreStudentsTooltip = (students: any[]) => {
+  return students
+    .slice(2)
+    .map((student) => student.userName)
+    .join("\n");
+};
+
 onMounted(() => {
   loadReservations();
 });
@@ -634,5 +677,73 @@ onMounted(() => {
 
 .filter-section {
   margin-bottom: 16px;
+}
+
+.student-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.student-tag {
+  margin: 0;
+  padding: 0 8px;
+  height: 24px;
+  line-height: 24px;
+  border-radius: 4px;
+  background-color: var(--color-fill-2);
+  color: var(--color-text-1);
+  font-size: 13px;
+}
+
+.more-tag {
+  background-color: var(--color-fill-3);
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.more-tag:hover {
+  background-color: var(--color-fill-4);
+}
+
+/* 调整表格列宽 */
+:deep(.arco-table-th) {
+  padding: 12px 16px;
+}
+
+:deep(.arco-table-td) {
+  padding: 12px 16px;
+}
+
+/* 优化预约详情弹窗样式 */
+.student-list {
+  margin-top: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.student-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: var(--color-fill-2);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.student-info:last-child {
+  margin-bottom: 0;
+}
+
+.student-name {
+  font-weight: 500;
+  color: var(--color-text-1);
+}
+
+.student-phone {
+  color: var(--color-text-3);
+  font-size: 13px;
+  margin-left: 16px;
 }
 </style>

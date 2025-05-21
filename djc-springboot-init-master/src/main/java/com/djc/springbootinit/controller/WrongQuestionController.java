@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
- * 教师学生
+ * 错题
  */
 @RestController
 @RequestMapping("/wrongQuestion")

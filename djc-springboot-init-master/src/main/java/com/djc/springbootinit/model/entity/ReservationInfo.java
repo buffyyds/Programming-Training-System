@@ -8,11 +8,11 @@ import lombok.Data;
 
 /**
  * 
- * @TableName reservation
+ * @TableName reservation_info
  */
-@TableName(value ="reservation")
+@TableName(value ="reservation_info")
 @Data
-public class Reservation {
+public class ReservationInfo {
     /**
      * id
      */
@@ -20,14 +20,14 @@ public class Reservation {
     private Long id;
 
     /**
-     * 教师id
+     * 学生id
      */
-    private Long teacherId;
+    private Long studentId;
 
     /**
-     * 答疑时间段
+     * 答疑时间段id
      */
-    private String time_slot;
+    private Long reservationId;
 
     /**
      * 创建时间

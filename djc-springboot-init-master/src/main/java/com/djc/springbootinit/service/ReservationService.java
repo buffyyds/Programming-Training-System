@@ -4,6 +4,7 @@ import com.djc.springbootinit.model.dto.Reservation.DoReservationRequest;
 import com.djc.springbootinit.model.dto.Reservation.ReservationEditRequest;
 import com.djc.springbootinit.model.entity.Reservation;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.djc.springbootinit.model.entity.ReservationInfo;
 import com.djc.springbootinit.model.vo.ReservationPerformanceVO;
 import com.djc.springbootinit.model.vo.ReservationVO;
 
@@ -23,8 +24,6 @@ public interface ReservationService extends IService<Reservation> {
     List<Reservation> getReservationByTeacherId(Long teacherId);
 
     List<ReservationVO> getReservationVO(List<Reservation> reservationList);
-
-    boolean doReservation(DoReservationRequest doReservationRequest);
 
     boolean unDoReservation(DoReservationRequest doReservationRequest);
 

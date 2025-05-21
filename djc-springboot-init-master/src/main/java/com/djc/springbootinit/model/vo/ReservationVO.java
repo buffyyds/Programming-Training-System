@@ -28,7 +28,7 @@ public class ReservationVO implements Serializable {
     /**
      * 预约学生User
      */
-    private UserVO studentUser;
+    private List<UserVO> studentUser;
 
     /**
      * 时间段

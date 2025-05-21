@@ -7,7 +7,6 @@
     <resultMap id="BaseResultMap" type="com.djc.springbootinit.model.entity.Reservation">
         <id property="id" column="id"/>
         <result property="teacherId" column="teacherId"/>
-        <result property="studentId" column="studentId"/>
         <result property="time_slot" column="time_slot"/>
         <result property="createTime" column="createTime"/>
         <result property="updateTime" column="updateTime"/>
@@ -15,6 +14,6 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,teacherId,studentId,time_slot,createTime,updateTime,isDelete
+        id,teacherId,time_slot,createTime,updateTime,isDelete
     </sql>
 </mapper>

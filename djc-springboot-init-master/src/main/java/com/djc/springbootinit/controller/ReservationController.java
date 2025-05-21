@@ -9,15 +9,13 @@ import com.djc.springbootinit.constant.UserConstant;
 import com.djc.springbootinit.model.dto.Reservation.DoReservationRequest;
 import com.djc.springbootinit.model.dto.Reservation.ReservationEditRequest;
 import com.djc.springbootinit.model.entity.Reservation;
+import com.djc.springbootinit.model.entity.ReservationInfo;
 import com.djc.springbootinit.model.entity.User;
 import com.djc.springbootinit.model.vo.ReservationPerformanceVO;
 import com.djc.springbootinit.model.vo.ReservationVO;
 import com.djc.springbootinit.model.vo.StudentsVo;
 import com.djc.springbootinit.model.vo.TeacherVo;
-import com.djc.springbootinit.service.RemindCompleteService;
-import com.djc.springbootinit.service.ReservationService;
-import com.djc.springbootinit.service.TasService;
-import com.djc.springbootinit.service.UserService;
+import com.djc.springbootinit.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 教师学生
+ * 答疑预约
  */
 @RestController
 @RequestMapping("/reservation")
@@ -45,6 +43,9 @@ public class ReservationController {
 
     @Resource
     private RemindCompleteService remindCompleteService;
+
+    @Resource
+    private ReservationInfoService reservationInfoService;
 
     /**
      * 教师添加预约时间段
@@ -82,7 +83,7 @@ public class ReservationController {
 
 
     /**
-     * 学生获取预约时间段
+     * 获取预约时间段
      */
     @GetMapping("/get")
     public BaseResponse<List<ReservationVO>> getReservation(HttpServletRequest request) {
@@ -104,7 +105,7 @@ public class ReservationController {
     @PostMapping("/doReservation")
     public BaseResponse<String> doReservation(@RequestBody DoReservationRequest doReservationRequest, HttpServletRequest request) {
         // 学生预约时间段
-        boolean b = reservationService.doReservation(doReservationRequest);
+        boolean b = reservationInfoService.doReservation(doReservationRequest);
         return b ? ResultUtils.success("预约成功") : ResultUtils.error(ErrorCode.SYSTEM_ERROR, "预约失败");
     }
 
@@ -114,7 +115,7 @@ public class ReservationController {
     @PostMapping("/unDoReservation")
     public BaseResponse<String> unDoReservation(@RequestBody DoReservationRequest doReservationRequest, HttpServletRequest request) {
         // 学生预约时间段
-        boolean b = reservationService.unDoReservation(doReservationRequest);
+        boolean b = reservationInfoService.unDoReservation(doReservationRequest);
         return b ? ResultUtils.success("取消预约成功") : ResultUtils.error(ErrorCode.SYSTEM_ERROR, "取消预约失败");
     }
 

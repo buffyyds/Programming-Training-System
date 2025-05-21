@@ -73,23 +73,29 @@
           <a-table-column title="操作">
             <template #cell="{ record }">
               <a-space>
+                <template v-if="!isExpired(record)">
+                  <a-button
+                    v-if="getStatusText(record) === '可预约'"
+                    type="primary"
+                    @click="doReservation(record)"
+                  >
+                    预约
+                  </a-button>
+                  <a-button
+                    v-if="getStatusText(record) === '您预约了该时间段'"
+                    type="primary"
+                    status="danger"
+                    @click="cancelReservation(record)"
+                  >
+                    取消预约
+                  </a-button>
+                </template>
                 <a-button
-                  v-if="!record.isReservation && !isExpired(record)"
-                  type="primary"
-                  @click="doReservation(record)"
+                  v-if="record.studentUser?.length > 0"
+                  type="outline"
+                  @click="viewReservationDetail(record)"
                 >
-                  预约
-                </a-button>
-                <a-button
-                  v-else-if="
-                    record.studentUser?.id === currentUserId &&
-                    !isExpired(record)
-                  "
-                  type="primary"
-                  status="danger"
-                  @click="cancelReservation(record)"
-                >
-                  取消预约
+                  查看预约信息
                 </a-button>
               </a-space>
             </template>
@@ -97,6 +103,37 @@
         </template>
       </a-table>
     </a-card>
+
+    <!-- 预约详情弹窗 -->
+    <a-modal
+      v-model:visible="showDetailModal"
+      title="预约详情"
+      @cancel="handleModalClose"
+      :footer="false"
+      :width="500"
+    >
+      <div class="detail-container" v-if="currentReservation">
+        <div class="detail-item">
+          <span class="label">时间段：</span>
+          <span class="value">{{ currentReservation.time_slot }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">预约学生：</span>
+          <div class="student-list">
+            <div
+              v-for="student in currentReservation.studentUser"
+              :key="student.id"
+              class="student-info"
+            >
+              <div class="student-name">{{ student.userName }}</div>
+              <div class="student-phone">
+                {{ student.userPhone || "未填写电话" }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -139,7 +176,11 @@ const getStatusColor = (record: any) => {
     return "gray";
   }
   if (record.isReservation) {
-    return record.studentUser?.id === currentUserId.value ? "green" : "red";
+    // 检查当前用户是否在预约学生列表中
+    const hasReserved = record.studentUser?.some(
+      (student: any) => student.id === currentUserId.value
+    );
+    return hasReserved ? "green" : "blue";
   }
   return "blue";
 };
@@ -150,9 +191,11 @@ const getStatusText = (record: any) => {
     return "已过期";
   }
   if (record.isReservation) {
-    return record.studentUser?.id === currentUserId.value
-      ? "您预约了该时间段"
-      : "已被预约";
+    // 检查当前用户是否在预约学生列表中
+    const hasReserved = record.studentUser?.some(
+      (student: any) => student.id === currentUserId.value
+    );
+    return hasReserved ? "您预约了该时间段" : "可预约";
   }
   return "可预约";
 };
@@ -164,9 +207,9 @@ const filteredReservations = computed(() => {
     if (currentStatus.value === "expired") return isExpired(record);
     if (currentStatus.value === "reserved")
       return (
-        record.isReservation &&
-        record.studentUser?.id === currentUserId.value &&
-        !isExpired(record)
+        record.studentUser?.some(
+          (student: any) => student.id === currentUserId.value
+        ) && !isExpired(record)
       );
     if (currentStatus.value === "available")
       return !record.isReservation && !isExpired(record);
@@ -254,6 +297,22 @@ const goBack = () => {
   router.back();
 };
 
+// 添加预约详情相关的状态
+const showDetailModal = ref(false);
+const currentReservation = ref<any>(null);
+
+// 查看预约详情
+const viewReservationDetail = (record: any) => {
+  currentReservation.value = record;
+  showDetailModal.value = true;
+};
+
+// 关闭弹窗
+const handleModalClose = () => {
+  currentReservation.value = null;
+  showDetailModal.value = false;
+};
+
 onMounted(() => {
   loadReservations();
 });
@@ -307,5 +366,51 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   color: var(--color-text-1);
+}
+
+.detail-container {
+  padding: 16px;
+}
+
+.detail-item {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.detail-item .label {
+  width: 80px;
+  color: var(--color-text-3);
+}
+
+.detail-item .value {
+  flex: 1;
+  color: var(--color-text-1);
+}
+
+.student-list {
+  margin-top: 8px;
+}
+
+.student-info {
+  padding: 8px;
+  background-color: var(--color-fill-2);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.student-info:last-child {
+  margin-bottom: 0;
+}
+
+.student-name {
+  font-weight: 500;
+  color: var(--color-text-1);
+  margin-bottom: 4px;
+}
+
+.student-phone {
+  color: var(--color-text-3);
+  font-size: 13px;
 }
 </style>

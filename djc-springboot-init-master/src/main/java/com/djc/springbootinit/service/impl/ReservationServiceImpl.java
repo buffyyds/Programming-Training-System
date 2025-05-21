@@ -7,24 +7,24 @@ import com.djc.springbootinit.model.dto.Reservation.DoReservationRequest;
 import com.djc.springbootinit.model.dto.Reservation.ReservationEditRequest;
 import com.djc.springbootinit.model.entity.RemindComplete;
 import com.djc.springbootinit.model.entity.Reservation;
+import com.djc.springbootinit.model.entity.ReservationInfo;
 import com.djc.springbootinit.model.vo.ReservationPerformanceVO;
 import com.djc.springbootinit.model.vo.ReservationVO;
 import com.djc.springbootinit.model.vo.UserVO;
-import com.djc.springbootinit.service.RemindCompleteService;
-import com.djc.springbootinit.service.ReservationService;
+import com.djc.springbootinit.service.*;
 import com.djc.springbootinit.mapper.ReservationMapper;
-import com.djc.springbootinit.service.TasService;
-import com.djc.springbootinit.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author djc
@@ -42,6 +42,9 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
     private RemindCompleteService remindCompleteService;
     @Autowired
     private TasService tasService;
+
+    @Autowired
+    private ReservationInfoService reservationInfoService;
 
     @Override
     public void addReservation(long teacherId, String time_slot) {
@@ -68,18 +71,22 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
         reservation.setUpdateTime(Date.from(Instant.now()));
         this.updateById(reservation);
         //如果已经有学生预约了该时间段，则需要提醒学生
-        if (reservation.getStudentId() != null) {
+        QueryWrapper<ReservationInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("reservationId", reservationId);
+        List<ReservationInfo> reservationInfoList = reservationInfoService.list(queryWrapper);
+        if (!reservationInfoList.isEmpty()) {
             //查询学生信息
-            Long studentId = reservation.getStudentId();
-            Long teacherId = reservation.getTeacherId();
-            UserVO teacherUser = UserVO.objToVo(userService.getById(teacherId));
-            //创建提醒信息
-            RemindComplete remindComplete = new RemindComplete();
-            remindComplete.setTeacherId(teacherId);
-            remindComplete.setStudentId(studentId);
-            remindComplete.setIsRead(false);
-            remindComplete.setContent("您预约的教师：" + teacherUser.getUserName() + "的答疑时间段：" + oldTime_slot + "已更新为" + newTime_slot + "，请及时查看");
-            remindCompleteService.save(remindComplete);
+            for( ReservationInfo reservationInfo : reservationInfoList) {
+                Long studentId = reservationInfo.getStudentId();
+                UserVO teacherUser = UserVO.objToVo(userService.getById(reservation.getTeacherId()));
+                //创建提醒信息
+                RemindComplete remindComplete = new RemindComplete();
+                remindComplete.setTeacherId(reservation.getTeacherId());
+                remindComplete.setStudentId(studentId);
+                remindComplete.setIsRead(false);
+                remindComplete.setContent("您预约的教师：" + teacherUser.getUserName() + "的答疑时间段：" + oldTime_slot + "已更新为" + newTime_slot + "，请及时查看");
+                remindCompleteService.save(remindComplete);
+            }
         }
     }
 
@@ -94,28 +101,27 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
 
     @Override
     public List<ReservationVO> getReservationVO(List<Reservation> reservationList) {
-        //将预约信息转换为预约视图对象
-        if (reservationList != null && !reservationList.isEmpty()) {
-            return reservationList.stream()
-                    .map(reservation -> {
-                        ReservationVO reservationVO = new ReservationVO();
-                        reservationVO.setId(reservation.getId());
-                        reservationVO.setTeacherUser(UserVO.objToVo(userService.getById(reservation.getTeacherId())));
-                        reservationVO.setStudentUser(UserVO.objToVo(reservation.getStudentId() == null ? null : userService.getById(reservation.getStudentId())));
-                        reservationVO.setTime_slot(reservation.getTime_slot());
-                        reservationVO.setIsReservation(reservation.getStudentId() != null);
-                        return reservationVO;
-                    }).collect(Collectors.toList());
+        //查询每个预约时间段的学生预约信息
+        List<ReservationVO> reservationVOS = new ArrayList<>();
+        for (Reservation reservation : reservationList) {
+            //查询预约信息
+            QueryWrapper<ReservationInfo> queryWrapper1 = new QueryWrapper<>();
+            queryWrapper1.eq("reservationId", reservation.getId());
+            List<ReservationInfo> reservationInfoList = reservationInfoService.list(queryWrapper1);
+            ReservationVO reservationVO = new ReservationVO();
+            reservationVO.setId(reservation.getId());
+            reservationVO.setTime_slot(reservation.getTime_slot());
+            reservationVO.setTeacherUser(UserVO.objToVo(userService.getById(reservation.getTeacherId())));
+            reservationVO.setStudentUser(reservationInfoList.stream().map(reservationInfo -> {
+                Long studentId = reservationInfo.getStudentId();
+                return UserVO.objToVo(userService.getById(studentId));
+            }).collect(Collectors.toList()));
+            reservationVO.setIsReservation(reservationInfoService.getIsReservation(reservation.getId()));
+            reservationVOS.add(reservationVO);
         }
-        return Collections.emptyList();
+        return reservationVOS;
     }
 
-    @Override
-    public boolean doReservation(DoReservationRequest doReservationRequest) {
-        Reservation reservation = this.getById(doReservationRequest.getId());
-        reservation.setStudentId(doReservationRequest.getStudentId());
-        return this.updateById(reservation);
-    }
 
     @Override
     public boolean unDoReservation(DoReservationRequest doReservationRequest) {
@@ -133,23 +139,26 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
         // 查询预约信息
         Reservation reservation = this.getById(reservationId);
         if (reservation != null) {
-            // 删除预约信息
-            this.removeById(reservationId);
             // 如果有学生预约了该时间段，则需要提醒学生
-            if (reservation.getStudentId() != null) {
-                // 查询学生信息
-                Long studentId = reservation.getStudentId();
-                Long teacherId = reservation.getTeacherId();
-                UserVO teacherUser = UserVO.objToVo(userService.getById(teacherId));
-                // 创建提醒信息
-                RemindComplete remindComplete = new RemindComplete();
-                remindComplete.setTeacherId(teacherId);
-                remindComplete.setStudentId(studentId);
-                remindComplete.setIsRead(false);
-                remindComplete.setContent("您预约的教师：" + teacherUser.getUserName() + "的答疑时间段：" + reservation.getTime_slot() + "已被删除，请及时查看");
-                return remindCompleteService.save(remindComplete);
+            QueryWrapper<ReservationInfo> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("reservationId", reservationId);
+            List<ReservationInfo> reservationInfoList = reservationInfoService.list(queryWrapper);
+            if (!reservationInfoList.isEmpty()) {
+                for (ReservationInfo reservationInfo : reservationInfoList){
+                    //删除reservationInfo对应信息
+                    reservationInfoService.remove(queryWrapper);
+                    Long studentId = reservationInfo.getStudentId();
+                    UserVO teacherUser = UserVO.objToVo(userService.getById(reservation.getTeacherId()));
+                    //创建提醒信息
+                    RemindComplete remindComplete = new RemindComplete();
+                    remindComplete.setTeacherId(reservation.getTeacherId());
+                    remindComplete.setStudentId(studentId);
+                    remindComplete.setIsRead(false);
+                    remindComplete.setContent("您预约的教师：" + teacherUser.getUserName() + "的答疑时间段：" + reservation.getTime_slot() + "已被删除，请及时查看");
+                    remindCompleteService.save(remindComplete);
+                }
             }
-            return true;
+            return this.removeById(reservationId);
         }
         return false;
     }
@@ -157,17 +166,22 @@ public class ReservationServiceImpl extends ServiceImpl<ReservationMapper, Reser
     @Override
     public List<ReservationPerformanceVO> getAllStudentReservation(long teacherId) {
         List<Long> studentIds = tasService.getStudentIdsByTeacherId(teacherId);
-        QueryWrapper<Reservation> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("teacherId", teacherId);
+        QueryWrapper<ReservationInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("studentId", studentIds);
-        List<Reservation> reservationList = this.list(queryWrapper);
-        if (reservationList != null && !reservationList.isEmpty()) {
-            List<ReservationPerformanceVO> TOPTen = reservationList.stream()
-                .collect(Collectors.groupingBy(Reservation::getStudentId))
+        List<ReservationInfo> reservationInfoList = reservationInfoService.list(queryWrapper);
+        if (reservationInfoList != null && !reservationInfoList.isEmpty()) {
+            List<ReservationPerformanceVO> TOPTen = reservationInfoList.stream()
+                .collect(Collectors.groupingBy(ReservationInfo::getStudentId))
                 .entrySet().stream()
                 .map(entry -> {
                     Long studentId = entry.getKey();
-                    List<Reservation> reservations = entry.getValue();
+                    List<ReservationInfo> reservationInfos = entry.getValue();
+                    List<Reservation> reservations = reservationInfos.stream()
+                        .map(reservationInfo -> {
+                            Long reservationId = reservationInfo.getReservationId();
+                            return this.getById(reservationId);
+                        })
+                        .collect(Collectors.toList());
                     ReservationPerformanceVO reservationPerformanceVO = new ReservationPerformanceVO();
                     reservationPerformanceVO.setStudentUser(UserVO.objToVo(userService.getById(studentId)));
                     reservationPerformanceVO.setTotalTime(calculateTotalTime(reservations));
