@@ -103,11 +103,11 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "数据插入失败");
         }
         Long questionSubmitId = questionSubmit.getId();
-//        myMessageProducer.sendMessage("code_exchange", "my_routingKey", String.valueOf(questionSubmitId));
-        CompletableFuture.runAsync(() -> {
-            // 异步判题
-             judgeService.doJudge(questionSubmitId);
-        });
+        myMessageProducer.sendMessage("code_exchange", "my_routingKey", String.valueOf(questionSubmitId));
+//        CompletableFuture.runAsync(() -> {
+//            // 异步判题
+//             judgeService.doJudge(questionSubmitId);
+//        });
         return questionSubmitId;
     }
 

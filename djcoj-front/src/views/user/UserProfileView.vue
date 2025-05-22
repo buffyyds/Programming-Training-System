@@ -223,13 +223,25 @@ const handleSubmit = async () => {
     const res = await UserControllerService.updateMyUserUsingPost(updateData);
     if (res.code == 0) {
       Message.success("更新成功");
+
+      // 如果修改了密码,则退出登录
+      if (showChangePassword.value) {
+        Message.success("密码修改成功,请重新登录");
+        // 清除用户信息
+        store.commit("user/logout");
+        // 跳转到登录页
+        router.push("/user/login");
+        return;
+      }
+
+      // 如果只是修改其他信息,则更新本地用户信息
+      store.commit("user/updateUser", {
+        ...store.state.user.loginUser,
+        ...userForm.value,
+      });
     } else {
       Message.error("更新失败" + res.message);
     }
-    store.commit("user/updateUser", {
-      ...store.state.user.loginUser,
-      ...userForm.value,
-    });
 
     // 重置密码相关状态
     showChangePassword.value = false;
