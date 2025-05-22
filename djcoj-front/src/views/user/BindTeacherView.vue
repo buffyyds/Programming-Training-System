@@ -30,7 +30,9 @@
             <!--            </a-avatar>-->
             <div class="teacher-detail">
               <div class="teacher-name">{{ boundTeacher?.userName }}</div>
-              <div class="teacher-id">教师ID: {{ boundTeacher?.id }}</div>
+              <div class="teacher-id">
+                教师电话: {{ boundTeacher?.userPhone }}
+              </div>
             </div>
             <div class="action-buttons">
               <a-button type="primary" status="danger" @click="handleUnbind">
@@ -118,6 +120,7 @@ const isBound = ref(false);
 const boundTeacher = ref<{
   id: string;
   userName: string;
+  userPhone: string;
 } | null>(null);
 
 // 过滤后的教师列表
@@ -148,6 +151,7 @@ const getBindStatus = async () => {
           boundTeacher.value = {
             id: String(data.true.id),
             userName: data.true.userName,
+            userPhone: data.true.userPhone,
           };
         }
         console.log("已绑定教师信息:", boundTeacher.value);
