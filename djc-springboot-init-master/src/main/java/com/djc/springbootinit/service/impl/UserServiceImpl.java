@@ -316,7 +316,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             TeacherVo teacherVo = new TeacherVo();
             teacherVo.setId(teacher.getId());
             teacherVo.setUserName(teacher.getUserName());
-            teacherVo.setUserPhone(teacher.getUserPhone().isEmpty()  ? "未填写" : teacher.getUserPhone());
+            teacherVo.setUserPhone(StringUtils.isBlank(teacher.getUserPhone()) ? "未填写" : teacher.getUserPhone());
             teacherVo.setCreateTime(teacher.getCreateTime());
             return teacherVo;
         }
