@@ -19,6 +19,13 @@ public class MyMessageConsumer {
     private JudgeService judgeService;
 
     // 指定程序监听的消息队列和确认机制
+
+    /**
+     *
+     * @param message 解码后的消息
+     * @param channel 接受消息所使用的信道
+     * @param deliveryTag 使用@Header接口获取messageProperties中的DELIVERY_TAG属性。
+     */
     @SneakyThrows
     @RabbitListener(queues = {"code_queue"}, ackMode = "MANUAL")
     public void receiveMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {

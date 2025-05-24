@@ -97,13 +97,13 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         questionSubmit.setStatus(QuestionSubmitStatusEnum.WAITING.getValue());
         questionSubmit.setJudgeInfo("{}");
         questionSubmit.setExecuteResult("{}");
-        //save方法是继承自ServiceImpl的方法,用于判断是否插入成功
         boolean save = this.save(questionSubmit);
         if (!save){
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "数据插入失败");
         }
         Long questionSubmitId = questionSubmit.getId();
         myMessageProducer.sendMessage("code_exchange", "my_routingKey", String.valueOf(questionSubmitId));
+        //原来是异步调用判题，现在改成了消息队列
 //        CompletableFuture.runAsync(() -> {
 //            // 异步判题
 //             judgeService.doJudge(questionSubmitId);

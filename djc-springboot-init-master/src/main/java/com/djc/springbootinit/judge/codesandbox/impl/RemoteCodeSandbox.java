@@ -7,6 +7,7 @@ import com.djc.springbootinit.exception.BusinessException;
 import com.djc.springbootinit.judge.codesandbox.CodeSandbox;
 import com.djc.springbootinit.judge.codesandbox.model.ExecuteCodeRequest;
 import com.djc.springbootinit.judge.codesandbox.model.ExecuteCodeResponse;
+import com.djc.springbootinit.judge.codesandbox.model.JudgeInfo;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -23,7 +24,7 @@ public class RemoteCodeSandbox implements CodeSandbox {
     @Override
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
         System.out.println("调用远程代码沙箱");
-        String url = "http://192.168.189.144:8090/executeCode";
+        String url = "http://192.168.189.148:8090/executeCode";
         String json = JSONUtil.toJsonStr(executeCodeRequest);
         String responseStr = HttpUtil.createPost(url)
                 .header(AUTH_REQUEST_HEADER, AUTH_REQUEST_SECRET)
@@ -33,6 +34,13 @@ public class RemoteCodeSandbox implements CodeSandbox {
 
         if (StringUtils.isBlank(responseStr)) {
             throw new BusinessException(ErrorCode.API_REQUEST_ERROR, "executeCode remoteSandbox error, message = " + responseStr);
+        }
+        if(responseStr.contains("编译错误")) {
+            ExecuteCodeResponse executeCodeResponse = new ExecuteCodeResponse();
+            JudgeInfo judgeInfo = new JudgeInfo();
+            judgeInfo.setMessage("编译错误");
+            executeCodeResponse.setJudgeInfo(judgeInfo);
+            return executeCodeResponse;
         }
         return JSONUtil.toBean(responseStr, ExecuteCodeResponse.class);
     }
