@@ -636,7 +636,35 @@ const pollJudgeResult = async () => {
           return;
         }
 
-        // 找到第一个数组的开始位置
+        // 处理编译错误的情况
+        if (dataStr.includes("编译错误") || dataStr.includes("Compile Error")) {
+          // 提取错误信息部分 (去掉最后的 {})
+          const errorInfo = dataStr.split("{}")[0];
+          try {
+            const judgeInfo = JSON.parse(errorInfo);
+            // 设置判题结果
+            judgeResult.value = {
+              message: judgeInfo.message,
+              memory: judgeInfo.memory || 0,
+              time: judgeInfo.time || 0,
+              testCaseResults: [],
+            };
+            // 停止轮询
+            if (pollInterval.value) {
+              clearInterval(pollInterval.value);
+              pollInterval.value = null;
+            }
+            submitting.value = false;
+            hasGotResult.value = true;
+            // 自动跳转到判题结果页签
+            activeJudgeTab.value = "result";
+            return;
+          } catch (e) {
+            console.error("解析编译错误信息失败:", e);
+          }
+        }
+
+        // 处理正常的判题结果
         const arrayStartIndex = dataStr.indexOf("[");
         if (arrayStartIndex === -1) {
           // 如果找不到数组，说明数据格式不完整，继续等待
